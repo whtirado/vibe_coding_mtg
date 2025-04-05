@@ -52,6 +52,14 @@
         --context-menu-text: #333333; /* NEW */
         --context-menu-hover-bg: #f0f0f0; /* NEW */
         --context-menu-disabled-text: #aaaaaa; /* NEW */
+        --scry-overlay-bg: rgba(0, 0, 0, 0.75); /* NEW */
+        --scry-modal-bg: #ffffff; /* NEW */
+        --scry-card-bg: #f9f9f9; /* NEW */
+        --scry-card-border: #dddddd; /* NEW */
+        --scry-button-bg: #6c757d; /* NEW */
+        --scry-button-text: #ffffff; /* NEW */
+        --scry-button-hover-bg: #5a6268; /* NEW */
+        --scry-button-selected-bg: #0056b3; /* NEW */
       }
 
       body[data-theme="dark"] {
@@ -99,6 +107,14 @@
         --context-menu-text: #e0e0e0; /* NEW */
         --context-menu-hover-bg: #444444; /* NEW */
         --context-menu-disabled-text: #888888; /* NEW */
+        --scry-overlay-bg: rgba(0, 0, 0, 0.85); /* NEW */
+        --scry-modal-bg: #2c2c2c; /* NEW */
+        --scry-card-bg: #383838; /* NEW */
+        --scry-card-border: #505050; /* NEW */
+        --scry-button-bg: #5a6268; /* NEW */
+        --scry-button-text: #ffffff; /* NEW */
+        --scry-button-hover-bg: #495057; /* NEW */
+        --scry-button-selected-bg: #003d80; /* NEW */
       }
       /* --- End CSS Variables --- */
 
@@ -200,9 +216,8 @@
         text-align: center;
         border-bottom: 1px solid var(--border-color-light);
         padding-bottom: 3px;
-        width: 100%; /* Ensure h4 takes full width in flex */
+        width: 100%;
       }
-
       .search-section,
       .deck-section,
       .actions-section,
@@ -233,7 +248,7 @@
       .test-hand-section {
         grid-column: 1 / -1;
         grid-row: 4 / 5;
-        min-height: 750px; /* Increased min-height for layout changes */
+        min-height: 750px;
       }
 
       /* Search Styles (Unchanged) */
@@ -248,7 +263,6 @@
         color: var(--input-text);
       }
       #searchResults {
-        /* Only applies to main search now */
         list-style: none;
         padding: 0;
         margin: 10px 0 0 0;
@@ -275,7 +289,6 @@
         background-color: var(--search-result-hover-bg);
       }
       .search-result-image {
-        /* Used by both searches now potentially */
         width: 30px;
         height: auto;
         border-radius: 2px;
@@ -291,7 +304,7 @@
         border: none;
         box-shadow: none;
         max-height: 0;
-        margin-top: 0; /* Remove margin when empty */
+        margin-top: 0;
       }
 
       /* Deck List Styles (Unchanged) */
@@ -350,13 +363,8 @@
         color: var(--input-text);
       }
 
-      /* Buttons and Status (Unchanged general styles) */
-      .action-button,
-      .delete-card-btn,
-      #drawHandButton,
-      #drawNextCardButton,
-      #shuffleDeckButton,
-      #searchDeckButton {
+      /* Buttons and Status */
+      .action-button, .delete-card-btn, #drawHandButton, #drawNextCardButton, #shuffleDeckButton, #searchDeckButton, #scryButton /* Added */ {
         padding: 9px 15px;
         background-color: var(--button-bg);
         color: var(--button-text);
@@ -373,12 +381,30 @@
         align-items: center;
         flex-wrap: wrap;
       }
-      .test-controls .action-button {
+      .test-controls .action-button, .test-controls .scry-control /* Added scry-control */ {
         display: inline-block;
         width: auto;
         margin-right: 10px;
         margin-bottom: 5px;
       }
+      /* Style for Scry input */
+      .scry-control {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+      }
+      #scryCountInput {
+        width: 45px;
+        padding: 8px 5px;
+        text-align: center;
+        border: 1px solid var(--input-border);
+        border-radius: 4px;
+        background-color: var(--input-bg);
+        color: var(--input-text);
+        font-size: 0.9em; /* Match button */
+        margin-bottom: 10px;
+      }
+
       #testHandStatus {
         flex-grow: 1;
         margin-left: 10px;
@@ -388,18 +414,10 @@
         font-size: 0.9em;
         color: var(--text-color-muted);
       }
-      .action-button:hover,
-      .delete-card-btn:hover,
-      #drawHandButton:hover,
-      #drawNextCardButton:hover,
-      #shuffleDeckButton:hover,
-      #searchDeckButton:hover {
+      .action-button:hover, .delete-card-btn:hover, #drawHandButton:hover, #drawNextCardButton:hover, #shuffleDeckButton:hover, #searchDeckButton:hover, #scryButton:hover /* Added */ {
         background-color: var(--button-bg-hover);
       }
-      .action-button:disabled,
-      #drawNextCardButton:disabled,
-      #shuffleDeckButton:disabled,
-      #searchDeckButton:disabled {
+      .action-button:disabled, #drawNextCardButton:disabled, #shuffleDeckButton:disabled, #searchDeckButton:disabled, #scryButton:disabled /* Added */ {
         background-color: var(--button-disabled-bg);
         color: var(--button-disabled-text);
         cursor: not-allowed;
@@ -428,7 +446,7 @@
       }
       #deckCount {
         text-align: right;
-        font-weight: bold;
+        font-weight: 700;
         margin-top: 15px;
         padding-top: 10px;
         border-top: 1px solid var(--border-color-light);
@@ -442,29 +460,26 @@
         font-size: 0.9em;
       }
 
-      /* --- Test Area Layout Changes --- */
+      /* --- Test Area Layout --- */
       .play-area-container {
-        display: flex; /* Main container for battlefield+side zones and hand */
+        display: flex;
         flex-direction: column;
         gap: 15px;
         margin-top: 10px;
         border-top: 1px solid var(--border-color-light);
         padding-top: 15px;
         flex-grow: 1;
-        overflow: hidden; /* Prevent content spill */
+        overflow: hidden;
       }
-
       .battlefield-and-side-zones {
-        display: flex; /* Battlefield next to side zones */
+        display: flex;
         gap: 15px;
-        flex-grow: 1; /* Take available vertical space */
-        min-height: 400px; /* Ensure enough height for zones */
+        flex-grow: 1;
+        min-height: 400px;
       }
-
       .battlefield-zone {
-        /* Main battlefield area */
-        flex-grow: 1; /* Takes most horizontal space */
-        display: flex; /* Uses flex for internal general zone */
+        flex-grow: 1;
+        display: flex;
         flex-direction: column;
         background-color: var(--battlefield-bg);
         border: 1px solid var(--battlefield-border);
@@ -472,15 +487,13 @@
         padding: 10px;
         overflow: hidden;
       }
-
       #generalZone {
-        /* Only remaining subzone */
         flex-grow: 1;
         border-radius: 4px;
         padding: 10px 5px 5px 5px;
         position: relative;
-        min-height: 350px; /* Ensure general zone is large */
-        overflow: auto; /* Allow scrolling if many cards */
+        min-height: 350px;
+        overflow: auto;
         display: flex;
         flex-wrap: wrap;
         align-content: flex-start;
@@ -489,29 +502,25 @@
         border: 1px dashed var(--zone-general-border);
         transition: background-color 0.3s ease, border-color 0.3s ease;
       }
-
       .side-zones {
-        /* Container for Graveyard and Exile */
         display: flex;
         flex-direction: column;
         gap: 10px;
-        flex-shrink: 0; /* Don't shrink */
-        width: 140px; /* Fixed width for side zones */
+        flex-shrink: 0;
+        width: 140px;
       }
-
       #graveyardZone,
       #exileZone {
-        /* Styling for GY and Exile */
-        flex-basis: 50%; /* Roughly equal height */
+        flex-basis: 50%;
         flex-grow: 1;
         border-radius: 4px;
         padding: 5px;
         position: relative;
-        min-height: 150px; /* Minimum height */
-        overflow-y: auto; /* Scroll if many cards */
+        min-height: 150px;
+        overflow-y: auto;
         display: flex;
-        flex-direction: column; /* Stack title and cards */
-        align-items: center; /* Center title */
+        flex-direction: column;
+        align-items: center;
         gap: 5px;
         background-color: var(--zone-side-bg);
         border: 1px dashed var(--zone-side-border);
@@ -521,12 +530,12 @@
       #exileZone h4 {
         margin-bottom: 5px;
         font-size: 0.85em;
-        width: auto; /* Don't force full width here */
-        border-bottom: none; /* No border needed */
+        width: auto;
+        border-bottom: none;
         padding-bottom: 0;
       }
 
-      /* Hand Container Styles (Unchanged) */
+      /* Hand/Card Styles (Unchanged) */
       #testHandContainer {
         flex-shrink: 0;
         display: flex;
@@ -540,8 +549,6 @@
         overflow-y: auto;
         transition: background-color 0.3s ease, border-color 0.3s ease;
       }
-
-      /* Individual Hand Card Styles (Unchanged) */
       .hand-card {
         width: 75px;
         height: auto;
@@ -562,15 +569,13 @@
         width: 100%;
         height: auto;
       }
-
-      /* Card on Battlefield */
       .battlefield-card {
         position: absolute;
         width: 65px;
         height: auto;
         border-radius: 4px;
         box-shadow: 1px 1px 3px var(--shadow-color-heavy);
-        cursor: grab; /* Changed from default */
+        cursor: grab;
         user-select: none;
         transition: box-shadow 0.2s ease;
         background-color: var(--section-bg);
@@ -585,21 +590,19 @@
         width: 100%;
         height: auto;
         display: block;
-        pointer-events: none; /* Clicks/drags handled by parent */
+        pointer-events: none;
       }
       .battlefield-card img.dragging {
         opacity: 0.4;
       }
-
-      /* Card in Side Zone (Graveyard/Exile) */
       .side-zone-card {
-        width: 50px; /* Smaller image for side zones */
+        width: 50px;
         height: auto;
         border-radius: 3px;
-        margin-bottom: 3px; /* Space between cards vertically */
-        cursor: default; /* Changed from help, context menu used */
+        margin-bottom: 3px;
+        cursor: default;
         box-shadow: 0 1px 2px var(--shadow-color);
-        position: relative; /* Needed for context menu positioning relative to card? maybe not */
+        position: relative;
       }
       .side-zone-card img {
         display: block;
@@ -608,62 +611,56 @@
         border-radius: 3px;
       }
 
-      /* Deck Search Area */
+      /* Deck Search Area (Unchanged) */
       #deckSearchArea {
-        display: none; /* Hidden by default */
+        display: none;
         padding: 10px;
         border: 1px dashed var(--border-color-medium);
         border-radius: 4px;
         margin-top: 10px;
-        background-color: var(--zone-side-bg); /* Reuse side zone bg */
-        max-height: 300px; /* Limit height */
-        overflow-y: auto; /* Add scroll */
-        position: relative; /* For close button positioning */
+        background-color: var(--zone-side-bg);
+        max-height: 300px;
+        overflow-y: auto;
+        position: relative;
       }
       #deckSearchArea p {
-        /* Updated description */
         margin: 0 0 10px 0;
         font-size: 0.9em;
         color: var(--text-color-muted);
         text-align: center;
       }
       #closeSearchAreaButton {
-        /* Position close button */
         position: absolute;
         top: 5px;
         right: 5px;
         font-size: 0.8em;
         padding: 3px 8px;
         margin-top: 0;
-        z-index: 15; /* Above cards */
+        z-index: 15;
       }
-
-      /* Deck Search Results (Card Images) */
       #deckSearchResults {
-        /* Changed from list style */
         list-style: none;
         padding: 0;
         margin: 0;
         display: flex;
         flex-wrap: wrap;
-        gap: 8px; /* Space between cards */
-        justify-content: center; /* Center cards if row not full */
-        overflow-y: visible; /* Scrolling handled by parent #deckSearchArea */
-        max-height: none; /* Remove previous max-height */
-        border: none; /* Remove previous border */
-        box-shadow: none; /* Remove previous shadow */
+        gap: 8px;
+        justify-content: center;
+        overflow-y: visible;
+        max-height: none;
+        border: none;
+        box-shadow: none;
       }
       #deckSearchResults li {
-        /* Container for each card image */
         padding: 0;
         border: none;
         cursor: pointer;
-        width: 65px; /* Same as battlefield card width */
+        width: 65px;
         border-radius: 4px;
         overflow: hidden;
         transition: transform 0.2s ease, box-shadow 0.2s ease;
-        background-color: var(--hand-card-bg); /* Use similar bg */
-        border: 1px solid var(--hand-card-border); /* Use similar border */
+        background-color: var(--hand-card-bg);
+        border: 1px solid var(--hand-card-border);
         box-shadow: 1px 1px 3px var(--shadow-color);
       }
       #deckSearchResults li:hover {
@@ -674,7 +671,7 @@
         display: block;
         width: 100%;
         height: auto;
-        border-radius: 3px; /* Inner radius slightly smaller */
+        border-radius: 3px;
       }
 
       /* Image Popup Styles (Unchanged) */
@@ -698,7 +695,7 @@
         border: 1px solid var(--popup-border);
       }
 
-      /* --- NEW: Context Menu Styles --- */
+      /* Context Menu Styles (Unchanged) */
       #cardContextMenu {
         position: absolute;
         display: none;
@@ -730,18 +727,96 @@
         cursor: not-allowed;
         background-color: transparent;
       }
-      /* --- End Context Menu Styles --- */
+
+      /* --- NEW: Scry Overlay/Modal Styles --- */
+      #scryOverlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: var(--scry-overlay-bg);
+        display: none; /* Hidden by default */
+        justify-content: center;
+        align-items: center;
+        z-index: 10010; /* Above context menu */
+        padding: 20px;
+        box-sizing: border-box;
+      }
+      #scryModal {
+        background-color: var(--scry-modal-bg);
+        padding: 25px;
+        border-radius: 8px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        max-width: 90%;
+        max-height: 90%;
+        overflow-y: auto;
+        text-align: center;
+      }
+      #scryModal h3 {
+        margin-top: 0;
+        margin-bottom: 20px;
+        color: var(--text-color-primary);
+      }
+      #scryCardContainer {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        justify-content: center;
+        margin-bottom: 25px;
+      }
+      .scry-card-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        padding: 10px;
+        background-color: var(--scry-card-bg);
+        border: 1px solid var(--scry-card-border);
+        border-radius: 6px;
+      }
+      .scry-card-item img {
+        width: 100px; /* Larger than hand/bf */
+        height: auto;
+        border-radius: 4px;
+        margin-bottom: 5px;
+      }
+      .scry-card-item .scry-choice-buttons button {
+        padding: 5px 10px;
+        font-size: 0.8em;
+        margin: 0 4px;
+        cursor: pointer;
+        border-radius: 3px;
+        border: none;
+        background-color: var(--scry-button-bg);
+        color: var(--scry-button-text);
+        transition: background-color 0.2s ease;
+      }
+      .scry-card-item .scry-choice-buttons button:hover {
+        background-color: var(--scry-button-hover-bg);
+      }
+      .scry-card-item .scry-choice-buttons button.selected {
+        background-color: var(--scry-button-selected-bg);
+        font-weight: bold;
+      }
+      #scryConfirmButton {
+        /* Uses .action-button styles */
+        margin-top: 15px;
+        padding: 10px 20px;
+      }
+      /* --- End Scry Styles --- */
     </style>
   </head>
   <body data-theme="light">
-    <!-- Default theme attribute -->
+    <!-- Header, Theme Toggle -->
     <div class="header-container">
       <h1>Simple MTG Deck Builder</h1>
       <div class="theme-switch-wrapper">
-        <label class="theme-switch" for="themeToggleCheckbox">
-          <input type="checkbox" id="themeToggleCheckbox" />
-          <span class="slider round"></span>
-        </label>
+        <label class="theme-switch" for="themeToggleCheckbox"
+          ><input type="checkbox" id="themeToggleCheckbox" /><span
+            class="slider round"
+          ></span
+        ></label>
       </div>
     </div>
 
@@ -761,9 +836,9 @@
     <!-- Actions -->
     <div class="actions-section">
       <h2>Deck Actions</h2>
-      <button id="saveDeckButton" class="action-button">Save Deck</button>
-      <button id="loadDeckButton" class="action-button">Load Deck</button>
-      <button id="clearDeckButton" class="action-button">
+      <button id="saveDeckButton" class="action-button">Save Deck</button
+      ><button id="loadDeckButton" class="action-button">Load Deck</button
+      ><button id="clearDeckButton" class="action-button">
         Clear Current Deck
       </button>
       <div id="deckActionStatus"></div>
@@ -790,6 +865,12 @@
         <button id="searchDeckButton" class="action-button" disabled>
           Search Library
         </button>
+        <!-- Scry Controls -->
+        <div class="scry-control">
+          <button id="scryButton" class="action-button" disabled>Scry</button>
+          <input type="number" id="scryCountInput" value="1" min="1" max="10" />
+          <!-- Default to 1, reasonable max -->
+        </div>
         <span id="testHandStatus"></span>
       </div>
 
@@ -804,13 +885,10 @@
 
       <!-- Play Area Container -->
       <div class="play-area-container">
-        <!-- Battlefield + Side Zones Wrapper -->
         <div class="battlefield-and-side-zones">
-          <!-- Main Battlefield -->
           <div class="battlefield-zone" id="battlefieldDisplayContainer">
             <div id="generalZone"><h4>General Battlefield</h4></div>
           </div>
-          <!-- Side Zones (Graveyard / Exile) -->
           <div class="side-zones">
             <div id="graveyardZone">
               <h4>Graveyard (<span id="graveyardCount">0</span>)</h4>
@@ -820,20 +898,14 @@
             </div>
           </div>
         </div>
-
-        <!-- Hand Container remains below -->
-        <div id="testHandContainer">
-          <!-- Hand cards will be dynamically added here -->
-        </div>
+        <div id="testHandContainer"></div>
       </div>
     </div>
 
     <!-- Image Popup -->
-    <div id="imagePopup">
-      <img id="popupImage" src="" alt="Card Preview" />
-    </div>
+    <div id="imagePopup"><img id="popupImage" src="" alt="Card Preview" /></div>
 
-    <!-- NEW: Context Menu -->
+    <!-- Context Menu -->
     <div id="cardContextMenu">
       <ul>
         <li data-action="toHand">Move to Hand</li>
@@ -844,6 +916,19 @@
         <li data-action="toLibraryBottom">Move to Library (Bottom)</li>
         <li data-action="toLibraryShuffle">Move to Library (Shuffle In)</li>
       </ul>
+    </div>
+
+    <!-- NEW: Scry Overlay -->
+    <div id="scryOverlay">
+      <div id="scryModal">
+        <h3 id="scryModalTitle">Scry X</h3>
+        <div id="scryCardContainer">
+          <!-- Scryed cards will be populated here -->
+        </div>
+        <button id="scryConfirmButton" class="action-button" disabled>
+          Confirm Scry
+        </button>
+      </div>
     </div>
 
     <script>
@@ -864,6 +949,8 @@
       const drawNextCardButton = document.getElementById("drawNextCardButton");
       const shuffleDeckButton = document.getElementById("shuffleDeckButton");
       const searchDeckButton = document.getElementById("searchDeckButton");
+      const scryButton = document.getElementById("scryButton"); // New
+      const scryCountInput = document.getElementById("scryCountInput"); // New
       const testHandStatus = document.getElementById("testHandStatus");
       const battlefieldDisplayContainer = document.getElementById(
         "battlefieldDisplayContainer"
@@ -882,7 +969,12 @@
       const closeSearchAreaButton = document.getElementById(
         "closeSearchAreaButton"
       );
-      const cardContextMenu = document.getElementById("cardContextMenu"); // New
+      const cardContextMenu = document.getElementById("cardContextMenu");
+      const scryOverlay = document.getElementById("scryOverlay"); // New
+      const scryModal = document.getElementById("scryModal"); // New
+      const scryModalTitle = document.getElementById("scryModalTitle"); // New
+      const scryCardContainer = document.getElementById("scryCardContainer"); // New
+      const scryConfirmButton = document.getElementById("scryConfirmButton"); // New
 
       const DECK_STORAGE_KEY = "mtgDeckBuilderSimpleDeckV3";
       const THEME_STORAGE_KEY = "mtgThemePreference";
@@ -890,23 +982,29 @@
       // --- State Variables ---
       let currentDeck = {};
       let searchAbortController = null;
-      let currentHand = []; // { handId, name, imageUrl, normalImageUrl }
-      let currentBattlefield = {}; // { battlefieldId: { name, imageUrl, normalImageUrl, x, y, zone: 'general' } }
-      let currentLibrary = []; // { name, imageUrl, normalImageUrl }
-      let currentGraveyard = []; // { gyId, name, imageUrl, normalImageUrl }
-      let currentExile = []; // { exileId, name, imageUrl, normalImageUrl }
+      let currentHand = [];
+      let currentBattlefield = {};
+      let currentLibrary = [];
+      let currentGraveyard = [];
+      let currentExile = [];
       let handCardIdCounter = 0;
       let battlefieldCardIdCounter = 0;
       let graveyardCardIdCounter = 0;
       let exileCardIdCounter = 0;
       let dragInfo = { cardId: null, offsetX: 0, offsetY: 0 };
       let popupVisible = false;
-      let contextMenuVisible = false; // New
+      let contextMenuVisible = false;
       let contextMenuTarget = {
         cardId: null,
         cardData: null,
         sourceZone: null,
-      }; // New
+      };
+      let scryingState = {
+        // New state for scry
+        active: false,
+        cards: [], // { originalIndex, name, imageUrl, normalImageUrl }
+        choices: {}, // { originalIndex: 'top' | 'bottom' | null }
+      };
 
       // --- Utility Functions (Unchanged) ---
       function debounce(func, wait) {
@@ -940,8 +1038,8 @@
       function escapeHtml(unsafe) {
         if (unsafe === null || unsafe === undefined) return "";
         return unsafe
-          .toString() // Ensure it's a string
-          .replace(/&/g, "&") // Must be first
+          .toString()
+          .replace(/&/g, "&")
           .replace(/</g, "<")
           .replace(/>/g, ">")
           .replace(/"/g, '"')
@@ -1023,7 +1121,6 @@
           searchResults.appendChild(li);
         });
       }
-
       function renderDeck() {
         deckList.innerHTML = "";
         let totalCards = 0;
@@ -1061,7 +1158,6 @@
         deckTotalCountBottomSpan.textContent = totalCards;
         drawHandButton.disabled = totalCards < 7;
       }
-
       function displayBattlefield() {
         while (generalZone.children.length > 1) {
           generalZone.removeChild(generalZone.lastChild);
@@ -1071,7 +1167,7 @@
             const cardDiv = document.createElement("div");
             cardDiv.classList.add("battlefield-card");
             cardDiv.dataset.battlefieldId = id;
-            cardDiv.draggable = true; // Keep draggable
+            cardDiv.draggable = true;
             const posX = typeof card.x === "number" ? card.x : 10;
             const posY = typeof card.y === "number" ? card.y : 10;
             cardDiv.style.left = `${posX}px`;
@@ -1086,12 +1182,10 @@
             )}" data-normal-src="${escapeHtml(normalImageUrl)}">`;
             cardDiv.addEventListener("dragstart", handleDragStart);
             cardDiv.addEventListener("dragend", handleDragEnd);
-            // Context menu listener added globally below
             generalZone.appendChild(cardDiv);
           }
         });
       }
-
       function displayHand() {
         testHandContainer.innerHTML = "";
         currentHand.forEach((card) => {
@@ -1111,7 +1205,6 @@
         });
         updateTestStatus();
       }
-
       function displaySideZones() {
         const clearZone = (zone, countSpan) => {
           while (zone.children.length > 1) {
@@ -1125,11 +1218,10 @@
         };
         clearZone(graveyardZone, graveyardCountSpan);
         clearZone(exileZone, exileCountSpan);
-
         currentGraveyard.forEach((card) => {
           const cardDiv = document.createElement("div");
           cardDiv.classList.add("side-zone-card");
-          cardDiv.dataset.gyId = card.gyId; // Store GY ID
+          cardDiv.dataset.gyId = card.gyId;
           const displayImageUrl = card.imageUrl || "";
           const normalImageUrl = card.normalImageUrl || displayImageUrl;
           const safeCardName = card.name || "Unknown Card";
@@ -1138,14 +1230,12 @@
           )}" alt="${escapeHtml(safeCardName)}" title="${escapeHtml(
             safeCardName
           )}" loading="lazy" data-normal-src="${escapeHtml(normalImageUrl)}">`;
-          // Context menu listener added globally below
           graveyardZone.appendChild(cardDiv);
         });
-
         currentExile.forEach((card) => {
           const cardDiv = document.createElement("div");
           cardDiv.classList.add("side-zone-card");
-          cardDiv.dataset.exileId = card.exileId; // Store Exile ID
+          cardDiv.dataset.exileId = card.exileId;
           const displayImageUrl = card.imageUrl || "";
           const normalImageUrl = card.normalImageUrl || displayImageUrl;
           const safeCardName = card.name || "Unknown Card";
@@ -1154,12 +1244,10 @@
           )}" alt="${escapeHtml(safeCardName)}" title="${escapeHtml(
             safeCardName
           )}" loading="lazy" data-normal-src="${escapeHtml(normalImageUrl)}">`;
-          // Context menu listener added globally below
           exileZone.appendChild(cardDiv);
         });
         updateTestStatus();
       }
-
       function updateTestStatus(message = "") {
         const handCount = currentHand.length;
         const libraryCount = currentLibrary.length;
@@ -1169,17 +1257,18 @@
         exileCountSpan.textContent = exileCount;
         let statusText = message ? `${message} ` : "";
         statusText += `Hand: ${handCount}, Library: ${libraryCount}, GY: ${gyCount}, Exile: ${exileCount}.`;
-        if (libraryCount === 0) {
-          disableDrawNextButton();
-          disableShuffleButton();
-          disableSearchButton();
-          if (!message.includes("Library is empty")) {
-            statusText += " Library is empty.";
-          }
-        } else {
-          enableDrawNextButton();
-          enableShuffleButton();
-          enableSearchButton();
+        const libraryAvailable = libraryCount > 0;
+        if (!scryingState.active) {
+          // Only update buttons if not scrying
+          drawNextCardButton.disabled = !libraryAvailable;
+          shuffleDeckButton.disabled = libraryCount <= 1;
+          searchDeckButton.disabled = !libraryAvailable;
+          scryButton.disabled = !libraryAvailable;
+          scryCountInput.disabled = !libraryAvailable;
+          scryCountInput.max = libraryCount; // Update max scry based on library size
+        }
+        if (!libraryAvailable) {
+          statusText += " Library is empty.";
         }
         testHandStatus.textContent = statusText;
       }
@@ -1361,6 +1450,7 @@
         disableDrawNextButton();
         disableShuffleButton();
         disableSearchButton();
+        disableScryButton();
         hideDeckSearchArea();
       }
 
@@ -1387,6 +1477,7 @@
           disableDrawNextButton();
           disableShuffleButton();
           disableSearchButton();
+          disableScryButton();
           displayHand();
           displayBattlefield();
           displaySideZones();
@@ -1408,6 +1499,7 @@
         enableDrawNextButton();
         enableShuffleButton();
         enableSearchButton();
+        enableScryButton();
         hideDeckSearchArea();
       }
       function drawNextCard() {
@@ -1416,6 +1508,7 @@
           disableDrawNextButton();
           disableShuffleButton();
           disableSearchButton();
+          disableScryButton();
           return;
         }
         const nextCard = currentLibrary.shift();
@@ -1449,22 +1542,37 @@
         }
       }
       function enableDrawNextButton() {
-        drawNextCardButton.disabled = currentLibrary.length === 0;
-      }
+        drawNextCardButton.disabled =
+          currentLibrary.length === 0 || scryingState.active;
+      } // Disable if scrying
       function disableDrawNextButton() {
         drawNextCardButton.disabled = true;
       }
       function enableShuffleButton() {
-        shuffleDeckButton.disabled = currentLibrary.length <= 1;
-      }
+        shuffleDeckButton.disabled =
+          currentLibrary.length <= 1 || scryingState.active;
+      } // Disable if scrying
       function disableShuffleButton() {
         shuffleDeckButton.disabled = true;
       }
       function enableSearchButton() {
-        searchDeckButton.disabled = currentLibrary.length === 0;
-      }
+        searchDeckButton.disabled =
+          currentLibrary.length === 0 || scryingState.active;
+      } // Disable if scrying
       function disableSearchButton() {
         searchDeckButton.disabled = true;
+      }
+      function enableScryButton() {
+        scryButton.disabled =
+          currentLibrary.length === 0 || scryingState.active;
+        scryCountInput.disabled =
+          currentLibrary.length === 0 || scryingState.active;
+        if (currentLibrary.length > 0)
+          scryCountInput.max = currentLibrary.length;
+      } // Disable if scrying
+      function disableScryButton() {
+        scryButton.disabled = true;
+        scryCountInput.disabled = true;
       }
       function clearTestArea() {
         currentHand = [];
@@ -1507,9 +1615,11 @@
         disableDrawNextButton();
         disableShuffleButton();
         disableSearchButton();
+        disableScryButton();
         hideImagePopup();
         hideDeckSearchArea();
-        hideContextMenu(); // Hide context menu too
+        hideContextMenu();
+        cancelScry(); /* Ensure scry is cancelled */
       }
       function handlePlayCardFromHand(event) {
         const cardDiv = event.currentTarget;
@@ -1538,6 +1648,10 @@
 
       // --- Drag and Drop Handlers (Unchanged) ---
       function handleDragStart(event) {
+        if (scryingState.active) {
+          event.preventDefault();
+          return;
+        }
         const cardElement = event.target.closest(".battlefield-card");
         if (!cardElement || !cardElement.dataset.battlefieldId) return;
         const cardId = cardElement.dataset.battlefieldId;
@@ -1637,6 +1751,7 @@
 
       // --- Deck Search Logic (Unchanged from previous step) ---
       function toggleDeckSearchArea() {
+        if (scryingState.active) return;
         if (
           deckSearchArea.style.display === "none" ||
           !deckSearchArea.style.display
@@ -1740,15 +1855,18 @@
           disableDrawNextButton();
           disableShuffleButton();
           disableSearchButton();
+          disableScryButton();
         } else {
           enableDrawNextButton();
           enableShuffleButton();
           enableSearchButton();
+          enableScryButton();
         }
       }
 
       // --- Image Popup Logic (Unchanged) ---
       function showImagePopup(event, targetImage) {
+        if (scryingState.active) return;
         let largeImageUrl =
           targetImage.dataset.normalSrc || targetImage.getAttribute("src");
         if (largeImageUrl && largeImageUrl.includes("/small."))
@@ -1818,18 +1936,19 @@
         else setTheme("light");
       }
 
-      // --- NEW/MODIFIED: Context Menu Logic ---
+      // --- Context Menu Logic (Unchanged) ---
       function showContextMenu(event, cardElement) {
+        if (scryingState.active) {
+          event.preventDefault();
+          return;
+        }
         event.preventDefault();
-        hideContextMenu(); // Hide any previous menu
-        hideImagePopup(); // Hide image popup too
-
+        hideContextMenu();
+        hideImagePopup();
         let cardId = null;
         let sourceZone = null;
         let cardData = null;
-        const cardRect = cardElement.getBoundingClientRect(); // Get card position
-
-        // Determine source zone and card ID/data
+        const cardRect = cardElement.getBoundingClientRect();
         if (cardElement.classList.contains("battlefield-card")) {
           sourceZone = "battlefield";
           cardId = cardElement.dataset.battlefieldId;
@@ -1849,7 +1968,6 @@
             if (foundCard) cardData = { ...foundCard };
           }
         }
-
         if (!cardId || !sourceZone || !cardData) {
           console.error(
             "Could not identify card for context menu.",
@@ -1857,26 +1975,17 @@
           );
           return;
         }
-
-        // Store target info
         contextMenuTarget = { cardId, cardData, sourceZone };
-
-        // Update menu items based on source zone *before* calculating position (needs dimensions)
         updateContextMenuItems(sourceZone);
-
-        // Position and show menu (pass cardRect for positioning)
-        positionContextMenu(cardRect); // MODIFIED: Pass rect instead of x, y
+        positionContextMenu(cardRect);
         cardContextMenu.style.display = "block";
         contextMenuVisible = true;
       }
-
       function hideContextMenu() {
         cardContextMenu.style.display = "none";
         contextMenuVisible = false;
-        contextMenuTarget = { cardId: null, cardData: null, sourceZone: null }; // Clear target
+        contextMenuTarget = { cardId: null, cardData: null, sourceZone: null };
       }
-
-      // MODIFIED: Position menu relative to the card element
       function positionContextMenu(cardRect) {
         const menuWidth = cardContextMenu.offsetWidth;
         const menuHeight = cardContextMenu.offsetHeight;
@@ -1884,52 +1993,33 @@
         const viewportHeight = window.innerHeight;
         const scrollX = window.scrollX;
         const scrollY = window.scrollY;
-        const buffer = 5; // Small gap between card and menu, and edge of screen
-
-        // Calculate desired position ABOVE the card
+        const buffer = 5;
         let idealTop = cardRect.top + scrollY - menuHeight - buffer;
         let idealLeft = cardRect.left + scrollX;
-
-        // If placing above goes off-screen top, try placing BELOW
         if (idealTop < scrollY + buffer) {
           idealTop = cardRect.bottom + scrollY + buffer;
         }
-
-        // Final position starts with ideal calculation
         let finalTop = idealTop;
         let finalLeft = idealLeft;
-
-        // Adjust LEFT boundary
         finalLeft = Math.max(scrollX + buffer, finalLeft);
-
-        // Adjust RIGHT boundary
         if (finalLeft + menuWidth > viewportWidth + scrollX - buffer) {
           finalLeft = viewportWidth + scrollX - menuWidth - buffer;
         }
-
-        // Adjust TOP boundary (redundant if already checked above, but safe)
         finalTop = Math.max(scrollY + buffer, finalTop);
-
-        // Adjust BOTTOM boundary
         if (finalTop + menuHeight > viewportHeight + scrollY - buffer) {
           finalTop = viewportHeight + scrollY - menuHeight - buffer;
-          // If adjusting bottom *still* makes it go off the top (very tall menu/small screen), reset to top boundary
           if (finalTop < scrollY + buffer) {
             finalTop = scrollY + buffer;
           }
         }
-
         cardContextMenu.style.left = `${finalLeft}px`;
         cardContextMenu.style.top = `${finalTop}px`;
       }
-
       function updateContextMenuItems(sourceZone) {
         const items = cardContextMenu.querySelectorAll("li");
         items.forEach((item) => {
           const action = item.dataset.action;
-          item.classList.remove("disabled"); // Reset disabled state
-
-          // Disable moving to the zone the card is already in
+          item.classList.remove("disabled");
           if (
             (action === "toBattlefield" && sourceZone === "battlefield") ||
             (action === "toGraveyard" && sourceZone === "graveyard") ||
@@ -1937,21 +2027,8 @@
           ) {
             item.classList.add("disabled");
           }
-
-          // Disable putting into library if library is technically empty (though button is disabled too)
-          if (
-            action.startsWith("toLibrary") &&
-            currentLibrary.length === 0 &&
-            action !== "toLibraryShuffle"
-          ) {
-            // Allow shuffle-in even if empty? Let's disable all library options if empty.
-            // item.classList.add('disabled');
-            // Decided against disabling library options if empty, let the move attempt handle it (though shuffle won't happen).
-            // Keep it simple: only disable moving to the current zone.
-          }
         });
       }
-
       function handleContextMenuAction(event) {
         const targetLi = event.target.closest("li");
         if (
@@ -1962,17 +2039,13 @@
           hideContextMenu();
           return;
         }
-
         const action = targetLi.dataset.action;
         const { cardId, cardData, sourceZone } = contextMenuTarget;
-
         if (!cardData) {
           console.error("Missing card data for context menu action.");
           hideContextMenu();
           return;
         }
-
-        // 1. Remove card from source zone
         let cardRemoved = false;
         if (sourceZone === "battlefield") {
           if (currentBattlefield[cardId]) {
@@ -1992,7 +2065,6 @@
             cardRemoved = true;
           }
         }
-
         if (!cardRemoved) {
           console.error(
             "Failed to remove card from source zone:",
@@ -2002,15 +2074,11 @@
           hideContextMenu();
           return;
         }
-
-        // --- Clean card data (remove zone-specific IDs/properties) ---
         const cleanCardData = {
           name: cardData.name,
           imageUrl: cardData.imageUrl,
           normalImageUrl: cardData.normalImageUrl,
         };
-
-        // 2. Add card to target zone
         let statusMsg = `Moved ${escapeHtml(cleanCardData.name)}`;
         switch (action) {
           case "toHand":
@@ -2046,7 +2114,7 @@
             break;
           case "toLibraryShuffle":
             currentLibrary.push(cleanCardData);
-            shuffleLibrary(); // This already updates status
+            shuffleLibrary();
             statusMsg = `Shuffled ${escapeHtml(
               cleanCardData.name
             )} into Library.`;
@@ -2058,24 +2126,194 @@
             )}.`;
             break;
         }
-
-        // 3. Update Displays
         displayBattlefield();
         displaySideZones();
         displayHand();
         if (action !== "toLibraryShuffle") {
           updateTestStatus(statusMsg);
         }
-
-        // If search was open and library changed, refresh search
         if (
           action.includes("Library") &&
           deckSearchArea.style.display === "block"
         ) {
           displayLibraryForSearch();
         }
-
         hideContextMenu();
+      }
+
+      // --- NEW: Scry Logic ---
+      function handleScry() {
+        if (scryingState.active) return; // Prevent starting if already scrying
+
+        const count = parseInt(scryCountInput.value, 10);
+        if (isNaN(count) || count <= 0) {
+          updateTestStatus("Invalid scry amount.");
+          return;
+        }
+        if (count > currentLibrary.length) {
+          updateTestStatus(
+            `Cannot scry ${count}: only ${currentLibrary.length} cards in library.`
+          );
+          return;
+        }
+
+        // Enter scrying state
+        scryingState.active = true;
+        scryingState.cards = [];
+        scryingState.choices = {};
+
+        // Take cards from library
+        for (let i = 0; i < count; i++) {
+          const card = currentLibrary.shift(); // Take from top
+          if (card) {
+            const scryCard = { ...card, originalIndex: i }; // Store original relative index
+            scryingState.cards.push(scryCard);
+            scryingState.choices[i] = null; // Initialize choice as null
+          }
+        }
+
+        // Disable other actions
+        disableDrawNextButton();
+        disableShuffleButton();
+        disableSearchButton();
+        disableScryButton();
+        // Could also disable context menus if desired
+
+        // Display scry modal
+        displayScryModal();
+        updateTestStatus(`Scrying ${count} cards...`);
+      }
+
+      function displayScryModal() {
+        scryModalTitle.textContent = `Scry ${scryingState.cards.length}`;
+        scryCardContainer.innerHTML = ""; // Clear previous cards
+        scryConfirmButton.disabled = true; // Disable initially
+
+        scryingState.cards.forEach((card) => {
+          const cardDiv = document.createElement("div");
+          cardDiv.classList.add("scry-card-item");
+          cardDiv.dataset.originalIndex = card.originalIndex;
+
+          const img = document.createElement("img");
+          img.src = escapeHtml(card.imageUrl || "");
+          img.alt = escapeHtml(card.name);
+          img.title = escapeHtml(card.name);
+          img.dataset.normalSrc = escapeHtml(
+            card.normalImageUrl || card.imageUrl || ""
+          );
+          // Add popup listener directly here if needed, or rely on global one
+          cardDiv.appendChild(img);
+
+          const buttonDiv = document.createElement("div");
+          buttonDiv.classList.add("scry-choice-buttons");
+
+          const topButton = document.createElement("button");
+          topButton.textContent = "Top";
+          topButton.dataset.choice = "top";
+          topButton.addEventListener("click", handleScryChoice);
+
+          const bottomButton = document.createElement("button");
+          bottomButton.textContent = "Bottom";
+          bottomButton.dataset.choice = "bottom";
+          bottomButton.addEventListener("click", handleScryChoice);
+
+          buttonDiv.appendChild(topButton);
+          buttonDiv.appendChild(bottomButton);
+          cardDiv.appendChild(buttonDiv);
+
+          scryCardContainer.appendChild(cardDiv);
+        });
+
+        scryOverlay.style.display = "flex";
+      }
+
+      function handleScryChoice(event) {
+        const button = event.target;
+        const choice = button.dataset.choice; // 'top' or 'bottom'
+        const cardItem = button.closest(".scry-card-item");
+        const originalIndex = parseInt(cardItem.dataset.originalIndex, 10);
+
+        // Update state
+        scryingState.choices[originalIndex] = choice;
+
+        // Update button visuals
+        const buttons = cardItem.querySelectorAll(
+          ".scry-choice-buttons button"
+        );
+        buttons.forEach((btn) => {
+          btn.classList.remove("selected");
+          if (btn.dataset.choice === choice) {
+            btn.classList.add("selected");
+          }
+        });
+
+        // Check if all choices are made
+        const allChosen = Object.values(scryingState.choices).every(
+          (c) => c !== null
+        );
+        scryConfirmButton.disabled = !allChosen;
+      }
+
+      function handleScryConfirm() {
+        if (
+          !scryingState.active ||
+          !Object.values(scryingState.choices).every((c) => c !== null)
+        ) {
+          console.warn("Scry confirmation attempted prematurely.");
+          return;
+        }
+
+        const toTop = [];
+        const toBottom = [];
+
+        // Sort cards based on choice and original order
+        // Cards keep their relative order within the 'top' and 'bottom' groups
+        scryingState.cards.forEach((card) => {
+          const choice = scryingState.choices[card.originalIndex];
+          if (choice === "top") {
+            toTop.push(card);
+          } else if (choice === "bottom") {
+            toBottom.push(card);
+          }
+        });
+
+        // Return cards to library
+        // Add 'bottom' cards first (they go below the existing library)
+        currentLibrary.push(
+          ...toBottom.map((c) => ({
+            name: c.name,
+            imageUrl: c.imageUrl,
+            normalImageUrl: c.normalImageUrl,
+          }))
+        ); // Add clean data
+        // Add 'top' cards last (they go on top of the existing library)
+        currentLibrary.unshift(
+          ...toTop.map((c) => ({
+            name: c.name,
+            imageUrl: c.imageUrl,
+            normalImageUrl: c.normalImageUrl,
+          }))
+        ); // Add clean data
+
+        // Exit scrying state
+        cancelScry(); // Use cancel function to reset state and UI
+        updateTestStatus("Scry complete.");
+      }
+
+      function cancelScry() {
+        // Also used by clearTestArea
+        scryingState.active = false;
+        scryingState.cards = [];
+        scryingState.choices = {};
+        scryOverlay.style.display = "none";
+        scryCardContainer.innerHTML = "";
+        // Re-enable buttons only if library has cards
+        enableDrawNextButton();
+        enableShuffleButton();
+        enableSearchButton();
+        enableScryButton();
+        // Update status in case counts changed (though they shouldn't during scry)
+        updateTestStatus();
       }
 
       // --- Event Listeners ---
@@ -2099,11 +2337,9 @@
           searchResults.innerHTML = "";
           searchResults.style.display = "none";
         }
-        // --- Hide Context Menu on Left Click ---
         if (contextMenuVisible && !cardContextMenu.contains(event.target)) {
           hideContextMenu();
         }
-        // Hide deck search
         const deckSearchDiv = event.target.closest("#deckSearchArea");
         const searchButton = event.target.closest("#searchDeckButton");
         if (
@@ -2112,6 +2348,12 @@
           deckSearchArea.style.display === "block"
         ) {
           hideDeckSearchArea();
+        }
+        // Hide scry modal if clicking overlay outside the modal itself
+        if (scryingState.active && event.target === scryOverlay) {
+          // Optionally, you could cancel the scry here, or just prevent closing.
+          // For now, let's not close it by clicking outside, force confirm/cancel.
+          // cancelScry();
         }
       });
       searchInput.addEventListener("keypress", (event) => {
@@ -2146,12 +2388,14 @@
       loadDeckButton.addEventListener("click", loadDeck);
       clearDeckButton.addEventListener("click", clearDeck);
 
-      // Test Area Buttons
+      // Test Area Buttons (Scry added)
       drawHandButton.addEventListener("click", drawTestHand);
       drawNextCardButton.addEventListener("click", drawNextCard);
       shuffleDeckButton.addEventListener("click", shuffleLibrary);
       searchDeckButton.addEventListener("click", toggleDeckSearchArea);
       closeSearchAreaButton.addEventListener("click", hideDeckSearchArea);
+      scryButton.addEventListener("click", handleScry); // New Scry listener
+      scryConfirmButton.addEventListener("click", handleScryConfirm); // New Scry confirm listener
 
       // Deck Search Results Click Listener (Unchanged)
       deckSearchResults.addEventListener("click", handleDeckSearchResultClick);
@@ -2176,7 +2420,7 @@
         containers.forEach((container) => {
           if (!container) return;
           container.addEventListener("mouseover", (event) => {
-            if (contextMenuVisible) return; // Don't show popup if context menu is open
+            if (contextMenuVisible || scryingState.active) return;
             let targetImg = null;
             let targetElement = event.target;
             const closestLi = targetElement.closest("li");
@@ -2230,31 +2474,26 @@
       // Theme Toggle Listener (Unchanged)
       themeToggle.addEventListener("change", toggleTheme);
 
-      // --- NEW: Context Menu Listeners ---
-      // Add listener to the parent container for battlefield cards
+      // Context Menu Listeners (Unchanged)
       battlefieldDisplayContainer.addEventListener("contextmenu", (event) => {
         const cardElement = event.target.closest(".battlefield-card");
         if (cardElement) {
           showContextMenu(event, cardElement);
         }
       });
-      // Add listener to graveyard zone
       graveyardZone.addEventListener("contextmenu", (event) => {
         const cardElement = event.target.closest(".side-zone-card");
         if (cardElement) {
           showContextMenu(event, cardElement);
         }
       });
-      // Add listener to exile zone
       exileZone.addEventListener("contextmenu", (event) => {
         const cardElement = event.target.closest(".side-zone-card");
         if (cardElement) {
           showContextMenu(event, cardElement);
         }
       });
-      // Listener for clicking on context menu items
       cardContextMenu.addEventListener("click", handleContextMenuAction);
-      // Listener to hide context menu on scroll
       window.addEventListener("scroll", hideContextMenu, true); // Use capture phase
 
       // --- Initial Load ---
