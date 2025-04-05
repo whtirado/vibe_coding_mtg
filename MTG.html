@@ -62,6 +62,10 @@
         --card-view-close-bg: #6c757d;
         --card-view-close-text: #ffffff;
         --card-view-close-hover-bg: #5a6268;
+        --saved-deck-list-bg: #f8f9fa;
+        --saved-deck-list-border: #dee2e6;
+        --saved-deck-item-hover-bg: #e9ecef;
+        --saved-deck-item-text: #0056b3;
       }
 
       body[data-theme="dark"] {
@@ -121,6 +125,10 @@
         --card-view-close-bg: #5a6268;
         --card-view-close-text: #ffffff;
         --card-view-close-hover-bg: #495057;
+        --saved-deck-list-bg: #3a3a3a;
+        --saved-deck-list-border: #555555;
+        --saved-deck-item-hover-bg: #444444;
+        --saved-deck-item-text: #4dabf7;
       }
 
       body {
@@ -870,6 +878,52 @@
       #closeCardViewPopupButton:hover {
         background-color: var(--card-view-close-hover-bg);
       }
+
+      #savedDecksListContainer {
+        margin-top: 20px;
+        padding-top: 15px;
+        border-top: 1px solid var(--border-color-light);
+      }
+      #savedDecksListContainer h3 {
+        text-align: center;
+        margin-bottom: 10px;
+        font-size: 1em;
+        color: var(--text-color-secondary);
+      }
+      #savedDecksList {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        max-height: 150px;
+        overflow-y: auto;
+        border: 1px solid var(--saved-deck-list-border);
+        border-radius: 4px;
+        background-color: var(--saved-deck-list-bg);
+        margin-bottom: 10px;
+      }
+      #savedDecksList li {
+        padding: 8px 12px;
+        cursor: pointer;
+        border-bottom: 1px solid var(--border-color-light);
+        color: var(--saved-deck-item-text);
+        font-weight: 500;
+        transition: background-color 0.2s ease;
+      }
+      #savedDecksList li:last-child {
+        border-bottom: none;
+      }
+      #savedDecksList li:hover {
+        background-color: var(--saved-deck-item-hover-bg);
+      }
+      #savedDecksList li.no-decks {
+        font-style: italic;
+        color: var(--text-color-muted);
+        cursor: default;
+        text-align: center;
+      }
+      #savedDecksList li.no-decks:hover {
+        background-color: transparent;
+      }
     </style>
   </head>
   <body data-theme="light">
@@ -898,16 +952,23 @@
 
     <div class="actions-section">
       <h2>Deck Actions</h2>
-      <div id="currentDeckNameStatus">No Deck Loaded</div>
+      <div id="currentDeckNameStatus">No Deck Loaded / Unsaved Deck</div>
       <button id="saveDeckButton" class="action-button">
         Save Current Deck As...
       </button>
-      <button id="loadDeckButton" class="action-button">Load Saved Deck</button>
-      <button id="deleteSavedDeckButton" class="action-button">
-        Delete Saved Deck
-      </button>
       <button id="clearDeckButton" class="action-button">
         Clear Current Deck
+      </button>
+
+      <div id="savedDecksListContainer">
+        <h3>Saved Decks (Click to Load)</h3>
+        <ul id="savedDecksList">
+          <li class="no-decks">No saved decks found.</li>
+        </ul>
+      </div>
+
+      <button id="deleteSavedDeckButton" class="action-button">
+        Delete Saved Deck...
       </button>
       <div id="deckActionStatus"></div>
     </div>
@@ -1004,7 +1065,6 @@
         "deckTotalCountBottom"
       );
       const saveDeckButton = document.getElementById("saveDeckButton");
-      const loadDeckButton = document.getElementById("loadDeckButton");
       const deleteSavedDeckButton = document.getElementById(
         "deleteSavedDeckButton"
       );
@@ -1013,6 +1073,7 @@
       const currentDeckNameStatus = document.getElementById(
         "currentDeckNameStatus"
       );
+      const savedDecksList = document.getElementById("savedDecksList");
       const drawHandButton = document.getElementById("drawHandButton");
       const drawNextCardButton = document.getElementById("drawNextCardButton");
       const shuffleDeckButton = document.getElementById("shuffleDeckButton");
@@ -1126,11 +1187,11 @@
         if (unsafe === null || unsafe === undefined) return "";
         return unsafe
           .toString()
-          .replace(/&/g, "&")
-          .replace(/</g, "<")
-          .replace(/>/g, ">")
-          .replace(/"/g, '"')
-          .replace(/'/g, "'");
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
       }
 
       async function performLiveSearch(query) {
@@ -1481,6 +1542,26 @@
         return decks;
       }
 
+      function renderSavedDecksList() {
+        const savedDecks = getSavedDecks();
+        const deckNames = Object.keys(savedDecks).sort();
+        savedDecksList.innerHTML = "";
+
+        if (deckNames.length === 0) {
+          const li = document.createElement("li");
+          li.textContent = "No saved decks found.";
+          li.classList.add("no-decks");
+          savedDecksList.appendChild(li);
+        } else {
+          deckNames.forEach((name) => {
+            const li = document.createElement("li");
+            li.textContent = escapeHtml(name);
+            li.dataset.deckName = name;
+            savedDecksList.appendChild(li);
+          });
+        }
+      }
+
       function saveDeck() {
         const deckName = prompt(
           "Enter a name for this deck:",
@@ -1517,6 +1598,7 @@
             `Deck "${escapeHtml(trimmedDeckName)}" saved successfully!`
           );
           updateCurrentDeckNameStatus(trimmedDeckName);
+          renderSavedDecksList();
         } catch (error) {
           console.error("Error saving deck:", error);
           updateDeckActionStatus(
@@ -1525,27 +1607,9 @@
         }
       }
 
-      function loadDeck() {
+      function loadDeckByName(deckName) {
         const savedDecks = getSavedDecks();
-        const deckNames = Object.keys(savedDecks).sort();
-
-        if (deckNames.length === 0) {
-          updateDeckActionStatus("No saved decks found.");
-          return;
-        }
-
-        const promptMessage =
-          "Enter the name of the deck to load:\n\nAvailable decks:\n- " +
-          deckNames.join("\n- ");
-        const chosenName = prompt(promptMessage);
-
-        if (!chosenName) {
-          updateDeckActionStatus("Load cancelled.");
-          return;
-        }
-
-        const trimmedChosenName = chosenName.trim();
-        const deckData = savedDecks[trimmedChosenName];
+        const deckData = savedDecks[deckName];
 
         if (deckData) {
           let isValid = true;
@@ -1582,11 +1646,11 @@
 
           if (isValid) {
             currentDeck = validatedDeck;
-            currentLoadedDeckName = trimmedChosenName;
+            currentLoadedDeckName = deckName;
             updateDeckActionStatus(
-              `Deck "${escapeHtml(trimmedChosenName)}" loaded successfully!`
+              `Deck "${escapeHtml(deckName)}" loaded successfully!`
             );
-            updateCurrentDeckNameStatus(trimmedChosenName);
+            updateCurrentDeckNameStatus(deckName);
             clearTestArea();
             renderDeck();
             drawHandButton.disabled =
@@ -1602,7 +1666,7 @@
           } else {
             updateDeckActionStatus(
               `Failed to load deck "${escapeHtml(
-                trimmedChosenName
+                deckName
               )}": Invalid data format found.`
             );
             console.warn(
@@ -1611,9 +1675,8 @@
             );
           }
         } else {
-          updateDeckActionStatus(
-            `Deck "${escapeHtml(trimmedChosenName)}" not found.`
-          );
+          updateDeckActionStatus(`Deck "${escapeHtml(deckName)}" not found.`);
+          renderSavedDecksList();
         }
       }
 
@@ -1627,7 +1690,7 @@
         }
 
         const promptMessage =
-          "Enter the name of the deck to DELETE:\n\nAvailable decks:\n- " +
+          "Enter the EXACT name of the deck to DELETE:\n\nAvailable decks:\n- " +
           deckNames.join("\n- ");
         const chosenName = prompt(promptMessage);
 
@@ -1658,6 +1721,7 @@
               if (currentLoadedDeckName === trimmedChosenName) {
                 clearDeck();
               }
+              renderSavedDecksList();
             } catch (error) {
               console.error("Error deleting deck:", error);
               updateDeckActionStatus(
@@ -2867,9 +2931,16 @@
         }
       });
       saveDeckButton.addEventListener("click", saveDeck);
-      loadDeckButton.addEventListener("click", loadDeck);
       deleteSavedDeckButton.addEventListener("click", deleteSavedDeck);
       clearDeckButton.addEventListener("click", clearDeck);
+
+      savedDecksList.addEventListener("click", (event) => {
+        const li = event.target.closest("li");
+        if (li && li.dataset.deckName && !li.classList.contains("no-decks")) {
+          loadDeckByName(li.dataset.deckName);
+        }
+      });
+
       drawHandButton.addEventListener("click", drawTestHand);
       drawNextCardButton.addEventListener("click", drawNextCard);
       shuffleDeckButton.addEventListener("click", shuffleLibrary);
@@ -2940,6 +3011,7 @@
       document.addEventListener("DOMContentLoaded", () => {
         loadTheme();
         renderDeck();
+        renderSavedDecksList();
         updateCurrentDeckNameStatus(null);
       });
     </script>
