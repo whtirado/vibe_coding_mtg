@@ -66,6 +66,8 @@
         --saved-deck-list-border: #dee2e6;
         --saved-deck-item-hover-bg: #e9ecef;
         --saved-deck-item-text: #0056b3;
+        --fullscreen-button-bg: #6c757d;
+        --fullscreen-button-hover-bg: #5a6268;
       }
 
       body[data-theme="dark"] {
@@ -129,6 +131,8 @@
         --saved-deck-list-border: #555555;
         --saved-deck-item-hover-bg: #444444;
         --saved-deck-item-text: #4dabf7;
+        --fullscreen-button-bg: #5a6268;
+        --fullscreen-button-hover-bg: #495057;
       }
 
       body {
@@ -209,10 +213,12 @@
       .search-section h2,
       .deck-section h2,
       .actions-section h2,
-      .test-hand-section h2 {
+      .test-hand-section .section-header h2 {
         text-align: center;
         color: var(--text-color-primary);
         margin-bottom: 15px;
+        margin-top: 0;
+        flex-grow: 1;
       }
       h3 {
         margin-top: 0;
@@ -260,6 +266,57 @@
         grid-column: 1 / -1;
         grid-row: 4 / 5;
         min-height: 750px;
+      }
+
+      .test-hand-section .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        position: relative;
+        flex-wrap: wrap;
+      }
+
+      #fullscreenTestAreaButton {
+        padding: 5px 10px;
+        background-color: var(--fullscreen-button-bg);
+        color: var(--button-text);
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+        font-size: 0.85em;
+        position: absolute;
+        right: 0;
+        top: 0;
+      }
+      #fullscreenTestAreaButton:hover {
+        background-color: var(--fullscreen-button-hover-bg);
+      }
+
+      .test-hand-section.fullscreen-mode {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 20000;
+        margin: 0;
+        padding: 15px;
+        box-sizing: border-box;
+        border-radius: 0;
+        overflow-y: auto;
+      }
+
+      .test-hand-section.fullscreen-mode .play-area-container {
+        height: calc(
+          100vh - 180px
+        ); /* Adjust based on header/controls height */
+      }
+
+      .test-hand-section.fullscreen-mode .battlefield-and-side-zones {
+        min-height: 0;
+        flex-grow: 1;
       }
 
       #searchInput {
@@ -604,7 +661,7 @@
       }
       .battlefield-card {
         position: absolute;
-        width: 80px;
+        width: 110px;
         height: auto;
         border-radius: 4px;
         box-shadow: 1px 1px 3px var(--shadow-color-heavy);
@@ -721,7 +778,7 @@
         border-radius: 4px;
         box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
         padding: 5px 0;
-        z-index: 10011;
+        z-index: 20001;
         min-width: 150px;
       }
       #cardContextMenu ul {
@@ -832,7 +889,7 @@
         display: none;
         justify-content: center;
         align-items: center;
-        z-index: 10020;
+        z-index: 20002;
         padding: 20px;
         box-sizing: border-box;
       }
@@ -979,10 +1036,13 @@
       <div id="deckCount">Total: <span id="deckTotalCountBottom">0</span></div>
     </div>
 
-    <div class="test-hand-section">
-      <h2>Test Area</h2>
+    <div class="test-hand-section" id="testAreaSection">
+      <div class="section-header">
+        <h2>Test Area</h2>
+        <button id="fullscreenTestAreaButton">Fullscreen</button>
+      </div>
       <div class="test-controls">
-        <button id="drawHandButton" class="action-button">Draw 7 Cards</button>
+        <button id="drawHandButton" class="action-button">Draw New Hand</button>
         <button id="drawNextCardButton" class="action-button" disabled>
           Draw Next Card
         </button>
@@ -1082,6 +1142,10 @@
       const scryCountInput = document.getElementById("scryCountInput");
       const untapAllButton = document.getElementById("untapAllButton");
       const testHandStatus = document.getElementById("testHandStatus");
+      const testAreaSection = document.getElementById("testAreaSection");
+      const fullscreenTestAreaButton = document.getElementById(
+        "fullscreenTestAreaButton"
+      );
       const battlefieldDisplayContainer = document.getElementById(
         "battlefieldDisplayContainer"
       );
@@ -1145,6 +1209,7 @@
         resolvedCount: 0,
         toBottom: [],
       };
+      let isFullscreen = false;
 
       function debounce(func, wait) {
         let timeout;
@@ -2379,36 +2444,71 @@
           libraryIndex: null,
         };
       }
+
       function positionContextMenu(cardRect) {
         const menuWidth = cardContextMenu.offsetWidth;
         const menuHeight = cardContextMenu.offsetHeight;
         const viewportWidth = window.innerWidth;
         const viewportHeight = window.innerHeight;
-        const scrollX = window.scrollX;
-        const scrollY = window.scrollY;
         const buffer = 5;
+        let idealTop, idealLeft, minLeft, maxLeft, minTop, maxTop;
 
-        let idealTop = cardRect.top + scrollY - menuHeight - buffer;
-        let idealLeft = cardRect.left + scrollX;
+        if (isFullscreen) {
+          minLeft = buffer;
+          maxLeft = viewportWidth - buffer;
+          minTop = buffer;
+          maxTop = viewportHeight - buffer;
 
-        if (idealTop < scrollY + buffer) {
-          idealTop = cardRect.bottom + scrollY + buffer;
-        }
+          idealTop = cardRect.top - menuHeight - buffer;
+          idealLeft = cardRect.left;
 
-        if (idealLeft + menuWidth > viewportWidth + scrollX - buffer) {
-          idealLeft = viewportWidth + scrollX - menuWidth - buffer;
-        }
-
-        idealLeft = Math.max(scrollX + buffer, idealLeft);
-
-        if (idealTop + menuHeight > viewportHeight + scrollY - buffer) {
-          if (idealTop > cardRect.bottom + scrollY + buffer) {
-            idealTop = cardRect.top + scrollY - menuHeight - buffer;
+          if (idealTop < minTop) {
+            idealTop = cardRect.bottom + buffer;
           }
-          if (idealTop + menuHeight > viewportHeight + scrollY - buffer) {
-            idealTop = viewportHeight + scrollY - menuHeight - buffer;
+          if (idealLeft + menuWidth > maxLeft) {
+            idealLeft = cardRect.right - menuWidth;
           }
-          idealTop = Math.max(scrollY + buffer, idealTop);
+
+          idealLeft = Math.max(minLeft, idealLeft);
+          idealTop = Math.max(minTop, idealTop);
+
+          if (idealTop + menuHeight > maxTop) {
+            idealTop = maxTop - menuHeight;
+            idealTop = Math.max(minTop, idealTop);
+          }
+          if (idealLeft + menuWidth > maxLeft) {
+            idealLeft = maxLeft - menuWidth;
+            idealLeft = Math.max(minLeft, idealLeft);
+          }
+        } else {
+          const scrollX = window.scrollX;
+          const scrollY = window.scrollY;
+          minLeft = scrollX + buffer;
+          maxLeft = viewportWidth + scrollX - buffer;
+          minTop = scrollY + buffer;
+          maxTop = viewportHeight + scrollY - buffer;
+
+          idealTop = cardRect.top + scrollY - menuHeight - buffer;
+          idealLeft = cardRect.left + scrollX;
+
+          if (idealTop < minTop) {
+            idealTop = cardRect.bottom + scrollY + buffer;
+          }
+          if (idealLeft + menuWidth > maxLeft) {
+            idealLeft = cardRect.right + scrollX - menuWidth;
+          }
+
+          idealLeft = Math.max(minLeft, idealLeft);
+          idealTop = Math.max(minTop, idealTop);
+
+          if (idealTop + menuHeight > maxTop) {
+            idealTop = maxTop - menuHeight;
+            idealTop = Math.max(minTop, idealTop);
+          }
+          if (idealLeft + menuWidth > maxLeft) {
+            idealLeft = maxLeft - menuWidth;
+            idealLeft = Math.max(minLeft, idealLeft);
+          }
         }
 
         cardContextMenu.style.left = `${idealLeft}px`;
@@ -2909,6 +3009,54 @@
         }
       }
 
+      function toggleFullscreen() {
+        isFullscreen = !isFullscreen;
+        testAreaSection.classList.toggle("fullscreen-mode", isFullscreen);
+        fullscreenTestAreaButton.textContent = isFullscreen
+          ? "Exit Fullscreen"
+          : "Fullscreen";
+
+        if (isFullscreen) {
+          document.body.style.overflow = "hidden";
+          // Hide elements outside the test area
+          document
+            .querySelectorAll(
+              "body > :not(.test-hand-section):not(#cardContextMenu):not(#scryOverlay):not(#cardViewPopupOverlay)"
+            )
+            .forEach((el) => (el.style.display = "none"));
+          document.querySelector(".header-container").style.display = "none"; // Ensure header is hidden too
+          // Adjust body styles for fixed positioning
+          document.body.style.position = "fixed";
+          document.body.style.width = "100%";
+          document.body.style.height = "100%";
+          document.body.style.top = "0";
+          document.body.style.left = "0";
+          document.body.style.margin = "0";
+          document.body.style.padding = "0";
+          document.body.style.overflow = "hidden";
+        } else {
+          document.body.style.overflow = "";
+          // Restore display of other elements
+          document
+            .querySelectorAll(
+              "body > :not(.test-hand-section):not(#cardContextMenu):not(#scryOverlay):not(#cardViewPopupOverlay)"
+            )
+            .forEach((el) => (el.style.display = ""));
+          document.querySelector(".header-container").style.display = "flex"; // Restore header
+          // Restore body styles
+          document.body.style.position = "";
+          document.body.style.width = "";
+          document.body.style.height = "";
+          document.body.style.top = "";
+          document.body.style.left = "";
+          document.body.style.margin = "20px auto";
+          document.body.style.padding = "15px";
+          document.body.style.overflow = ""; // Re-enable scrolling if needed
+        }
+        hideContextMenu();
+        hideCardViewPopup();
+      }
+
       searchInput.addEventListener("input", (event) => {
         debouncedLiveSearch(event.target.value.trim());
       });
@@ -2950,6 +3098,7 @@
           !searchButton &&
           !closeSearchButton &&
           !cardContextMenu.contains(event.target)
+          // Don't auto-close if fullscreen might obscure click target (no change here)
         ) {
           hideDeckSearchArea();
         }
@@ -3069,12 +3218,31 @@
 
       cardContextMenu.addEventListener("click", handleContextMenuAction);
       closeCardViewPopupButton.addEventListener("click", hideCardViewPopup);
+      fullscreenTestAreaButton.addEventListener("click", toggleFullscreen);
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+          if (isFullscreen) {
+            toggleFullscreen();
+          } else if (scryingState.active) {
+            cancelScry();
+          } else if (cardViewPopupOverlay.style.display === "flex") {
+            hideCardViewPopup();
+          } else if (deckSearchArea.style.display === "block") {
+            hideDeckSearchArea();
+          } else if (contextMenuVisible) {
+            hideContextMenu();
+          }
+        }
+      });
 
       window.addEventListener(
         "scroll",
         () => {
-          hideContextMenu();
-          hideCardViewPopup();
+          if (!isFullscreen) {
+            hideContextMenu();
+            hideCardViewPopup();
+          }
         },
         true
       );
