@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple MTG Deck Builder</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 15px;
+            background-color: #f4f4f4;
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: #333;
+            grid-column: 1 / -1; /* Span across both columns */
+        }
+
+        .search-section, .deck-section, .actions-section, .test-hand-section {
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .search-section {
+             grid-column: 1 / 2; /* First column */
+             grid-row: 2 / 3;
+        }
+        .deck-section {
+            grid-column: 2 / 3; /* Second column */
+            grid-row: 2 / 4; /* Span two rows */
+        }
+        .actions-section {
+            grid-column: 1 / 2; /* First column */
+            grid-row: 3 / 4;
+        }
+         .test-hand-section {
+            grid-column: 1 / 2; /* First column */
+            grid-row: 4 / 5;
+         }
+
+        #searchInput {
+            width: calc(100% - 80px);
+            padding: 8px;
+            margin-right: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        #searchButton, .action-button, .add-card-btn, .delete-card-btn, #drawHandButton {
+            padding: 8px 12px;
+            background-color: #5c67f2;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        #searchButton:hover, .action-button:hover, .add-card-btn:hover, .delete-card-btn:hover, #drawHandButton:hover {
+            background-color: #4a54e1;
+        }
+
+        #searchResults, #deckList, #testHandDisplay {
+            list-style: none;
+            padding: 0;
+            margin-top: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        #searchResults li, #deckList li, #testHandDisplay li {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #searchResults li:last-child, #deckList li:last-child, #testHandDisplay li:last-child {
+            border-bottom: none;
+        }
+
+        .card-name {
+            flex-grow: 1;
+            margin-right: 10px;
+        }
+
+        .card-quantity input {
+            width: 40px;
+            text-align: center;
+            margin-right: 5px;
+            padding: 4px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+        .delete-card-btn {
+             background-color: #e53e3e;
+        }
+         .delete-card-btn:hover {
+             background-color: #c53030;
+         }
+
+        .action-button {
+            display: block;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        #status {
+            margin-top: 10px;
+            font-style: italic;
+            color: #555;
+            min-height: 1.2em; /* Prevent layout shifts */
+        }
+         #deckCount {
+            text-align: right;
+            font-weight: bold;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+         }
+
+        /* Simple loading indicator */
+        .loading::after {
+            content: ' Loading...';
+            font-style: italic;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Simple MTG Deck Builder</h1>
+
+    <div class="search-section">
+        <h2>Card Search</h2>
+        <input type="text" id="searchInput" placeholder="Enter card name...">
+        <button id="searchButton">Search</button>
+        <div id="status">Enter a card name and click Search.</div>
+        <ul id="searchResults"></ul>
+    </div>
+
+    <div class="actions-section">
+        <h2>Deck Actions</h2>
+        <button id="saveDeckButton" class="action-button">Save Deck</button>
+        <button id="loadDeckButton" class="action-button">Load Deck</button>
+        <button id="clearDeckButton" class="action-button">Clear Current Deck</button>
+        <div id="deckActionStatus"></div>
+    </div>
+
+     <div class="test-hand-section">
+        <h2>Test Hand</h2>
+        <button id="drawHandButton" class="action-button">Draw 7 Cards</button>
+        <div id="testHandStatus"></div>
+        <ul id="testHandDisplay"></ul>
+    </div>
+
+
+    <div class="deck-section">
+        <h2>Current Deck (<span id="deckTotalCount">0</span> cards)</h2>
+        <ul id="deckList">
+            <!-- Deck items will be populated here -->
+        </ul>
+    </div>
+
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const searchButton = document.getElementById('searchButton');
+        const searchResults = document.getElementById('searchResults');
+        const statusDiv = document.getElementById('status');
+
+        const deckList = document.getElementById('deckList');
+        const deckTotalCountSpan = document.getElementById('deckTotalCount');
+
+        const saveDeckButton = document.getElementById('saveDeckButton');
+        const loadDeckButton = document.getElementById('loadDeckButton');
+        const clearDeckButton = document.getElementById('clearDeckButton');
+        const deckActionStatus = document.getElementById('deckActionStatus');
+
+        const drawHandButton = document.getElementById('drawHandButton');
+        const testHandDisplay = document.getElementById('testHandDisplay');
+        const testHandStatus = document.getElementById('testHandStatus');
+
+        const DECK_STORAGE_KEY = 'mtgDeckBuilderSimpleDeck';
+
+        // Represents the current deck: { "Card Name": quantity }
+        let currentDeck = {};
+
+        // --- API Interaction ---
+        async function searchScryfall(query) {
+            clearStatus();
+            searchResults.innerHTML = ''; // Clear previous results
+            if (!query) {
+                updateStatus("Please enter a search term.");
+                return;
+            }
+
+            updateStatus("Searching...", true); // Add loading indicator
+            const apiUrl = `https://api.scryfall.com/cards/search?q=${encodeURIComponent(query)}&unique=cards&order=name`;
+
+            try {
+                const response = await fetch(apiUrl);
+                if (!response.ok) {
+                    if (response.status === 404) {
+                         updateStatus(`No cards found matching "${query}".`);
+                    } else {
+                        throw new Error(`API Error: ${response.status} ${response.statusText}`);
+                    }
+                    return;
+                }
+                const data = await response.json();
+                displaySearchResults(data.data); // Scryfall returns results in data.data
+            } catch (error) {
+                console.error("Search Error:", error);
+                updateStatus(`Error searching for cards: ${error.message}`);
+            } finally {
+                removeLoadingIndicator(); // Ensure loading indicator is removed
+            }
+        }
+
+        // --- Display Logic ---
+        function displaySearchResults(cards) {
+            searchResults.innerHTML = ''; // Clear again just in case
+            if (!cards || cards.length === 0) {
+                updateStatus("No cards found.");
+                return;
+            }
+
+            updateStatus(`Found ${cards.length} card(s). Click to add.`);
+            cards.forEach(card => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span class="card-name">${card.name}</span>
+                    <button class="add-card-btn" data-cardname="${escapeHtml(card.name)}">Add</button>
+                `;
+                searchResults.appendChild(li);
+            });
+        }
+
+        function renderDeck() {
+            deckList.innerHTML = ''; // Clear current view
+            let totalCards = 0;
+            const sortedCardNames = Object.keys(currentDeck).sort(); // Sort alphabetically
+
+            sortedCardNames.forEach(cardName => {
+                const quantity = currentDeck[cardName];
+                totalCards += quantity;
+
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span class="card-name">${escapeHtml(cardName)}</span>
+                    <span class="card-quantity">
+                        <input type="number" min="1" value="${quantity}" data-cardname="${escapeHtml(cardName)}" class="quantity-input">
+                    </span>
+                    <button class="delete-card-btn" data-cardname="${escapeHtml(cardName)}">X</button>
+                `;
+                deckList.appendChild(li);
+            });
+            deckTotalCountSpan.textContent = totalCards;
+        }
+
+        function displayTestHand(hand) {
+            testHandDisplay.innerHTML = '';
+             testHandStatus.textContent = `Drew ${hand.length} cards:`;
+            hand.forEach(cardName => {
+                const li = document.createElement('li');
+                li.textContent = escapeHtml(cardName);
+                testHandDisplay.appendChild(li);
+            });
+        }
+
+
+        // --- Deck Management Logic ---
+        function addCardToDeck(cardName) {
+            if (currentDeck[cardName]) {
+                currentDeck[cardName]++;
+            } else {
+                currentDeck[cardName] = 1;
+            }
+            updateDeckActionStatus(`Added "${cardName}" to deck.`);
+            renderDeck();
+        }
+
+        function updateCardQuantity(cardName, newQuantity) {
+            const quantity = parseInt(newQuantity, 10);
+            if (isNaN(quantity) || quantity <= 0) {
+                // Treat invalid or zero/negative quantity as delete
+                deleteCardFromDeck(cardName);
+                 updateDeckActionStatus(`Removed "${cardName}" (invalid quantity).`);
+            } else {
+                currentDeck[cardName] = quantity;
+                 updateDeckActionStatus(`Updated "${cardName}" quantity to ${quantity}.`);
+                renderDeck(); // Re-render to reflect change (especially if deleted)
+            }
+        }
+
+        function deleteCardFromDeck(cardName) {
+            if (currentDeck[cardName]) {
+                delete currentDeck[cardName];
+                updateDeckActionStatus(`Removed "${cardName}" from deck.`);
+                renderDeck();
+            }
+        }
+
+        function clearDeck() {
+            if (confirm("Are you sure you want to clear the current deck? This cannot be undone unless saved.")) {
+                currentDeck = {};
+                updateDeckActionStatus("Deck cleared.");
+                renderDeck();
+                clearTestHand();
+            }
+        }
+
+
+        // --- Local Storage ---
+        function saveDeck() {
+            try {
+                localStorage.setItem(DECK_STORAGE_KEY, JSON.stringify(currentDeck));
+                updateDeckActionStatus("Deck saved successfully!");
+            } catch (error) {
+                console.error("Error saving deck:", error);
+                updateDeckActionStatus("Error saving deck. LocalStorage might be full or disabled.");
+            }
+        }
+
+        function loadDeck() {
+            const savedDeck = localStorage.getItem(DECK_STORAGE_KEY);
+            if (savedDeck) {
+                try {
+                    const parsedDeck = JSON.parse(savedDeck);
+                    // Basic validation: check if it's an object
+                    if (typeof parsedDeck === 'object' && parsedDeck !== null && !Array.isArray(parsedDeck)) {
+                        currentDeck = parsedDeck;
+                        updateDeckActionStatus("Deck loaded successfully!");
+                        renderDeck();
+                        clearTestHand();
+                    } else {
+                        updateDeckActionStatus("Failed to load deck: Invalid data format in storage.");
+                        console.warn("Invalid data found in localStorage:", parsedDeck);
+                        // Optionally clear the invalid data: localStorage.removeItem(DECK_STORAGE_KEY);
+                    }
+                } catch (error) {
+                    console.error("Error parsing saved deck:", error);
+                    updateDeckActionStatus("Error loading deck: Could not parse saved data.");
+                }
+            } else {
+                updateDeckActionStatus("No saved deck found.");
+            }
+        }
+
+        // --- Test Hand Logic ---
+        function drawTestHand() {
+            testHandDisplay.innerHTML = ''; // Clear previous hand
+            const deckArray = [];
+            for (const cardName in currentDeck) {
+                for (let i = 0; i < currentDeck[cardName]; i++) {
+                    deckArray.push(cardName);
+                }
+            }
+
+            if (deckArray.length < 7) {
+                testHandStatus.textContent = `Cannot draw hand: Deck only has ${deckArray.length} cards (needs at least 7).`;
+                return;
+            }
+
+            // Simple Fisher-Yates (Knuth) Shuffle
+            for (let i = deckArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [deckArray[i], deckArray[j]] = [deckArray[j], deckArray[i]]; // Swap
+            }
+
+            const hand = deckArray.slice(0, 7);
+            displayTestHand(hand);
+        }
+
+        function clearTestHand() {
+            testHandDisplay.innerHTML = '';
+            testHandStatus.textContent = '';
+        }
+
+        // --- Utility Functions ---
+         function updateStatus(message, isLoading = false) {
+            statusDiv.textContent = message;
+            if (isLoading) {
+                statusDiv.classList.add('loading');
+            } else {
+                statusDiv.classList.remove('loading');
+            }
+        }
+        function clearStatus() {
+            statusDiv.textContent = '';
+             statusDiv.classList.remove('loading');
+        }
+         function removeLoadingIndicator() {
+             statusDiv.classList.remove('loading');
+         }
+
+        function updateDeckActionStatus(message) {
+             deckActionStatus.textContent = message;
+             // Optional: Clear message after a few seconds
+             setTimeout(() => {
+                 if (deckActionStatus.textContent === message) { // Avoid clearing newer messages
+                    deckActionStatus.textContent = '';
+                 }
+             }, 4000);
+        }
+
+        // Basic HTML escaping to prevent XSS from card names if they ever contain special chars
+        function escapeHtml(unsafe) {
+            if (!unsafe) return '';
+            return unsafe
+                 .replace(/&/g, "&amp;")
+                 .replace(/</g, "&lt;")
+                 .replace(/>/g, "&gt;")
+                 .replace(/"/g, "&quot;")
+                 .replace(/'/g, "&#039;");
+        }
+
+
+        // --- Event Listeners ---
+        searchButton.addEventListener('click', () => {
+            searchScryfall(searchInput.value.trim());
+        });
+
+        searchInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                searchScryfall(searchInput.value.trim());
+            }
+        });
+
+        // Use event delegation for dynamically added buttons in search results
+        searchResults.addEventListener('click', (event) => {
+            if (event.target.classList.contains('add-card-btn')) {
+                const cardName = event.target.getAttribute('data-cardname');
+                if (cardName) {
+                    addCardToDeck(cardName); // Use the unescaped name for the deck object key
+                }
+            }
+        });
+
+         // Use event delegation for dynamically added elements in deck list
+        deckList.addEventListener('click', (event) => {
+            if (event.target.classList.contains('delete-card-btn')) {
+                const cardName = event.target.getAttribute('data-cardname');
+                 if (cardName) {
+                    deleteCardFromDeck(cardName);
+                }
+            }
+        });
+
+        deckList.addEventListener('change', (event) => {
+             if (event.target.classList.contains('quantity-input')) {
+                const cardName = event.target.getAttribute('data-cardname');
+                const newQuantity = event.target.value;
+                 if (cardName) {
+                    updateCardQuantity(cardName, newQuantity);
+                }
+             }
+        });
+
+
+        saveDeckButton.addEventListener('click', saveDeck);
+        loadDeckButton.addEventListener('click', loadDeck);
+        clearDeckButton.addEventListener('click', clearDeck);
+        drawHandButton.addEventListener('click', drawTestHand);
+
+
+        // --- Initial Load ---
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDeck(); // Try to load an existing deck when the page loads
+            if (Object.keys(currentDeck).length === 0) {
+                 updateDeckActionStatus("Create a new deck or load a saved one.");
+            }
+            renderDeck(); // Render initially (either empty or loaded deck)
+        });
+
+    </script>
+
+</body>
+</html>
