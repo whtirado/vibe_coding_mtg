@@ -927,7 +927,7 @@
       </div>
 
       <div id="deckSearchArea">
-        <p>Click a card in the library to add it to your hand:</p>
+        <p>Right-click a card in the library for actions:</p>
         <ul id="deckSearchResults"></ul>
         <button id="closeSearchAreaButton" class="action-button">
           Close Search
@@ -1048,6 +1048,7 @@
         cardId: null,
         cardData: null,
         sourceZone: null,
+        libraryIndex: null,
       };
       let scryingState = {
         active: false,
@@ -1898,6 +1899,7 @@
         const sortedLibrary = [...currentLibrary].sort((a, b) =>
           a.name.localeCompare(b.name)
         );
+
         sortedLibrary.forEach((card, displayIndex) => {
           const originalIndex = currentLibrary.findIndex((c) => c === card);
           if (originalIndex === -1 && currentLibrary.includes(card)) {
@@ -1908,6 +1910,7 @@
           }
 
           const li = document.createElement("li");
+          li.classList.add("library-search-card"); // Add class for context menu targeting
           const displayImageUrl = card.imageUrl || "";
           const normalImageUrl = card.normalImageUrl || displayImageUrl;
           li.innerHTML = `<img src="${escapeHtml(
@@ -1916,65 +1919,13 @@
             card.name
           )}" loading="lazy" data-normal-src="${escapeHtml(normalImageUrl)}">`;
 
-          li.dataset.libraryCardRef = displayIndex;
+          li.dataset.libraryIndex = originalIndex; // Store the original index
           li.dataset.cardname = card.name;
           li.dataset.imageurl = card.imageUrl;
           li.dataset.normalimageurl = card.normalImageUrl;
 
           deckSearchResults.appendChild(li);
         });
-      }
-      function handleDeckSearchResultClick(event) {
-        const listItem = event.target.closest("li");
-        if (!listItem || listItem.dataset.libraryCardRef === undefined) {
-          return;
-        }
-
-        const cardNameToMove = listItem.dataset.cardname;
-        const cardImageUrl = listItem.dataset.imageurl;
-        const cardNormalUrl = listItem.dataset.normalimageurl;
-
-        const cardIndexInLibrary = currentLibrary.findIndex(
-          (c) =>
-            c.name === cardNameToMove &&
-            c.imageUrl === cardImageUrl &&
-            c.normalImageUrl === cardNormalUrl
-        );
-
-        if (cardIndexInLibrary === -1) {
-          console.error(
-            "Could not find card in library to move:",
-            cardNameToMove
-          );
-          updateTestStatus("Error moving card. Library may be out of sync.");
-          displayLibraryForSearch();
-          return;
-        }
-
-        const [cardToMove] = currentLibrary.splice(cardIndexInLibrary, 1);
-
-        currentHand.push({
-          handId: `h-${handCardIdCounter++}`,
-          name: cardToMove.name,
-          imageUrl: cardToMove.imageUrl,
-          normalImageUrl: cardToMove.normalImageUrl,
-        });
-        displayHand();
-        updateTestStatus(
-          `Moved ${escapeHtml(cardToMove.name)} from library to hand.`
-        );
-        displayLibraryForSearch();
-        if (currentLibrary.length === 0) {
-          disableDrawNextButton();
-          disableShuffleButton();
-          disableSearchButton();
-          disableScryButton();
-        } else {
-          enableDrawNextButton();
-          enableShuffleButton();
-          enableSearchButton();
-          enableScryButton();
-        }
       }
 
       function setTheme(themeName) {
@@ -2011,6 +1962,7 @@
         let cardId = null;
         let sourceZone = null;
         let cardData = null;
+        let libraryIndex = null;
         const cardRect = cardElement.getBoundingClientRect();
 
         if (cardElement.classList.contains("battlefield-card")) {
@@ -2036,6 +1988,17 @@
           cardId = cardElement.dataset.handId;
           const foundCard = currentHand.find((c) => c.handId === cardId);
           if (foundCard) cardData = { ...foundCard };
+        } else if (cardElement.classList.contains("library-search-card")) {
+          sourceZone = "library";
+          libraryIndex = parseInt(cardElement.dataset.libraryIndex, 10);
+          if (
+            !isNaN(libraryIndex) &&
+            libraryIndex >= 0 &&
+            libraryIndex < currentLibrary.length
+          ) {
+            cardData = { ...currentLibrary[libraryIndex] };
+            cardId = `lib-${libraryIndex}`; // Use index as temporary ID for context
+          }
         } else if (cardElement.classList.contains("scry-card-item")) {
           sourceZone = "scry";
           cardId = cardElement.dataset.scryTempId;
@@ -2058,7 +2021,7 @@
           return;
         }
 
-        contextMenuTarget = { cardId, cardData, sourceZone };
+        contextMenuTarget = { cardId, cardData, sourceZone, libraryIndex };
         updateContextMenuItems(sourceZone, cardData);
         positionContextMenu(cardRect);
         cardContextMenu.style.display = "block";
@@ -2067,7 +2030,12 @@
       function hideContextMenu() {
         cardContextMenu.style.display = "none";
         contextMenuVisible = false;
-        contextMenuTarget = { cardId: null, cardData: null, sourceZone: null };
+        contextMenuTarget = {
+          cardId: null,
+          cardData: null,
+          sourceZone: null,
+          libraryIndex: null,
+        };
       }
       function positionContextMenu(cardRect) {
         const menuWidth = cardContextMenu.offsetWidth;
@@ -2148,10 +2116,14 @@
           console.warn("Cannot show card view: No image URL provided.");
           return;
         }
-        cardViewImage.src = imageUrl.replace("small", "normal");
+        const normalImageUrl = imageUrl.includes("?")
+          ? imageUrl.split("?")[0]
+          : imageUrl;
+        cardViewImage.src = normalImageUrl.replace(/\/small\//, "/normal/");
         cardViewImage.onerror = () => {
           console.error("Failed to load image in card view popup:", imageUrl);
           cardViewImage.alt = "Image failed to load";
+          cardViewImage.src = imageUrl; // Try original if normal fails
         };
         cardViewImage.alt = "Card Image";
         cardViewPopupOverlay.style.display = "flex";
@@ -2176,7 +2148,8 @@
         }
 
         const action = targetLi.dataset.action;
-        const { cardId, cardData, sourceZone } = contextMenuTarget;
+        const { cardId, cardData, sourceZone, libraryIndex } =
+          contextMenuTarget;
 
         if (!cardData) {
           console.error("Missing card data for context menu action.");
@@ -2198,6 +2171,7 @@
 
         let cardRemoved = false;
         let performVisualUpdate = true;
+        let cardToMove = null;
 
         if (action === "toggleTap") {
           if (sourceZone === "battlefield" && currentBattlefield[cardId]) {
@@ -2251,43 +2225,54 @@
 
         if (sourceZone === "battlefield") {
           if (currentBattlefield[cardId]) {
+            cardToMove = { ...currentBattlefield[cardId] };
             delete currentBattlefield[cardId];
             cardRemoved = true;
           }
         } else if (sourceZone === "graveyard") {
           const index = currentGraveyard.findIndex((c) => c.gyId === cardId);
           if (index > -1) {
-            currentGraveyard.splice(index, 1);
+            [cardToMove] = currentGraveyard.splice(index, 1);
             cardRemoved = true;
           }
         } else if (sourceZone === "exile") {
           const index = currentExile.findIndex((c) => c.exileId === cardId);
           if (index > -1) {
-            currentExile.splice(index, 1);
+            [cardToMove] = currentExile.splice(index, 1);
             cardRemoved = true;
           }
         } else if (sourceZone === "hand") {
           const index = currentHand.findIndex((c) => c.handId === cardId);
           if (index > -1) {
-            currentHand.splice(index, 1);
+            [cardToMove] = currentHand.splice(index, 1);
+            cardRemoved = true;
+          }
+        } else if (sourceZone === "library") {
+          if (
+            libraryIndex !== null &&
+            libraryIndex >= 0 &&
+            libraryIndex < currentLibrary.length
+          ) {
+            [cardToMove] = currentLibrary.splice(libraryIndex, 1);
             cardRemoved = true;
           }
         }
 
-        if (!cardRemoved) {
+        if (!cardRemoved || !cardToMove) {
           console.error(
             "Failed to remove card from source zone:",
             sourceZone,
-            cardId
+            cardId,
+            libraryIndex
           );
           hideContextMenu();
           return;
         }
 
         const cleanCardData = {
-          name: cardData.name,
-          imageUrl: cardData.imageUrl,
-          normalImageUrl: cardData.normalImageUrl,
+          name: cardToMove.name,
+          imageUrl: cardToMove.imageUrl,
+          normalImageUrl: cardToMove.normalImageUrl,
         };
         let statusMsg = `Moved ${escapeHtml(cleanCardData.name)}`;
         let libraryAction = false;
@@ -2348,14 +2333,24 @@
           updateTestStatus();
         }
 
-        if (libraryAction && deckSearchArea.style.display === "block") {
+        if (
+          (libraryAction || sourceZone === "library") &&
+          deckSearchArea.style.display === "block"
+        ) {
           displayLibraryForSearch();
         }
-        if (libraryAction) {
-          enableDrawNextButton();
-          enableShuffleButton();
-          enableSearchButton();
-          enableScryButton();
+        if (libraryAction || sourceZone === "library") {
+          if (currentLibrary.length > 0) {
+            enableDrawNextButton();
+            enableShuffleButton();
+            enableSearchButton();
+            enableScryButton();
+          } else {
+            disableDrawNextButton();
+            disableShuffleButton();
+            disableSearchButton();
+            disableScryButton();
+          }
         }
         updateUntapAllButtonVisibility();
         hideContextMenu();
@@ -2551,7 +2546,7 @@
 
         if (contextMenuVisible && !cardContextMenu.contains(event.target)) {
           const targetCard = event.target.closest(
-            ".battlefield-card, .side-zone-card, .hand-card, .scry-card-item"
+            ".battlefield-card, .side-zone-card, .hand-card, .scry-card-item, .library-search-card"
           );
           if (!targetCard) {
             hideContextMenu();
@@ -2620,7 +2615,7 @@
       searchDeckButton.addEventListener("click", toggleDeckSearchArea);
       closeSearchAreaButton.addEventListener("click", hideDeckSearchArea);
       scryButton.addEventListener("click", handleScry);
-      deckSearchResults.addEventListener("click", handleDeckSearchResultClick);
+
       [generalZone, graveyardZone, exileZone].forEach((zone) => {
         zone.addEventListener("dragover", handleDragOver);
         zone.addEventListener("drop", handleDrop);
@@ -2652,7 +2647,7 @@
         }
 
         const targetCard = event.target.closest(
-          ".battlefield-card, .side-zone-card, .hand-card, .scry-card-item"
+          ".battlefield-card, .side-zone-card, .hand-card, .scry-card-item, .library-search-card"
         );
 
         if (targetCard) {
