@@ -369,7 +369,9 @@
       #drawNextCardButton,
       #shuffleDeckButton,
       #searchDeckButton,
-      #scryButton {
+      #scryButton,
+      #untapAllButton {
+        /* Added untapAllButton */
         padding: 9px 15px;
         background-color: var(--button-bg);
         color: var(--button-text);
@@ -425,14 +427,18 @@
       #drawNextCardButton:hover,
       #shuffleDeckButton:hover,
       #searchDeckButton:hover,
-      #scryButton:hover {
+      #scryButton:hover,
+      #untapAllButton:hover {
+        /* Added untapAllButton */
         background-color: var(--button-bg-hover);
       }
       .action-button:disabled,
       #drawNextCardButton:disabled,
       #shuffleDeckButton:disabled,
       #searchDeckButton:disabled,
-      #scryButton:disabled {
+      #scryButton:disabled,
+      #untapAllButton:disabled {
+        /* Added untapAllButton */
         background-color: var(--button-disabled-bg);
         color: var(--button-disabled-text);
         cursor: not-allowed;
@@ -590,7 +596,8 @@
         box-shadow: 1px 1px 3px var(--shadow-color-heavy);
         cursor: grab;
         user-select: none;
-        transition: box-shadow 0.2s ease, transform 0.2s ease-in-out;
+        transition: box-shadow 0.2s ease, transform 0.2s ease-in-out,
+          left 0.1s ease-out, top 0.1s ease-out; /* Added transition for position */
         transform-origin: center center;
         background-color: var(--section-bg);
         z-index: 1;
@@ -602,6 +609,7 @@
         cursor: grabbing;
         box-shadow: 2px 2px 6px var(--shadow-color-heavy);
         z-index: 1000;
+        transition: box-shadow 0.2s ease, transform 0.2s ease-in-out; /* Remove position transition while dragging */
       }
       .battlefield-card img {
         width: 100%;
@@ -771,14 +779,14 @@
         background-color: var(--scry-card-bg);
         border: 1px solid var(--scry-card-border);
         border-radius: 6px;
-        cursor: default; /* Prevent default text selection cursor */
+        cursor: default;
       }
       .scry-card-item img {
         width: 100px;
         height: auto;
         border-radius: 4px;
         margin-bottom: 5px;
-        pointer-events: none; /* Image shouldn't capture clicks for choice buttons */
+        pointer-events: none;
       }
       .scry-card-item .scry-choice-buttons button {
         padding: 5px 10px;
@@ -915,6 +923,9 @@
           <button id="scryButton" class="action-button" disabled>Scry</button>
           <input type="number" id="scryCountInput" value="1" min="1" max="10" />
         </div>
+        <button id="untapAllButton" class="action-button" style="display: none">
+          Untap All
+        </button>
         <span id="testHandStatus"></span>
       </div>
 
@@ -990,6 +1001,7 @@
       const searchDeckButton = document.getElementById("searchDeckButton");
       const scryButton = document.getElementById("scryButton");
       const scryCountInput = document.getElementById("scryCountInput");
+      const untapAllButton = document.getElementById("untapAllButton");
       const testHandStatus = document.getElementById("testHandStatus");
       const battlefieldDisplayContainer = document.getElementById(
         "battlefieldDisplayContainer"
@@ -1226,6 +1238,7 @@
             generalZone.appendChild(cardDiv);
           }
         });
+        updateUntapAllButtonVisibility();
       }
       function displayHand() {
         testHandContainer.innerHTML = "";
@@ -1289,6 +1302,23 @@
         });
         updateTestStatus();
       }
+
+      function updateUntapAllButtonVisibility() {
+        let tappedCardExists = false;
+        for (const id in currentBattlefield) {
+          if (
+            currentBattlefield[id].zone === "general" &&
+            currentBattlefield[id].isTapped
+          ) {
+            tappedCardExists = true;
+            break;
+          }
+        }
+        untapAllButton.style.display = tappedCardExists
+          ? "inline-block"
+          : "none";
+      }
+
       function updateTestStatus(message = "") {
         const handCount = currentHand.length;
         const libraryCount = currentLibrary.length;
@@ -1312,6 +1342,7 @@
           statusText += " Library is empty.";
         }
         testHandStatus.textContent = statusText;
+        updateUntapAllButtonVisibility(); // Ensure button visibility is checked on status updates
       }
 
       function addCardToDeck(cardName, smallImageUrl, normalImageUrl) {
@@ -1539,6 +1570,7 @@
         enableSearchButton();
         enableScryButton();
         hideDeckSearchArea();
+        updateUntapAllButtonVisibility();
       }
       function drawNextCard() {
         if (currentLibrary.length === 0) {
@@ -1660,6 +1692,7 @@
         hideContextMenu();
         hideCardViewPopup();
         cancelScry();
+        updateUntapAllButtonVisibility();
       }
       function handlePlayCardFromHand(event) {
         const cardDiv = event.currentTarget;
@@ -1800,6 +1833,7 @@
             updateTestStatus(`Moved ${escapeHtml(cardData.name)} to Exile.`);
           }
           displaySideZones();
+          updateUntapAllButtonVisibility();
         } else if (dropZoneId === "generalZone") {
           const zoneRect = targetZoneElement.getBoundingClientRect();
           let newX = event.clientX - zoneRect.left - dragInfo.offsetX;
@@ -1810,7 +1844,7 @@
           );
           if (!cardElement) {
             console.error("Could not find dragged card element on drop.");
-            displayBattlefield();
+            displayBattlefield(); // Should redraw with correct state
             return;
           }
 
@@ -1835,6 +1869,7 @@
           updateTestStatus(
             `Moved ${escapeHtml(cardData.name)} on battlefield.`
           );
+          // No need to call displayBattlefield() here, just moved the element
         } else {
           console.warn("Drop occurred on unexpected element:", dropZoneId);
         }
@@ -1966,7 +2001,6 @@
       }
 
       function showContextMenu(event, cardElement) {
-        // Prevent showing context menu if scrying is active, EXCEPT for scry cards themselves
         if (
           scryingState.active &&
           !cardElement.classList.contains("scry-card-item")
@@ -2017,7 +2051,7 @@
               name: foundCard.name,
               imageUrl: foundCard.imageUrl,
               normalImageUrl: foundCard.normalImageUrl,
-            }; // Only pass necessary data
+            };
         }
 
         if (!cardId || !sourceZone || !cardData) {
@@ -2051,30 +2085,23 @@
         let idealTop = cardRect.top + scrollY - menuHeight - buffer;
         let idealLeft = cardRect.left + scrollX;
 
-        // Adjust if menu goes off top
         if (idealTop < scrollY + buffer) {
           idealTop = cardRect.bottom + scrollY + buffer;
         }
 
-        // Adjust if menu goes off right
         if (idealLeft + menuWidth > viewportWidth + scrollX - buffer) {
           idealLeft = viewportWidth + scrollX - menuWidth - buffer;
         }
 
-        // Ensure menu doesn't go off left
         idealLeft = Math.max(scrollX + buffer, idealLeft);
 
-        // Adjust if menu goes off bottom
         if (idealTop + menuHeight > viewportHeight + scrollY - buffer) {
-          // Try positioning above first if it didn't fit below
           if (idealTop > cardRect.bottom + scrollY + buffer) {
             idealTop = cardRect.top + scrollY - menuHeight - buffer;
           }
-          // If still off bottom (or was initially off top), clamp to bottom edge
           if (idealTop + menuHeight > viewportHeight + scrollY - buffer) {
             idealTop = viewportHeight + scrollY - menuHeight - buffer;
           }
-          // Ensure menu doesn't go off top when clamping to bottom
           idealTop = Math.max(scrollY + buffer, idealTop);
         }
 
@@ -2089,12 +2116,10 @@
           item.classList.remove("disabled", "hidden");
 
           if (sourceZone === "scry") {
-            // Only show "View Card" for scry context
             if (action !== "viewCard") {
               item.classList.add("hidden");
             }
           } else {
-            // Original logic for non-scry zones
             if (
               (action === "toBattlefield" && sourceZone === "battlefield") ||
               (action === "toGraveyard" && sourceZone === "graveyard") ||
@@ -2114,7 +2139,7 @@
 
             if (
               (action === "toLibraryTop" || action === "toLibraryBottom") &&
-              sourceZone === "library" // Should not happen from UI, but defensive
+              sourceZone === "library"
             ) {
               item.classList.add("disabled");
             }
@@ -2163,15 +2188,13 @@
           return;
         }
 
-        // Handle "View Card" universally first
         if (action === "viewCard") {
           const imageUrl = cardData.normalImageUrl || cardData.imageUrl;
           showCardViewPopup(imageUrl);
-          hideContextMenu(); // Hide context menu after showing popup
-          return; // Stop processing other actions
+          hideContextMenu();
+          return;
         }
 
-        // If the source zone is scry, only view card is handled above, so exit.
         if (sourceZone === "scry") {
           hideContextMenu();
           return;
@@ -2189,13 +2212,11 @@
             );
             if (cardElement) {
               cardElement.classList.toggle("tapped", card.isTapped);
-              // Adjust position slightly if untapping near edge
               if (!card.isTapped) {
                 const zoneRect = generalZone.getBoundingClientRect();
-                const cardRect = cardElement.getBoundingClientRect(); // Use current rect
-                const cardWidth = cardRect.width; // Actual rendered width
-                const cardHeight = cardRect.height; // Actual rendered height
-
+                const cardRect = cardElement.getBoundingClientRect();
+                const cardWidth = cardRect.width;
+                const cardHeight = cardRect.height;
                 let currentX = parseFloat(cardElement.style.left);
                 let currentY = parseFloat(cardElement.style.top);
                 let newX = Math.max(
@@ -2206,10 +2227,13 @@
                   0,
                   Math.min(currentY, generalZone.clientHeight - cardHeight - 5)
                 );
-                cardElement.style.left = `${newX}px`;
-                cardElement.style.top = `${newY}px`;
-                card.x = newX;
-                card.y = newY;
+
+                if (newX !== currentX || newY !== currentY) {
+                  cardElement.style.left = `${newX}px`;
+                  cardElement.style.top = `${newY}px`;
+                  card.x = newX;
+                  card.y = newY;
+                }
               }
             }
             updateTestStatus(
@@ -2217,7 +2241,8 @@
                 cardData.name
               )}.`
             );
-            performVisualUpdate = false; // Handled directly
+            performVisualUpdate = false;
+            updateUntapAllButtonVisibility();
           } else {
             console.error(
               "Cannot toggle tap: Card not found on battlefield or invalid zone."
@@ -2225,10 +2250,9 @@
             performVisualUpdate = false;
           }
           hideContextMenu();
-          return; // End toggle tap action
+          return;
         }
 
-        // Remove card from its source zone (excluding scry and toggleTap)
         if (sourceZone === "battlefield") {
           if (currentBattlefield[cardId]) {
             delete currentBattlefield[cardId];
@@ -2264,7 +2288,6 @@
           return;
         }
 
-        // Prepare clean card data for the destination zone
         const cleanCardData = {
           name: cardData.name,
           imageUrl: cardData.imageUrl,
@@ -2273,7 +2296,6 @@
         let statusMsg = `Moved ${escapeHtml(cleanCardData.name)}`;
         let libraryAction = false;
 
-        // Add card to the destination zone
         switch (action) {
           case "toHand":
             cleanCardData.handId = `h-${handCardIdCounter++}`;
@@ -2314,8 +2336,7 @@
             statusMsg = `Error processing action for ${escapeHtml(
               cleanCardData.name
             )}.`;
-            performVisualUpdate = false; // Don't update visuals if action failed
-            // Re-add the card to its original zone if possible? Complex, maybe just log error.
+            performVisualUpdate = false;
             console.error(
               "Reverting action failed, card may be lost from test area."
             );
@@ -2327,19 +2348,20 @@
           displaySideZones();
           displayHand();
           updateTestStatus(statusMsg);
+        } else {
+          updateTestStatus(); // Update status anyway to refresh counts etc.
         }
 
         if (libraryAction && deckSearchArea.style.display === "block") {
-          displayLibraryForSearch(); // Update library view if open
+          displayLibraryForSearch();
         }
         if (libraryAction) {
-          // Re-enable library buttons if a card was added back
           enableDrawNextButton();
           enableShuffleButton();
           enableSearchButton();
           enableScryButton();
         }
-
+        updateUntapAllButtonVisibility(); // Check button visibility after any move
         hideContextMenu();
       }
 
@@ -2372,6 +2394,7 @@
         disableShuffleButton();
         disableSearchButton();
         disableScryButton();
+        untapAllButton.disabled = true; // Disable untap during scry
         displayScryModal(actualCount);
         updateTestStatus(
           `Scrying ${actualCount} cards... Choose Top or Bottom for each.`
@@ -2413,7 +2436,6 @@
           buttonDiv.appendChild(bottomButton);
           cardDiv.appendChild(buttonDiv);
 
-          // Add context menu listener to the scry card item div
           cardDiv.addEventListener("contextmenu", (event) =>
             showContextMenu(event, cardDiv)
           );
@@ -2426,7 +2448,7 @@
 
       function handleScryChoice(event) {
         if (!scryingState.active) return;
-        hideContextMenu(); // Hide context menu if a choice is made
+        hideContextMenu();
 
         const button = event.target;
         const choice = button.dataset.choice;
@@ -2446,7 +2468,6 @@
 
         let actionMsg = "";
         if (choice === "top") {
-          // Add chosen 'top' card back to the start of the library immediately
           currentLibrary.unshift(cardData);
           actionMsg = `Keeping ${escapeHtml(cardData.name)} on top.`;
         } else {
@@ -2460,19 +2481,18 @@
         scryingState.resolvedCount++;
 
         if (scryingState.resolvedCount === scryingState.expectedCount) {
-          // All cards decided, add the 'bottom' pile to the end of the library
           currentLibrary.push(...scryingState.toBottom);
-          scryingState.toBottom = []; // Clear the temporary bottom pile
+          scryingState.toBottom = [];
           endScrySession();
         }
       }
 
       function endScrySession() {
         const wasActive = scryingState.active;
-        hideContextMenu(); // Ensure menu is hidden when session ends
+        hideContextMenu();
         scryingState.active = false;
-        scryingState.cards = []; // Should be empty now anyway
-        scryingState.toBottom = []; // Should be empty now anyway
+        scryingState.cards = [];
+        scryingState.toBottom = [];
         scryingState.expectedCount = 0;
         scryingState.resolvedCount = 0;
         scryOverlay.style.display = "none";
@@ -2481,6 +2501,7 @@
         enableShuffleButton();
         enableSearchButton();
         enableScryButton();
+        untapAllButton.disabled = false; // Re-enable untap button
 
         if (wasActive) {
           let currentStatus = testHandStatus.textContent || "";
@@ -2489,18 +2510,17 @@
             .trim();
           updateTestStatus(currentStatus + " Scry finished.");
         } else {
-          updateTestStatus(); // Refresh status normally if wasn't active (e.g., cancelled)
+          updateTestStatus();
         }
 
         if (deckSearchArea.style.display === "block") {
-          displayLibraryForSearch(); // Update library view if open
+          displayLibraryForSearch();
         }
       }
 
       function cancelScry() {
         if (scryingState.active) {
           hideContextMenu();
-          // Return all undecided cards and bottomed cards back to library top (order might be arbitrary)
           const cardsToReturn = [
             ...scryingState.cards,
             ...scryingState.toBottom,
@@ -2509,7 +2529,7 @@
           currentLibrary.unshift(...cardsToReturn);
 
           updateTestStatus("Scry cancelled. Cards returned to library.");
-          endScrySession(); // Clean up state and re-enable buttons
+          endScrySession();
         }
       }
 
@@ -2533,13 +2553,10 @@
           searchResults.style.display = "none";
         }
 
-        // Hide context menu on any click outside of it
         if (contextMenuVisible && !cardContextMenu.contains(event.target)) {
-          // Check if click was on a card that might open the menu again
           const targetCard = event.target.closest(
             ".battlefield-card, .side-zone-card, .hand-card, .scry-card-item"
           );
-          // Only hide if the click wasn't on a card (contextmenu handles opening)
           if (!targetCard) {
             hideContextMenu();
           }
@@ -2559,11 +2576,6 @@
         ) {
           hideDeckSearchArea();
         }
-
-        // Don't cancel scry on overlay click, user must use buttons or context menu
-        // if (scryingState.active && event.target === scryOverlay) {
-        //   cancelScry();
-        // }
 
         if (event.target === cardViewPopupOverlay) {
           hideCardViewPopup();
@@ -2608,25 +2620,39 @@
         zone.addEventListener("drop", handleDrop);
       });
 
+      untapAllButton.addEventListener("click", () => {
+        let untappedCount = 0;
+        for (const id in currentBattlefield) {
+          if (
+            currentBattlefield[id].zone === "general" &&
+            currentBattlefield[id].isTapped
+          ) {
+            currentBattlefield[id].isTapped = false;
+            untappedCount++;
+          }
+        }
+        if (untappedCount > 0) {
+          displayBattlefield(); // Re-render the battlefield with untapped cards
+          updateTestStatus(`Untapped ${untappedCount} card(s).`);
+        }
+        updateUntapAllButtonVisibility(); // This will hide the button
+      });
+
       themeToggle.addEventListener("change", toggleTheme);
 
       document.addEventListener("contextmenu", (event) => {
-        // Hide any previously visible menu first
         if (contextMenuVisible) {
           hideContextMenu();
         }
 
         const targetCard = event.target.closest(
-          ".battlefield-card, .side-zone-card, .hand-card, .scry-card-item" // Include scry items
+          ".battlefield-card, .side-zone-card, .hand-card, .scry-card-item"
         );
 
         if (targetCard) {
-          // Prevent default only if we found a valid target card
           event.preventDefault();
-          // showContextMenu handles preventing the menu if scrying is active for non-scry cards
           showContextMenu(event, targetCard);
         }
-        // If not clicking on a card, allow the default browser context menu
       });
 
       cardContextMenu.addEventListener("click", handleContextMenuAction);
