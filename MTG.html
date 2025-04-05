@@ -2412,38 +2412,30 @@
       themeToggle.addEventListener("change", toggleTheme);
 
       document.addEventListener("contextmenu", (event) => {
+        // Prevent the default browser context menu everywhere
+        event.preventDefault();
+
+        // Hide any existing custom context menu
+        hideContextMenu();
+
+        // Determine if the click was on a card eligible for our custom menu
         const targetCard = event.target.closest(
           ".battlefield-card, .side-zone-card, .hand-card"
         );
-        if (!targetCard) {
-          hideContextMenu();
+
+        // If it was on an eligible card, show our custom menu
+        if (targetCard) {
+          showContextMenu(event, targetCard); // Pass event and card element
         }
+        // Otherwise, do nothing (default is already prevented)
       });
 
-      testHandContainer.addEventListener("contextmenu", (event) => {
-        const cardElement = event.target.closest(".hand-card");
-        if (cardElement) {
-          showContextMenu(event, cardElement);
-        }
-      });
-      battlefieldDisplayContainer.addEventListener("contextmenu", (event) => {
-        const cardElement = event.target.closest(".battlefield-card");
-        if (cardElement) {
-          showContextMenu(event, cardElement);
-        }
-      });
-      graveyardZone.addEventListener("contextmenu", (event) => {
-        const cardElement = event.target.closest(".side-zone-card");
-        if (cardElement) {
-          showContextMenu(event, cardElement);
-        }
-      });
-      exileZone.addEventListener("contextmenu", (event) => {
-        const cardElement = event.target.closest(".side-zone-card");
-        if (cardElement) {
-          showContextMenu(event, cardElement);
-        }
-      });
+      // Remove specific zone listeners as the document listener handles showing the menu now
+      // battlefieldDisplayContainer.addEventListener('contextmenu', ...); // REMOVED
+      // graveyardZone.addEventListener('contextmenu', ...); // REMOVED
+      // exileZone.addEventListener('contextmenu', ...); // REMOVED
+      // testHandContainer.addEventListener('contextmenu', ...); // REMOVED
+
       cardContextMenu.addEventListener("click", handleContextMenuAction);
       window.addEventListener("scroll", hideContextMenu, true);
       window.addEventListener("resize", hideContextMenu, true);
