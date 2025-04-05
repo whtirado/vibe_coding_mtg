@@ -968,7 +968,7 @@
       </div>
 
       <button id="deleteSavedDeckButton" class="action-button">
-        Delete Saved Deck...
+        Delete Current Loaded Deck
       </button>
       <div id="deckActionStatus"></div>
     </div>
@@ -1179,8 +1179,14 @@
           currentDeckNameStatus.textContent = `Editing: ${escapeHtml(
             deckName
           )}`;
+          deleteSavedDeckButton.textContent = `Delete Deck: "${escapeHtml(
+            deckName
+          )}"`;
+          deleteSavedDeckButton.disabled = false;
         } else {
           currentDeckNameStatus.textContent = "No Deck Loaded / Unsaved Deck";
+          deleteSavedDeckButton.textContent = "Delete Current Loaded Deck";
+          deleteSavedDeckButton.disabled = true;
         }
       }
       function escapeHtml(unsafe) {
@@ -1681,60 +1687,55 @@
       }
 
       function deleteSavedDeck() {
+        const deckNameToDelete = currentLoadedDeckName;
+
+        if (!deckNameToDelete) {
+          updateDeckActionStatus(
+            "Please load the deck you wish to delete first."
+          );
+          return;
+        }
+
         const savedDecks = getSavedDecks();
-        const deckNames = Object.keys(savedDecks).sort();
 
-        if (deckNames.length === 0) {
-          updateDeckActionStatus("No saved decks to delete.");
+        if (!savedDecks[deckNameToDelete]) {
+          updateDeckActionStatus(
+            `Error: Loaded deck "${escapeHtml(
+              deckNameToDelete
+            )}" not found in storage.`
+          );
+          currentLoadedDeckName = null;
+          updateCurrentDeckNameStatus(null);
+          renderSavedDecksList();
           return;
         }
 
-        const promptMessage =
-          "Enter the EXACT name of the deck to DELETE:\n\nAvailable decks:\n- " +
-          deckNames.join("\n- ");
-        const chosenName = prompt(promptMessage);
-
-        if (!chosenName) {
-          updateDeckActionStatus("Delete cancelled.");
-          return;
-        }
-
-        const trimmedChosenName = chosenName.trim();
-
-        if (savedDecks[trimmedChosenName]) {
-          if (
-            confirm(
-              `Are you sure you want to permanently delete the deck "${escapeHtml(
-                trimmedChosenName
-              )}"? This cannot be undone.`
-            )
-          ) {
-            delete savedDecks[trimmedChosenName];
-            try {
-              localStorage.setItem(
-                MULTI_DECK_STORAGE_KEY,
-                JSON.stringify(savedDecks)
-              );
-              updateDeckActionStatus(
-                `Deck "${escapeHtml(trimmedChosenName)}" deleted.`
-              );
-              if (currentLoadedDeckName === trimmedChosenName) {
-                clearDeck();
-              }
-              renderSavedDecksList();
-            } catch (error) {
-              console.error("Error deleting deck:", error);
-              updateDeckActionStatus(
-                "Error deleting deck. LocalStorage might be full or disabled."
-              );
-            }
-          } else {
-            updateDeckActionStatus("Delete cancelled.");
+        if (
+          confirm(
+            `Are you sure you want to permanently delete the deck "${escapeHtml(
+              deckNameToDelete
+            )}"? This cannot be undone.`
+          )
+        ) {
+          delete savedDecks[deckNameToDelete];
+          try {
+            localStorage.setItem(
+              MULTI_DECK_STORAGE_KEY,
+              JSON.stringify(savedDecks)
+            );
+            updateDeckActionStatus(
+              `Deck "${escapeHtml(deckNameToDelete)}" deleted.`
+            );
+            clearDeck();
+            renderSavedDecksList();
+          } catch (error) {
+            console.error("Error deleting deck:", error);
+            updateDeckActionStatus(
+              "Error deleting deck. LocalStorage might be full or disabled."
+            );
           }
         } else {
-          updateDeckActionStatus(
-            `Deck "${escapeHtml(trimmedChosenName)}" not found.`
-          );
+          updateDeckActionStatus("Delete cancelled.");
         }
       }
 
@@ -2176,6 +2177,7 @@
                 `Moved ${escapeHtml(cardData.name)} on battlefield.`
               );
               cardMoved = true;
+              displayBattlefield();
             } else {
               console.error(
                 "Could not find dragged battlefield card element on drop."
@@ -2190,9 +2192,13 @@
               sourceZone,
               draggedCardId
             );
+            displayBattlefield();
+            displayHand();
           }
         } else {
           console.warn("Drop occurred on unexpected element:", dropZoneId);
+          displayBattlefield();
+          displayHand();
         }
 
         dragInfo.cardId = null;
@@ -2325,8 +2331,15 @@
             libraryIndex >= 0 &&
             libraryIndex < currentLibrary.length
           ) {
-            cardData = { ...currentLibrary[libraryIndex] };
-            cardId = `lib-${libraryIndex}`;
+            if (currentLibrary[libraryIndex]) {
+              cardData = { ...currentLibrary[libraryIndex] };
+              cardId = `lib-${libraryIndex}`;
+            } else {
+              console.error(
+                `Invalid library index access: ${libraryIndex} out of ${currentLibrary.length}`
+              );
+              return;
+            }
           }
         } else if (cardElement.classList.contains("scry-card-item")) {
           sourceZone = "scry";
@@ -2577,8 +2590,14 @@
             libraryIndex >= 0 &&
             libraryIndex < currentLibrary.length
           ) {
-            [cardToMove] = currentLibrary.splice(libraryIndex, 1);
-            cardRemoved = true;
+            if (currentLibrary[libraryIndex]) {
+              [cardToMove] = currentLibrary.splice(libraryIndex, 1);
+              cardRemoved = true;
+            } else {
+              console.error(
+                `Context menu action error: Invalid library index access: ${libraryIndex} out of ${currentLibrary.length}`
+              );
+            }
           }
         }
 
@@ -2590,6 +2609,10 @@
             libraryIndex
           );
           hideContextMenu();
+          if (deckSearchArea.style.display === "block") {
+            displayLibraryForSearch();
+          }
+          updateTestStatus();
           return;
         }
 
@@ -2641,10 +2664,38 @@
             statusMsg = `Error processing action for ${escapeHtml(
               cleanCardData.name
             )}.`;
-            performVisualUpdate = false;
-            console.error(
-              "Reverting action failed, card may be lost from test area."
-            );
+
+            if (sourceZone === "library") {
+              currentLibrary.splice(libraryIndex, 0, cardToMove);
+            } else if (sourceZone === "hand") {
+              const originalIndex = currentHand.findIndex(
+                (c) => c.handId > cardToMove.handId
+              );
+              if (originalIndex > -1)
+                currentHand.splice(originalIndex, 0, cardToMove);
+              else currentHand.push(cardToMove);
+            } else if (sourceZone === "battlefield") {
+              currentBattlefield[cardId] = cardToMove;
+            } else if (sourceZone === "graveyard") {
+              const originalIndex = currentGraveyard.findIndex(
+                (c) => c.gyId > cardToMove.gyId
+              );
+              if (originalIndex > -1)
+                currentGraveyard.splice(originalIndex, 0, cardToMove);
+              else currentGraveyard.push(cardToMove);
+            } else if (sourceZone === "exile") {
+              const originalIndex = currentExile.findIndex(
+                (c) => c.exileId > cardToMove.exileId
+              );
+              if (originalIndex > -1)
+                currentExile.splice(originalIndex, 0, cardToMove);
+              else currentExile.push(cardToMove);
+            } else {
+              console.error(
+                "Reverting action failed, card may be lost from test area."
+              );
+            }
+            performVisualUpdate = true;
             break;
         }
 
@@ -2703,16 +2754,26 @@
           if (card) {
             card.scryTempId = `scry-${i}`;
             scryingState.cards.push(card);
+          } else {
+            console.error("Attempted to scry undefined card from library.");
+            scryingState.expectedCount--;
           }
         }
+
+        if (scryingState.expectedCount <= 0) {
+          console.warn("No valid cards found to scry.");
+          cancelScry();
+          return;
+        }
+
         disableDrawNextButton();
         disableShuffleButton();
         disableSearchButton();
         disableScryButton();
         untapAllButton.disabled = true;
-        displayScryModal(actualCount);
+        displayScryModal(scryingState.expectedCount);
         updateTestStatus(
-          `Scrying ${actualCount} cards... Choose Top or Bottom for each.`
+          `Scrying ${scryingState.expectedCount} cards... Choose Top or Bottom for each.`
         );
       }
 
@@ -2887,7 +2948,8 @@
           deckSearchArea.style.display === "block" &&
           !deckSearchDiv &&
           !searchButton &&
-          !closeSearchButton
+          !closeSearchButton &&
+          !cardContextMenu.contains(event.target)
         ) {
           hideDeckSearchArea();
         }
@@ -2921,6 +2983,11 @@
             ) {
               deleteCardFromDeck(cardName);
             }
+          }
+        } else if (event.target.classList.contains("card-image")) {
+          const normalSrc = event.target.dataset.normalSrc;
+          if (normalSrc) {
+            showCardViewPopup(normalSrc);
           }
         }
       });
@@ -2985,6 +3052,18 @@
         if (targetCard) {
           event.preventDefault();
           showContextMenu(event, targetCard);
+        }
+      });
+
+      document.addEventListener("dblclick", (event) => {
+        const targetCardImage = event.target.closest(
+          ".battlefield-card img, .side-zone-card img, .hand-card img, .scry-card-item img, .library-search-card img"
+        );
+        if (targetCardImage) {
+          const normalSrc = targetCardImage.dataset.normalSrc;
+          if (normalSrc) {
+            showCardViewPopup(normalSrc);
+          }
         }
       });
 
