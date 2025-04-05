@@ -28,7 +28,6 @@
         --input-text: #333333;
         --list-item-hover-bg: #f0f8ff;
         --search-result-hover-bg: #f0f0f0;
-        /* Removed popup variables */
         --battlefield-bg: #e0e0e0;
         --battlefield-border: #cccccc;
         --zone-general-bg: #e9f5e9;
@@ -57,6 +56,12 @@
         --scry-button-text: #ffffff;
         --scry-button-hover-bg: #5a6268;
         --scry-button-selected-bg: #0056b3;
+        --card-view-overlay-bg: rgba(0, 0, 0, 0.8);
+        --card-view-bg: #ffffff;
+        --card-view-border: #cccccc;
+        --card-view-close-bg: #6c757d;
+        --card-view-close-text: #ffffff;
+        --card-view-close-hover-bg: #5a6268;
       }
 
       body[data-theme="dark"] {
@@ -82,7 +87,6 @@
         --input-text: #e0e0e0;
         --list-item-hover-bg: #3a4a5a;
         --search-result-hover-bg: #444444;
-        /* Removed popup variables */
         --battlefield-bg: #3a3a3a;
         --battlefield-border: #666666;
         --zone-general-bg: #2a4a2a;
@@ -111,6 +115,12 @@
         --scry-button-text: #ffffff;
         --scry-button-hover-bg: #495057;
         --scry-button-selected-bg: #003d80;
+        --card-view-overlay-bg: rgba(0, 0, 0, 0.9);
+        --card-view-bg: #3a3a3a;
+        --card-view-border: #666666;
+        --card-view-close-bg: #5a6268;
+        --card-view-close-text: #ffffff;
+        --card-view-close-hover-bg: #495057;
       }
 
       body {
@@ -377,7 +387,7 @@
         flex-wrap: wrap;
       }
       .test-controls .action-button,
-      .test-controls .scry-control {
+      .test-controls {
         display: inline-block;
         width: auto;
         margin-right: 10px;
@@ -433,6 +443,7 @@
         padding: 4px 8px;
         font-size: 0.8em;
         line-height: 1;
+        margin-bottom: 0;
       }
       .delete-card-btn:hover {
         background-color: var(--button-delete-bg-hover);
@@ -680,8 +691,6 @@
         border-radius: 3px;
       }
 
-      /* Removed #imagePopup styles */
-
       #cardContextMenu {
         position: absolute;
         display: none;
@@ -788,6 +797,65 @@
         color: var(--button-disabled-text);
         cursor: not-allowed;
       }
+
+      #cardViewPopupOverlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: var(--card-view-overlay-bg);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 10020;
+        padding: 20px;
+        box-sizing: border-box;
+      }
+      #cardViewPopupContent {
+        position: relative;
+        min-width: 30vw;
+        max-width: 90vw; /* Limit width */
+        max-height: 90vh; /* Limit height */
+        display: flex; /* Use flex to center image easily */
+        justify-content: center;
+        align-items: center;
+        background-color: var(--card-view-bg);
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid var(--card-view-border);
+        box-shadow: 0 5px 20px var(--shadow-color-heavy);
+      }
+      #cardViewImage {
+        display: block;
+        width: 100%;
+        max-height: calc(
+          90vh - 60px
+        ); /* Adjust max height based on padding/buttons */
+        height: auto; /* Maintain aspect ratio */
+        border-radius: 25px;
+        object-fit: contain; /* Ensure image fits without stretching */
+      }
+      #closeCardViewPopupButton {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        background-color: var(--card-view-close-bg);
+        color: var(--card-view-close-text);
+        border: none;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        font-size: 18px;
+        line-height: 30px;
+        text-align: center;
+        cursor: pointer;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        transition: background-color 0.2s ease;
+      }
+      #closeCardViewPopupButton:hover {
+        background-color: var(--card-view-close-hover-bg);
+      }
     </style>
   </head>
   <body data-theme="light">
@@ -876,18 +944,16 @@
       </div>
     </div>
 
-    <!-- Removed imagePopup div -->
-
     <div id="cardContextMenu">
       <ul>
         <li data-action="toggleTap">Tap/Untap</li>
+        <li data-action="viewCard">View Card</li>
         <li data-action="toHand">Move to Hand</li>
         <li data-action="toBattlefield">Move to Battlefield</li>
         <li data-action="toGraveyard">Move to Graveyard</li>
         <li data-action="toExile">Move to Exile</li>
         <li data-action="toLibraryTop">Move to Library (Top)</li>
         <li data-action="toLibraryBottom">Move to Library (Bottom)</li>
-        <li data-action="toLibraryShuffle">Move to Library (Shuffle In)</li>
       </ul>
     </div>
 
@@ -895,6 +961,13 @@
       <div id="scryModal">
         <h3 id="scryModalTitle">Scry X</h3>
         <div id="scryCardContainer"></div>
+      </div>
+    </div>
+
+    <div id="cardViewPopupOverlay">
+      <div id="cardViewPopupContent">
+        <img id="cardViewImage" src="" alt="Card Image" />
+        <button id="closeCardViewPopupButton">×</button>
       </div>
     </div>
 
@@ -927,7 +1000,6 @@
       const graveyardCountSpan = document.getElementById("graveyardCount");
       const exileCountSpan = document.getElementById("exileCount");
       const testHandContainer = document.getElementById("testHandContainer");
-      // Removed imagePopup and popupImage variables
       const themeToggle = document.getElementById("themeToggleCheckbox");
       const deckSearchArea = document.getElementById("deckSearchArea");
       const deckSearchResults = document.getElementById("deckSearchResults");
@@ -939,6 +1011,13 @@
       const scryModal = document.getElementById("scryModal");
       const scryModalTitle = document.getElementById("scryModalTitle");
       const scryCardContainer = document.getElementById("scryCardContainer");
+      const cardViewPopupOverlay = document.getElementById(
+        "cardViewPopupOverlay"
+      );
+      const cardViewImage = document.getElementById("cardViewImage");
+      const closeCardViewPopupButton = document.getElementById(
+        "closeCardViewPopupButton"
+      );
 
       const DECK_STORAGE_KEY = "mtgDeckBuilderSimpleDeckV3";
       const THEME_STORAGE_KEY = "mtgThemePreference";
@@ -955,7 +1034,6 @@
       let graveyardCardIdCounter = 0;
       let exileCardIdCounter = 0;
       let dragInfo = { cardId: null, offsetX: 0, offsetY: 0 };
-      // Removed popupVisible and popupTriggerElement variables
       let contextMenuVisible = false;
       let contextMenuTarget = {
         cardId: null,
@@ -1578,9 +1656,9 @@
         disableShuffleButton();
         disableSearchButton();
         disableScryButton();
-        // Removed hideImagePopup call
         hideDeckSearchArea();
         hideContextMenu();
+        hideCardViewPopup(); // Hide card view popup too
         cancelScry();
       }
       function handlePlayCardFromHand(event) {
@@ -1599,7 +1677,7 @@
             imageUrl: cardToPlay.imageUrl,
             normalImageUrl: cardToPlay.normalImageUrl,
             zone: "general",
-            isTapped: false, // Initialize as untapped
+            isTapped: false,
             x: initialX,
             y: initialY,
           };
@@ -1627,7 +1705,6 @@
         dragInfo.cardId = cardId;
         const rect = cardElement.getBoundingClientRect();
 
-        // Adjust offset based on tap state
         const isTapped = currentBattlefield[cardId].isTapped;
         let clientX = event.clientX;
         let clientY = event.clientY;
@@ -1664,8 +1741,8 @@
           if (img) img.classList.add("dragging");
         }, 0);
         event.stopPropagation();
-        // Removed hideImagePopup call
         hideContextMenu();
+        hideCardViewPopup(); // Hide card view popup
       }
       function handleDragEnd(event) {
         const cardId = dragInfo.cardId;
@@ -1688,6 +1765,7 @@
         event.preventDefault();
         event.stopPropagation();
         hideContextMenu();
+        hideCardViewPopup(); // Hide card view popup
         const targetZoneElement = event.currentTarget;
         const draggedCardId = dragInfo.cardId;
         if (!draggedCardId || !currentBattlefield[draggedCardId]) return;
@@ -1868,8 +1946,6 @@
         }
       }
 
-      // Removed showImagePopup, hideImagePopup, moveImagePopup functions
-
       function setTheme(themeName) {
         localStorage.setItem(THEME_STORAGE_KEY, themeName);
         document.body.setAttribute("data-theme", themeName);
@@ -1896,7 +1972,7 @@
         }
         event.preventDefault();
         hideContextMenu();
-        // Removed hideImagePopup call
+        hideCardViewPopup(); // Hide card view popup
 
         let cardId = null;
         let sourceZone = null;
@@ -2002,7 +2078,32 @@
               item.classList.add("hidden");
             }
           }
+
+          if (action === "viewCard") {
+            // Always enabled if context menu is shown for a card
+          }
         });
+      }
+
+      function showCardViewPopup(imageUrl) {
+        if (!imageUrl) {
+          console.warn("Cannot show card view: No image URL provided.");
+          return;
+        }
+        cardViewImage.src = imageUrl.replace("small", "normal");
+        cardViewImage.onerror = () => {
+          console.error("Failed to load image in card view popup:", imageUrl);
+          cardViewImage.alt = "Image failed to load";
+          // Optionally set a placeholder src
+        };
+        cardViewImage.alt = "Card Image"; // Reset alt text
+        cardViewPopupOverlay.style.display = "flex";
+      }
+
+      function hideCardViewPopup() {
+        cardViewPopupOverlay.style.display = "none";
+        cardViewImage.src = ""; // Clear src to free memory
+        cardViewImage.alt = "";
       }
 
       function handleContextMenuAction(event) {
@@ -2020,6 +2121,8 @@
         const action = targetLi.dataset.action;
         const { cardId, cardData, sourceZone } = contextMenuTarget;
 
+        console.log(cardData);
+
         if (!cardData) {
           console.error("Missing card data for context menu action.");
           hideContextMenu();
@@ -2028,6 +2131,14 @@
 
         let cardRemoved = false;
         let performVisualUpdate = true;
+
+        // Handle View Card action first
+        if (action === "viewCard") {
+          const imageUrl = cardData.normalImageUrl || cardData.imageUrl;
+          showCardViewPopup(imageUrl);
+          hideContextMenu(); // Hide context menu after showing popup
+          return; // Stop processing other actions
+        }
 
         if (action === "toggleTap") {
           if (sourceZone === "battlefield" && currentBattlefield[cardId]) {
@@ -2149,15 +2260,6 @@
             currentLibrary.push(cleanCardData);
             statusMsg += " to bottom of Library.";
             libraryAction = true;
-            break;
-          case "toLibraryShuffle":
-            currentLibrary.push(cleanCardData);
-            shuffleLibrary();
-            statusMsg = `Shuffled ${escapeHtml(
-              cleanCardData.name
-            )} into Library.`;
-            libraryAction = true;
-            performVisualUpdate = false;
             break;
           default:
             console.warn("Unknown context menu action:", action);
@@ -2393,6 +2495,11 @@
         if (scryingState.active && event.target === scryOverlay) {
           // cancelScry();
         }
+
+        // Close card view popup if clicking outside the image content
+        if (event.target === cardViewPopupOverlay) {
+          hideCardViewPopup();
+        }
       });
       searchInput.addEventListener("keypress", (event) => {
         if (event.key === "Enter") {
@@ -2433,8 +2540,6 @@
         zone.addEventListener("drop", handleDrop);
       });
 
-      // Removed setupPopupListeners function and its call
-
       themeToggle.addEventListener("change", toggleTheme);
 
       document.addEventListener("contextmenu", (event) => {
@@ -2453,13 +2558,28 @@
       });
 
       cardContextMenu.addEventListener("click", handleContextMenuAction);
-      window.addEventListener("scroll", hideContextMenu, true);
-      window.addEventListener("resize", hideContextMenu, true);
+      closeCardViewPopupButton.addEventListener("click", hideCardViewPopup); // Add listener for close button
+
+      window.addEventListener(
+        "scroll",
+        () => {
+          hideContextMenu();
+          hideCardViewPopup(); // Hide card view on scroll
+        },
+        true
+      );
+      window.addEventListener(
+        "resize",
+        () => {
+          hideContextMenu();
+          hideCardViewPopup(); // Hide card view on resize
+        },
+        true
+      );
 
       document.addEventListener("DOMContentLoaded", () => {
         loadTheme();
         loadDeck();
-        // Removed setupPopupListeners call
       });
     </script>
   </body>
