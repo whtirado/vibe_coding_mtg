@@ -584,6 +584,7 @@
         display: block;
         width: 100%;
         height: auto;
+        pointer-events: none; /* Prevent img from interfering with drag */
       }
       .battlefield-card {
         position: absolute;
@@ -615,7 +616,7 @@
         pointer-events: none;
         border-radius: 4px;
       }
-      .battlefield-card img.dragging {
+      .dragging {
         opacity: 0.4;
       }
       .side-zone-card {
@@ -1042,7 +1043,12 @@
       let battlefieldCardIdCounter = 0;
       let graveyardCardIdCounter = 0;
       let exileCardIdCounter = 0;
-      let dragInfo = { cardId: null, offsetX: 0, offsetY: 0 };
+      let dragInfo = {
+        cardId: null,
+        sourceZone: null,
+        offsetX: 0,
+        offsetY: 0,
+      };
       let contextMenuVisible = false;
       let contextMenuTarget = {
         cardId: null,
@@ -1231,7 +1237,7 @@
             )}" alt="${escapeHtml(safeCardName)}" title="${escapeHtml(
               safeCardName
             )}" data-normal-src="${escapeHtml(normalImageUrl)}">`;
-            cardDiv.addEventListener("dragstart", handleDragStart);
+            cardDiv.addEventListener("dragstart", handleBattlefieldDragStart);
             cardDiv.addEventListener("dragend", handleDragEnd);
             generalZone.appendChild(cardDiv);
           }
@@ -1244,6 +1250,7 @@
           const cardDiv = document.createElement("div");
           cardDiv.classList.add("hand-card");
           cardDiv.dataset.handId = card.handId;
+          cardDiv.draggable = true; // Make hand cards draggable
           const displayImageUrl = card.imageUrl || "";
           const normalImageUrl = card.normalImageUrl || displayImageUrl;
           const safeCardName = card.name || "Unknown Card";
@@ -1253,6 +1260,8 @@
             safeCardName
           )}" loading="lazy" data-normal-src="${escapeHtml(normalImageUrl)}">`;
           cardDiv.addEventListener("click", handlePlayCardFromHand);
+          cardDiv.addEventListener("dragstart", handleHandDragStart); // Add drag start listener for hand cards
+          cardDiv.addEventListener("dragend", handleDragEnd); // Generic drag end handler
           testHandContainer.appendChild(cardDiv);
         });
         updateTestStatus();
@@ -1654,7 +1663,12 @@
         battlefieldCardIdCounter = 0;
         graveyardCardIdCounter = 0;
         exileCardIdCounter = 0;
-        dragInfo = { cardId: null, offsetX: 0, offsetY: 0 };
+        dragInfo = {
+          cardId: null,
+          sourceZone: null,
+          offsetX: 0,
+          offsetY: 0,
+        };
         if (testHandContainer) testHandContainer.innerHTML = "";
         if (generalZone) {
           while (generalZone.children.length > 1) {
@@ -1718,7 +1732,37 @@
         }
       }
 
-      function handleDragStart(event) {
+      function handleHandDragStart(event) {
+        if (scryingState.active) {
+          event.preventDefault();
+          return;
+        }
+        const cardElement = event.currentTarget;
+        const handId = cardElement.dataset.handId;
+        const cardIndex = currentHand.findIndex(
+          (card) => card.handId === handId
+        );
+
+        if (cardIndex > -1) {
+          dragInfo.cardId = handId;
+          dragInfo.sourceZone = "hand";
+          dragInfo.offsetX = event.offsetX; // Store offset for potential use
+          dragInfo.offsetY = event.offsetY;
+
+          event.dataTransfer.setData("text/plain", handId);
+          event.dataTransfer.effectAllowed = "move";
+          setTimeout(() => {
+            cardElement.classList.add("dragging");
+          }, 0);
+          event.stopPropagation();
+          hideContextMenu();
+          hideCardViewPopup();
+        } else {
+          event.preventDefault(); // Prevent dragging if card not found in state
+        }
+      }
+
+      function handleBattlefieldDragStart(event) {
         if (scryingState.active) {
           event.preventDefault();
           return;
@@ -1733,14 +1777,14 @@
           event.preventDefault();
           return;
         }
+
         dragInfo.cardId = cardId;
+        dragInfo.sourceZone = "battlefield"; // Identify source
         const rect = cardElement.getBoundingClientRect();
 
         const isTapped = currentBattlefield[cardId].isTapped;
         let clientX = event.clientX;
         let clientY = event.clientY;
-        let cardLeft = rect.left;
-        let cardTop = rect.top;
 
         if (isTapped) {
           const centerX = rect.left + rect.width / 2;
@@ -1761,33 +1805,34 @@
           dragInfo.offsetX = untapppedWidth / 2 + originalOffsetX;
           dragInfo.offsetY = untapppedHeight / 2 + originalOffsetY;
         } else {
-          dragInfo.offsetX = clientX - cardLeft;
-          dragInfo.offsetY = clientY - cardTop;
+          dragInfo.offsetX = clientX - rect.left;
+          dragInfo.offsetY = clientY - rect.top;
         }
 
         event.dataTransfer.setData("text/plain", cardId);
         event.dataTransfer.effectAllowed = "move";
         setTimeout(() => {
-          const img = cardElement.querySelector("img");
-          if (img) img.classList.add("dragging");
+          cardElement.classList.add("dragging");
         }, 0);
         event.stopPropagation();
         hideContextMenu();
         hideCardViewPopup();
       }
+
       function handleDragEnd(event) {
-        const cardId = dragInfo.cardId;
-        const cardElement = generalZone.querySelector(
-          `[data-battlefield-id="${cardId}"]`
-        );
-        if (cardElement) {
-          const img = cardElement.querySelector("img");
-          if (img) img.classList.remove("dragging");
+        // Generic cleanup
+        const draggedElement = document.querySelector(".dragging");
+        if (draggedElement) {
+          draggedElement.classList.remove("dragging");
         }
+
+        // Reset dragInfo
         dragInfo.cardId = null;
+        dragInfo.sourceZone = null;
         dragInfo.offsetX = 0;
         dragInfo.offsetY = 0;
       }
+
       function handleDragOver(event) {
         event.preventDefault();
         event.dataTransfer.dropEffect = "move";
@@ -1797,79 +1842,171 @@
         event.stopPropagation();
         hideContextMenu();
         hideCardViewPopup();
+
         const targetZoneElement = event.currentTarget;
-        const draggedCardId = dragInfo.cardId;
-        if (!draggedCardId || !currentBattlefield[draggedCardId]) return;
-
-        const cardData = { ...currentBattlefield[draggedCardId] };
         const dropZoneId = targetZoneElement.id;
+        const draggedCardId = dragInfo.cardId;
+        const sourceZone = dragInfo.sourceZone;
 
+        if (!draggedCardId || !sourceZone) return;
+
+        // --- Handle Drop onto Side Zones (Graveyard/Exile) ---
         if (dropZoneId === "graveyardZone" || dropZoneId === "exileZone") {
-          delete currentBattlefield[draggedCardId];
-          const cardElement = generalZone.querySelector(
-            `[data-battlefield-id="${draggedCardId}"]`
-          );
-          if (cardElement) cardElement.remove();
+          let cardData = null;
+          let cardRemoved = false;
 
-          if (dropZoneId === "graveyardZone") {
-            delete cardData.x;
-            delete cardData.y;
-            delete cardData.zone;
-            delete cardData.isTapped;
-            cardData.gyId = `gy-${graveyardCardIdCounter++}`;
-            currentGraveyard.push(cardData);
-            updateTestStatus(
-              `Moved ${escapeHtml(cardData.name)} to Graveyard.`
+          // Remove from source
+          if (
+            sourceZone === "battlefield" &&
+            currentBattlefield[draggedCardId]
+          ) {
+            cardData = { ...currentBattlefield[draggedCardId] };
+            delete currentBattlefield[draggedCardId];
+            cardRemoved = true;
+          } else if (sourceZone === "hand") {
+            const index = currentHand.findIndex(
+              (c) => c.handId === draggedCardId
             );
-          } else {
+            if (index > -1) {
+              [cardData] = currentHand.splice(index, 1);
+              cardRemoved = true;
+            }
+          }
+
+          // Add to destination if removed
+          if (cardRemoved && cardData) {
             delete cardData.x;
             delete cardData.y;
             delete cardData.zone;
             delete cardData.isTapped;
-            cardData.exileId = `ex-${exileCardIdCounter++}`;
-            currentExile.push(cardData);
-            updateTestStatus(`Moved ${escapeHtml(cardData.name)} to Exile.`);
+
+            if (dropZoneId === "graveyardZone") {
+              cardData.gyId = `gy-${graveyardCardIdCounter++}`;
+              currentGraveyard.push(cardData);
+              updateTestStatus(
+                `Moved ${escapeHtml(cardData.name)} to Graveyard.`
+              );
+            } else {
+              // exileZone
+              cardData.exileId = `ex-${exileCardIdCounter++}`;
+              currentExile.push(cardData);
+              updateTestStatus(`Moved ${escapeHtml(cardData.name)} to Exile.`);
+            }
+            displayBattlefield(); // Update battlefield if card came from there
+            displayHand(); // Update hand if card came from there
+            displaySideZones();
+            updateUntapAllButtonVisibility();
           }
-          displaySideZones();
-          updateUntapAllButtonVisibility();
-        } else if (dropZoneId === "generalZone") {
+        }
+        // --- Handle Drop onto General Battlefield Zone ---
+        else if (dropZoneId === "generalZone") {
           const zoneRect = targetZoneElement.getBoundingClientRect();
-          let newX = event.clientX - zoneRect.left - dragInfo.offsetX;
-          let newY = event.clientY - zoneRect.top - dragInfo.offsetY;
+          let cardData = null;
+          let cardMoved = false;
 
-          const cardElement = generalZone.querySelector(
-            `[data-battlefield-id="${draggedCardId}"]`
-          );
-          if (!cardElement) {
-            console.error("Could not find dragged card element on drop.");
-            displayBattlefield();
-            return;
+          // Case 1: Dragged from Hand to Battlefield
+          if (sourceZone === "hand") {
+            const cardIndex = currentHand.findIndex(
+              (card) => card.handId === draggedCardId
+            );
+            if (cardIndex > -1) {
+              [cardData] = currentHand.splice(cardIndex, 1); // Remove from hand
+
+              const battlefieldId = `bf-${battlefieldCardIdCounter++}`;
+              const cardWidth = 80; // Approximate width of battlefield card
+              const cardHeight = 112; // Approximate height
+
+              let newX = event.clientX - zoneRect.left - cardWidth / 2; // Center roughly under cursor
+              let newY = event.clientY - zoneRect.top - cardHeight / 2;
+
+              // Boundary checks
+              newX = Math.max(
+                0,
+                Math.min(newX, targetZoneElement.clientWidth - cardWidth - 5)
+              );
+              newY = Math.max(
+                0,
+                Math.min(newY, targetZoneElement.clientHeight - cardHeight - 5)
+              );
+
+              currentBattlefield[battlefieldId] = {
+                ...cardData, // Copy name, images
+                zone: "general",
+                isTapped: false,
+                x: newX,
+                y: newY,
+              };
+              delete currentBattlefield[battlefieldId].handId; // Remove hand-specific ID
+
+              updateTestStatus(
+                `Played ${escapeHtml(cardData.name)} from hand.`
+              );
+              cardMoved = true;
+              displayHand(); // Update hand display
+              displayBattlefield(); // Update battlefield display
+            }
+          }
+          // Case 2: Dragged within the Battlefield
+          else if (
+            sourceZone === "battlefield" &&
+            currentBattlefield[draggedCardId]
+          ) {
+            cardData = currentBattlefield[draggedCardId];
+            const cardElement = generalZone.querySelector(
+              `[data-battlefield-id="${draggedCardId}"]`
+            );
+            if (cardElement) {
+              const cardStyle = window.getComputedStyle(cardElement);
+              const cardWidth = parseFloat(cardStyle.width);
+              const cardHeight = parseFloat(cardStyle.height);
+
+              let newX = event.clientX - zoneRect.left - dragInfo.offsetX;
+              let newY = event.clientY - zoneRect.top - dragInfo.offsetY;
+
+              // Boundary checks
+              newX = Math.max(
+                0,
+                Math.min(newX, targetZoneElement.clientWidth - cardWidth - 5)
+              );
+              newY = Math.max(
+                0,
+                Math.min(newY, targetZoneElement.clientHeight - cardHeight - 5)
+              );
+
+              cardData.x = newX;
+              cardData.y = newY;
+              cardElement.style.left = `${newX}px`;
+              cardElement.style.top = `${newY}px`;
+
+              updateTestStatus(
+                `Moved ${escapeHtml(cardData.name)} on battlefield.`
+              );
+              cardMoved = true;
+              // No need to call displayBattlefield() here, just moved the element directly
+            } else {
+              console.error(
+                "Could not find dragged battlefield card element on drop."
+              );
+              displayBattlefield(); // Force redraw if element missing
+            }
           }
 
-          const cardStyle = window.getComputedStyle(cardElement);
-          const cardWidth = parseFloat(cardStyle.width);
-          const cardHeight = parseFloat(cardStyle.height);
-
-          const containerWidth = targetZoneElement.clientWidth;
-          const containerHeight = targetZoneElement.clientHeight;
-
-          newX = Math.max(0, Math.min(newX, containerWidth - cardWidth - 5));
-          newY = Math.max(0, Math.min(newY, containerHeight - cardHeight - 5));
-          newX = Math.max(0, newX);
-          newY = Math.max(0, newY);
-
-          currentBattlefield[draggedCardId].x = newX;
-          currentBattlefield[draggedCardId].y = newY;
-          currentBattlefield[draggedCardId].zone = "general";
-          cardElement.style.left = `${newX}px`;
-          cardElement.style.top = `${newY}px`;
-
-          updateTestStatus(
-            `Moved ${escapeHtml(cardData.name)} on battlefield.`
-          );
+          if (!cardMoved) {
+            console.warn(
+              "Drop on battlefield failed, card not found in source:",
+              sourceZone,
+              draggedCardId
+            );
+          }
         } else {
           console.warn("Drop occurred on unexpected element:", dropZoneId);
         }
+
+        // Reset drag info after handling drop
+        dragInfo.cardId = null;
+        dragInfo.sourceZone = null;
+        dragInfo.offsetX = 0;
+        dragInfo.offsetY = 0;
       }
 
       function toggleDeckSearchArea() {
@@ -1910,7 +2047,7 @@
           }
 
           const li = document.createElement("li");
-          li.classList.add("library-search-card"); // Add class for context menu targeting
+          li.classList.add("library-search-card");
           const displayImageUrl = card.imageUrl || "";
           const normalImageUrl = card.normalImageUrl || displayImageUrl;
           li.innerHTML = `<img src="${escapeHtml(
@@ -1919,7 +2056,7 @@
             card.name
           )}" loading="lazy" data-normal-src="${escapeHtml(normalImageUrl)}">`;
 
-          li.dataset.libraryIndex = originalIndex; // Store the original index
+          li.dataset.libraryIndex = originalIndex;
           li.dataset.cardname = card.name;
           li.dataset.imageurl = card.imageUrl;
           li.dataset.normalimageurl = card.normalImageUrl;
@@ -1997,7 +2134,7 @@
             libraryIndex < currentLibrary.length
           ) {
             cardData = { ...currentLibrary[libraryIndex] };
-            cardId = `lib-${libraryIndex}`; // Use index as temporary ID for context
+            cardId = `lib-${libraryIndex}`;
           }
         } else if (cardElement.classList.contains("scry-card-item")) {
           sourceZone = "scry";
@@ -2123,7 +2260,7 @@
         cardViewImage.onerror = () => {
           console.error("Failed to load image in card view popup:", imageUrl);
           cardViewImage.alt = "Image failed to load";
-          cardViewImage.src = imageUrl; // Try original if normal fails
+          cardViewImage.src = imageUrl;
         };
         cardViewImage.alt = "Card Image";
         cardViewPopupOverlay.style.display = "flex";
