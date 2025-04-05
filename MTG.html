@@ -237,11 +237,12 @@
         background-color: var(--input-bg);
         color: var(--input-text);
       }
-      #searchResults, #deckSearchResults /* Shared style */ {
+      #searchResults {
+        /* Only applies to main search now */
         list-style: none;
         padding: 0;
         margin: 10px 0 0 0;
-        max-height: 180px; /* Adjusted height */
+        max-height: 180px;
         overflow-y: auto;
         border: 1px solid var(--border-color-light);
         border-radius: 4px;
@@ -249,7 +250,7 @@
         z-index: 10;
         box-shadow: 0 4px 6px var(--shadow-color);
       }
-      #searchResults li, #deckSearchResults li /* Shared style */ {
+      #searchResults li {
         padding: 5px 10px;
         cursor: pointer;
         border-bottom: 1px solid var(--border-color-light);
@@ -257,13 +258,14 @@
         align-items: center;
         gap: 8px;
       }
-      #searchResults li:last-child, #deckSearchResults li:last-child /* Shared style */ {
+      #searchResults li:last-child {
         border-bottom: none;
       }
-      #searchResults li:hover, #deckSearchResults li:hover /* Shared style */ {
+      #searchResults li:hover {
         background-color: var(--search-result-hover-bg);
       }
       .search-result-image {
+        /* Used by both searches now potentially */
         width: 30px;
         height: auto;
         border-radius: 2px;
@@ -275,7 +277,7 @@
         text-overflow: ellipsis;
         white-space: nowrap;
       }
-      #searchResults:empty, #deckSearchResults:empty /* Shared style */ {
+      #searchResults:empty {
         border: none;
         box-shadow: none;
         max-height: 0;
@@ -343,8 +345,8 @@
       .delete-card-btn,
       #drawHandButton,
       #drawNextCardButton,
-      #shuffleDeckButton, /* Added */
-      #searchDeckButton /* Added */ {
+      #shuffleDeckButton,
+      #searchDeckButton {
         padding: 9px 15px;
         background-color: var(--button-bg);
         color: var(--button-text);
@@ -380,14 +382,14 @@
       .delete-card-btn:hover,
       #drawHandButton:hover,
       #drawNextCardButton:hover,
-      #shuffleDeckButton:hover, /* Added */
-      #searchDeckButton:hover /* Added */ {
+      #shuffleDeckButton:hover,
+      #searchDeckButton:hover {
         background-color: var(--button-bg-hover);
       }
       .action-button:disabled,
       #drawNextCardButton:disabled,
-      #shuffleDeckButton:disabled, /* Added */
-      #searchDeckButton:disabled /* Added */ {
+      #shuffleDeckButton:disabled,
+      #searchDeckButton:disabled {
         background-color: var(--button-disabled-bg);
         color: var(--button-disabled-text);
         cursor: not-allowed;
@@ -514,7 +516,7 @@
         padding-bottom: 0;
       }
 
-      /* NEW: Hand Container Styles (Unchanged) */
+      /* Hand Container Styles (Unchanged) */
       #testHandContainer {
         flex-shrink: 0;
         display: flex;
@@ -529,7 +531,7 @@
         transition: background-color 0.3s ease, border-color 0.3s ease;
       }
 
-      /* NEW: Individual Hand Card Styles (Unchanged) */
+      /* Individual Hand Card Styles (Unchanged) */
       .hand-card {
         width: 75px;
         height: auto;
@@ -551,7 +553,7 @@
         height: auto;
       }
 
-      /* Card on Battlefield (Unchanged styles, logic might differ) */
+      /* Card on Battlefield (Unchanged styles) */
       .battlefield-card {
         position: absolute;
         width: 65px;
@@ -579,7 +581,7 @@
         opacity: 0.4;
       }
 
-      /* NEW: Card in Side Zone (Graveyard/Exile) */
+      /* Card in Side Zone (Graveyard/Exile) (Unchanged) */
       .side-zone-card {
         width: 50px; /* Smaller image for side zones */
         height: auto;
@@ -603,21 +605,65 @@
         border-radius: 4px;
         margin-top: 10px;
         background-color: var(--zone-side-bg); /* Reuse side zone bg */
-      }
-      #deckSearchInput {
-        width: calc(100% - 22px); /* Adjust for padding */
-        padding: 8px 10px;
-        border: 1px solid var(--input-border);
-        border-radius: 4px;
-        box-sizing: border-box;
-        background-color: var(--input-bg);
-        color: var(--input-text);
-        margin-bottom: 10px; /* Space before results */
+        max-height: 300px; /* Limit height */
+        overflow-y: auto; /* Add scroll */
+        position: relative; /* For close button positioning */
       }
       #deckSearchArea p {
-        margin: 0 0 5px 0;
+        /* Updated description */
+        margin: 0 0 10px 0;
         font-size: 0.9em;
         color: var(--text-color-muted);
+        text-align: center;
+      }
+      #closeSearchAreaButton {
+        /* Position close button */
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        font-size: 0.8em;
+        padding: 3px 8px;
+        margin-top: 0;
+        z-index: 15; /* Above cards */
+      }
+
+      /* Deck Search Results (Card Images) */
+      #deckSearchResults {
+        /* Changed from list style */
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px; /* Space between cards */
+        justify-content: center; /* Center cards if row not full */
+        overflow-y: visible; /* Scrolling handled by parent #deckSearchArea */
+        max-height: none; /* Remove previous max-height */
+        border: none; /* Remove previous border */
+        box-shadow: none; /* Remove previous shadow */
+      }
+      #deckSearchResults li {
+        /* Container for each card image */
+        padding: 0;
+        border: none;
+        cursor: pointer;
+        width: 65px; /* Same as battlefield card width */
+        border-radius: 4px;
+        overflow: hidden;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        background-color: var(--hand-card-bg); /* Use similar bg */
+        border: 1px solid var(--hand-card-border); /* Use similar border */
+        box-shadow: 1px 1px 3px var(--shadow-color);
+      }
+      #deckSearchResults li:hover {
+        transform: translateY(-2px) scale(1.03);
+        box-shadow: var(--hand-card-hover-shadow);
+      }
+      #deckSearchResults li img {
+        display: block;
+        width: 100%;
+        height: auto;
+        border-radius: 3px; /* Inner radius slightly smaller */
       }
 
       /* Image Popup Styles (Unchanged) */
@@ -702,21 +748,14 @@
         <span id="testHandStatus"></span>
       </div>
 
-      <!-- NEW: Deck Search Area -->
+      <!-- UPDATED: Deck Search Area -->
       <div id="deckSearchArea">
-        <p>Search Library (click result to add to hand):</p>
-        <input
-          type="text"
-          id="deckSearchInput"
-          placeholder="Type card name..."
-          autocomplete="off"
-        />
-        <ul id="deckSearchResults"></ul>
-        <button
-          id="closeSearchAreaButton"
-          class="action-button"
-          style="font-size: 0.8em; padding: 5px 10px; margin-top: 5px"
-        >
+        <p>Click a card in the library to add it to your hand:</p>
+        <!-- Input removed -->
+        <ul id="deckSearchResults">
+          <!-- Card images will be populated here -->
+        </ul>
+        <button id="closeSearchAreaButton" class="action-button">
           Close Search
         </button>
       </div>
@@ -728,7 +767,6 @@
           <!-- Main Battlefield -->
           <div class="battlefield-zone" id="battlefieldDisplayContainer">
             <div id="generalZone"><h4>General Battlefield</h4></div>
-            <!-- Creature and Land zones removed -->
           </div>
           <!-- Side Zones (Graveyard / Exile) -->
           <div class="side-zones">
@@ -769,27 +807,26 @@
       const deckActionStatus = document.getElementById("deckActionStatus");
       const drawHandButton = document.getElementById("drawHandButton");
       const drawNextCardButton = document.getElementById("drawNextCardButton");
-      const shuffleDeckButton = document.getElementById("shuffleDeckButton"); // New
-      const searchDeckButton = document.getElementById("searchDeckButton"); // New
+      const shuffleDeckButton = document.getElementById("shuffleDeckButton");
+      const searchDeckButton = document.getElementById("searchDeckButton");
       const testHandStatus = document.getElementById("testHandStatus");
       const battlefieldDisplayContainer = document.getElementById(
         "battlefieldDisplayContainer"
       );
       const generalZone = document.getElementById("generalZone");
-      const graveyardZone = document.getElementById("graveyardZone"); // New
-      const exileZone = document.getElementById("exileZone"); // New
-      const graveyardCountSpan = document.getElementById("graveyardCount"); // New
-      const exileCountSpan = document.getElementById("exileCount"); // New
+      const graveyardZone = document.getElementById("graveyardZone");
+      const exileZone = document.getElementById("exileZone");
+      const graveyardCountSpan = document.getElementById("graveyardCount");
+      const exileCountSpan = document.getElementById("exileCount");
       const testHandContainer = document.getElementById("testHandContainer");
       const imagePopup = document.getElementById("imagePopup");
       const popupImage = document.getElementById("popupImage");
       const themeToggle = document.getElementById("themeToggleCheckbox");
-      const deckSearchArea = document.getElementById("deckSearchArea"); // New
-      const deckSearchInput = document.getElementById("deckSearchInput"); // New
-      const deckSearchResults = document.getElementById("deckSearchResults"); // New
+      const deckSearchArea = document.getElementById("deckSearchArea");
+      const deckSearchResults = document.getElementById("deckSearchResults"); // Will now hold images
       const closeSearchAreaButton = document.getElementById(
         "closeSearchAreaButton"
-      ); // New
+      );
 
       const DECK_STORAGE_KEY = "mtgDeckBuilderSimpleDeckV3";
       const THEME_STORAGE_KEY = "mtgThemePreference";
@@ -804,8 +841,8 @@
       let currentExile = []; // { exileId, name, imageUrl, normalImageUrl }
       let handCardIdCounter = 0;
       let battlefieldCardIdCounter = 0;
-      let graveyardCardIdCounter = 0; // New
-      let exileCardIdCounter = 0; // New
+      let graveyardCardIdCounter = 0;
+      let exileCardIdCounter = 0;
       let dragInfo = { cardId: null, offsetX: 0, offsetY: 0 };
       let popupVisible = false;
 
@@ -896,7 +933,7 @@
       }
       const debouncedLiveSearch = debounce(performLiveSearch, 350);
 
-      // --- Display Logic (Major Updates) ---
+      // --- Display Logic (displayDeckSearchResults added) ---
       function displaySearchResults(cards) {
         searchResults.innerHTML = "";
         if (!cards || cards.length === 0) {
@@ -988,8 +1025,8 @@
             cardDiv.innerHTML = `<img src="${escapeHtml(
               smallImageUrl
             )}" alt="${escapeHtml(safeCardName)}" title="${escapeHtml(
-              safeCardName // Title for basic hover info
-            )}" data-normal-src="${escapeHtml(normalImageUrl)}">`; // Data attr for popup
+              safeCardName
+            )}" data-normal-src="${escapeHtml(normalImageUrl)}">`;
             cardDiv.addEventListener("dragstart", handleDragStart);
             cardDiv.addEventListener("dragend", handleDragEnd);
             generalZone.appendChild(cardDiv);
@@ -1013,9 +1050,7 @@
             displayImageUrl
           )}" alt="${escapeHtml(safeCardName)}" title="${escapeHtml(
             safeCardName
-          )}" loading="lazy" data-normal-src="${escapeHtml(
-            normalImageUrl // Normal source for popup
-          )}">`;
+          )}" loading="lazy" data-normal-src="${escapeHtml(normalImageUrl)}">`;
 
           cardDiv.addEventListener("click", handlePlayCardFromHand);
           testHandContainer.appendChild(cardDiv);
@@ -1023,83 +1058,66 @@
         updateTestStatus(); // Update counts in status message
       }
 
-      // NEW: Display Graveyard and Exile
+      // Display Graveyard and Exile (Unchanged)
       function displaySideZones() {
-        // Clear existing cards, keeping H4 and count span
         const clearZone = (zone, countSpan) => {
           while (zone.children.length > 1) {
             if (zone.lastChild.nodeName !== "H4") {
-              // Don't remove H4
               zone.removeChild(zone.lastChild);
             } else {
-              break; // Should not happen if H4 is first, but safety check
+              break;
             }
           }
-          // Reset count visually (actual update happens in updateTestStatus)
           countSpan.textContent = "0";
         };
-
         clearZone(graveyardZone, graveyardCountSpan);
         clearZone(exileZone, exileCountSpan);
-
-        // Populate Graveyard
         currentGraveyard.forEach((card) => {
           const cardDiv = document.createElement("div");
           cardDiv.classList.add("side-zone-card");
-          cardDiv.dataset.gyId = card.gyId; // Use graveyard ID
+          cardDiv.dataset.gyId = card.gyId;
           const displayImageUrl = card.imageUrl || "";
           const normalImageUrl = card.normalImageUrl || displayImageUrl;
           const safeCardName = card.name || "Unknown Card";
-
           cardDiv.innerHTML = `<img src="${escapeHtml(
             displayImageUrl
           )}" alt="${escapeHtml(safeCardName)}" title="${escapeHtml(
             safeCardName
           )}" loading="lazy" data-normal-src="${escapeHtml(normalImageUrl)}">`;
-          // No drag/click listeners for now, just popup via delegation
           graveyardZone.appendChild(cardDiv);
         });
-
-        // Populate Exile
         currentExile.forEach((card) => {
           const cardDiv = document.createElement("div");
           cardDiv.classList.add("side-zone-card");
-          cardDiv.dataset.exileId = card.exileId; // Use exile ID
+          cardDiv.dataset.exileId = card.exileId;
           const displayImageUrl = card.imageUrl || "";
           const normalImageUrl = card.normalImageUrl || displayImageUrl;
           const safeCardName = card.name || "Unknown Card";
-
           cardDiv.innerHTML = `<img src="${escapeHtml(
             displayImageUrl
           )}" alt="${escapeHtml(safeCardName)}" title="${escapeHtml(
             safeCardName
           )}" loading="lazy" data-normal-src="${escapeHtml(normalImageUrl)}">`;
-          // No drag/click listeners for now, just popup via delegation
           exileZone.appendChild(cardDiv);
         });
-
-        updateTestStatus(); // Update counts in status message
+        updateTestStatus();
       }
 
-      // NEW: Update status text with all counts
+      // Update status text with all counts (Unchanged)
       function updateTestStatus(message = "") {
         const handCount = currentHand.length;
         const libraryCount = currentLibrary.length;
         const gyCount = currentGraveyard.length;
         const exileCount = currentExile.length;
-
         graveyardCountSpan.textContent = gyCount;
         exileCountSpan.textContent = exileCount;
-
         let statusText = message ? `${message} ` : "";
         statusText += `Hand: ${handCount}, Library: ${libraryCount}, GY: ${gyCount}, Exile: ${exileCount}.`;
-
         if (libraryCount === 0) {
           disableDrawNextButton();
-          disableShuffleButton(); // Can't shuffle empty library
-          disableSearchButton(); // Can't search empty library
+          disableShuffleButton();
+          disableSearchButton();
           if (!message.includes("Library is empty")) {
-            // Avoid duplicate message
             statusText += " Library is empty.";
           }
         } else {
@@ -1107,7 +1125,6 @@
           enableShuffleButton();
           enableSearchButton();
         }
-
         testHandStatus.textContent = statusText;
       }
 
@@ -1226,7 +1243,6 @@
                   (entry.hasOwnProperty("normalImageUrl") &&
                     typeof entry.normalImageUrl !== "string")
                 ) {
-                  // Attempt to fix missing normalImageUrl if possible
                   if (
                     typeof entry.imageUrl === "string" &&
                     !entry.normalImageUrl
@@ -1240,7 +1256,7 @@
                 validatedDeck[key] = {
                   quantity: entry.quantity,
                   imageUrl: entry.imageUrl,
-                  normalImageUrl: entry.normalImageUrl || entry.imageUrl, // Ensure normal URL exists
+                  normalImageUrl: entry.normalImageUrl || entry.imageUrl,
                 };
               }
               if (isValid) {
@@ -1279,9 +1295,8 @@
           loadedData = {};
         }
         currentDeck = loadedData;
-        clearTestArea(); // Clear play area when loading
+        clearTestArea();
         renderDeck();
-        // Initial button states after load
         drawHandButton.disabled =
           Object.values(currentDeck).reduce(
             (sum, card) => sum + card.quantity,
@@ -1290,12 +1305,12 @@
         disableDrawNextButton();
         disableShuffleButton();
         disableSearchButton();
-        hideDeckSearchArea(); // Ensure search is hidden on load
+        hideDeckSearchArea();
       }
 
-      // --- Test Hand / Play Area Logic (Major Updates) ---
+      // --- Test Hand / Play Area Logic (drawTestHand, drawNextCard, shuffleLibrary updated) ---
       function drawTestHand() {
-        clearTestArea(); // Reset hand, battlefield, library, GY, Exile, status
+        clearTestArea(); // Resets everything visual/state in test area
 
         const deckArray = [];
         for (const cardName in currentDeck) {
@@ -1322,13 +1337,12 @@
           displaySideZones();
           return;
         }
-        // Shuffle
-        shuffleArray(deckArray); // Use helper function
+        shuffleArray(deckArray); // Shuffle before drawing
 
         // Draw
         const hand = deckArray.slice(0, 7);
         currentHand = hand.map((card) => ({
-          handId: `h-${handCardIdCounter++}`, // Prefix ID
+          handId: `h-${handCardIdCounter++}`,
           name: card.name,
           imageUrl: card.imageUrl,
           normalImageUrl: card.normalImageUrl,
@@ -1338,12 +1352,12 @@
         // Update displays and enable buttons
         displayHand();
         displayBattlefield();
-        displaySideZones(); // Render empty GY/Exile
+        displaySideZones();
         updateTestStatus("Drew 7 cards.");
         enableDrawNextButton();
         enableShuffleButton();
         enableSearchButton();
-        hideDeckSearchArea(); // Ensure search area is hidden
+        hideDeckSearchArea(); // Ensure search is closed initially
       }
 
       function drawNextCard() {
@@ -1354,29 +1368,37 @@
           disableSearchButton();
           return;
         }
-        const nextCard = currentLibrary.shift(); // Remove from beginning
+        const nextCard = currentLibrary.shift();
         currentHand.push({
           handId: `h-${handCardIdCounter++}`,
           name: nextCard.name,
           imageUrl: nextCard.imageUrl,
           normalImageUrl: nextCard.normalImageUrl,
         });
-        displayHand(); // Update hand display
+        displayHand();
         updateTestStatus(`Drew ${escapeHtml(nextCard.name)}.`);
+
+        // If deck search is open, refresh it as library changed
+        if (deckSearchArea.style.display === "block") {
+          displayLibraryForSearch();
+        }
       }
 
-      // NEW: Shuffle Library
+      // Shuffle Library (Updated)
       function shuffleLibrary() {
         if (currentLibrary.length > 1) {
           shuffleArray(currentLibrary);
           updateTestStatus("Library shuffled.");
+          // If deck search is open, refresh it to show new order
+          if (deckSearchArea.style.display === "block") {
+            displayLibraryForSearch();
+          }
         } else {
           updateTestStatus("Cannot shuffle: Library has 1 or 0 cards.");
         }
-        hideDeckSearchArea(); // Close search if open
       }
 
-      // Fisher-Yates Shuffle Algorithm
+      // Fisher-Yates Shuffle Algorithm (Unchanged)
       function shuffleArray(array) {
         for (let i = array.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
@@ -1384,6 +1406,7 @@
         }
       }
 
+      // Button Enable/Disable Logic (Unchanged)
       function enableDrawNextButton() {
         drawNextCardButton.disabled = currentLibrary.length === 0;
       }
@@ -1391,7 +1414,7 @@
         drawNextCardButton.disabled = true;
       }
       function enableShuffleButton() {
-        shuffleDeckButton.disabled = currentLibrary.length <= 1; // No point shuffling 0 or 1 card
+        shuffleDeckButton.disabled = currentLibrary.length <= 1;
       }
       function disableShuffleButton() {
         shuffleDeckButton.disabled = true;
@@ -1403,6 +1426,7 @@
         searchDeckButton.disabled = true;
       }
 
+      // clearTestArea (Unchanged)
       function clearTestArea() {
         currentHand = [];
         currentBattlefield = {};
@@ -1415,10 +1439,8 @@
         exileCardIdCounter = 0;
         dragInfo = { cardId: null, offsetX: 0, offsetY: 0 };
 
-        // Clear Visuals
         if (testHandContainer) testHandContainer.innerHTML = "";
         if (generalZone) {
-          // Clear only card elements, keep H4
           while (generalZone.children.length > 1) {
             generalZone.removeChild(generalZone.lastChild);
           }
@@ -1445,18 +1467,17 @@
         if (graveyardCountSpan) graveyardCountSpan.textContent = "0";
         if (exileCountSpan) exileCountSpan.textContent = "0";
 
-        // Reset Buttons
         disableDrawNextButton();
         disableShuffleButton();
         disableSearchButton();
         hideImagePopup();
-        hideDeckSearchArea(); // Close search area
+        hideDeckSearchArea();
       }
 
+      // handlePlayCardFromHand (Unchanged)
       function handlePlayCardFromHand(event) {
-        const cardDiv = event.currentTarget; // Target is the div.hand-card
-        const handId = cardDiv.dataset.handId; // Get prefixed ID
-
+        const cardDiv = event.currentTarget;
+        const handId = cardDiv.dataset.handId;
         const cardIndex = currentHand.findIndex(
           (card) => card.handId === handId
         );
@@ -1469,33 +1490,28 @@
             name: cardToPlay.name,
             imageUrl: cardToPlay.imageUrl,
             normalImageUrl: cardToPlay.normalImageUrl,
-            zone: "general", // Default to general zone
+            zone: "general",
             x: initialX,
             y: initialY,
           };
-
           displayHand();
           displayBattlefield();
           updateTestStatus(`Played ${escapeHtml(cardToPlay.name)}.`);
         }
       }
 
-      // --- Drag and Drop Handlers (Modified for New Zones) ---
+      // --- Drag and Drop Handlers (Unchanged) ---
       function handleDragStart(event) {
         const cardElement = event.target.closest(".battlefield-card");
         if (!cardElement || !cardElement.dataset.battlefieldId) return;
         const cardId = cardElement.dataset.battlefieldId;
-        if (!currentBattlefield[cardId]) {
-          console.warn("DragStart failed: Card ID not found in state:", cardId);
+        if (
+          !currentBattlefield[cardId] ||
+          currentBattlefield[cardId].zone !== "general"
+        ) {
           event.preventDefault();
           return;
         }
-        // Prevent dragging if card somehow isn't in the general zone (shouldn't happen now)
-        if (currentBattlefield[cardId].zone !== "general") {
-          event.preventDefault();
-          return;
-        }
-
         dragInfo.cardId = cardId;
         const rect = cardElement.getBoundingClientRect();
         dragInfo.offsetX = event.clientX - rect.left;
@@ -1503,253 +1519,266 @@
         event.dataTransfer.setData("text/plain", cardId);
         event.dataTransfer.effectAllowed = "move";
         setTimeout(() => {
-          // Add dragging style slightly later
           const img = cardElement.querySelector("img");
           if (img) img.classList.add("dragging");
         }, 0);
         event.stopPropagation();
-        hideImagePopup(); // Hide popup during drag
+        hideImagePopup();
       }
       function handleDragEnd(event) {
         const cardId = dragInfo.cardId;
-        // Find the potentially moved element (might be null if moved to GY/Exile)
         const cardElement = generalZone.querySelector(
           `[data-battlefield-id="${cardId}"]`
         );
         if (cardElement) {
           const img = cardElement.querySelector("img");
           if (img) img.classList.remove("dragging");
-        } else {
-          // If element not found, maybe it was moved to GY/Exile, try removing class globally?
-          // Or rely on the element being removed anyway. For now, just check if found.
         }
-
         dragInfo.cardId = null;
         dragInfo.offsetX = 0;
         dragInfo.offsetY = 0;
       }
       function handleDragOver(event) {
-        event.preventDefault(); // Necessary to allow drop
+        event.preventDefault();
         event.dataTransfer.dropEffect = "move";
       }
       function handleDrop(event) {
         event.preventDefault();
         event.stopPropagation();
-        const targetZoneElement = event.currentTarget; // The zone being dropped onto
+        const targetZoneElement = event.currentTarget;
         const draggedCardId = dragInfo.cardId;
-
-        if (!draggedCardId || !currentBattlefield[draggedCardId]) {
-          console.warn(
-            "Drop failed: Invalid dragged card ID or card not in state."
-          );
-          return;
-        }
+        if (!draggedCardId || !currentBattlefield[draggedCardId]) return;
 
         const cardData = currentBattlefield[draggedCardId];
         const dropZoneId = targetZoneElement.id;
 
-        // --- Handle Drops into Graveyard or Exile ---
         if (dropZoneId === "graveyardZone" || dropZoneId === "exileZone") {
-          // Remove from battlefield state
           delete currentBattlefield[draggedCardId];
-
           if (dropZoneId === "graveyardZone") {
-            // Add to graveyard state
             cardData.gyId = `gy-${graveyardCardIdCounter++}`;
             currentGraveyard.push(cardData);
             updateTestStatus(
               `Moved ${escapeHtml(cardData.name)} to Graveyard.`
             );
           } else {
-            // Must be exileZone
-            // Add to exile state
             cardData.exileId = `ex-${exileCardIdCounter++}`;
             currentExile.push(cardData);
             updateTestStatus(`Moved ${escapeHtml(cardData.name)} to Exile.`);
           }
-          // Re-render battlefield (to remove the card) and side zones (to add it)
           displayBattlefield();
           displaySideZones();
-        }
-        // --- Handle Drops within the General Battlefield ---
-        else if (dropZoneId === "generalZone") {
+        } else if (dropZoneId === "generalZone") {
           const zoneRect = targetZoneElement.getBoundingClientRect();
           let newX = event.clientX - zoneRect.left - dragInfo.offsetX;
           let newY = event.clientY - zoneRect.top - dragInfo.offsetY;
-
-          // Find the card element to get its dimensions for boundary check
           const cardElement = generalZone.querySelector(
             `[data-battlefield-id="${draggedCardId}"]`
           );
           if (!cardElement) {
-            console.warn(
-              "Drop failed: Could not find card element for boundary check."
-            );
-            // It might have already been moved visually, attempt to re-render?
             displayBattlefield();
             return;
           }
-
           const cardWidth = cardElement.offsetWidth;
           const cardHeight = cardElement.offsetHeight;
           const containerWidth = targetZoneElement.clientWidth;
           const containerHeight = targetZoneElement.clientHeight;
-
-          // Constrain position within the zone boundaries
-          newX = Math.max(0, Math.min(newX, containerWidth - cardWidth - 5)); // Add small buffer
-          newY = Math.max(0, Math.min(newY, containerHeight - cardHeight - 5)); // Add small buffer
-          newX = Math.max(0, newX); // Ensure non-negative
-          newY = Math.max(0, newY); // Ensure non-negative
-
-          // Update card position in state
+          newX = Math.max(0, Math.min(newX, containerWidth - cardWidth - 5));
+          newY = Math.max(0, Math.min(newY, containerHeight - cardHeight - 5));
+          newX = Math.max(0, newX);
+          newY = Math.max(0, newY);
           currentBattlefield[draggedCardId].x = newX;
           currentBattlefield[draggedCardId].y = newY;
-          currentBattlefield[draggedCardId].zone = "general"; // Ensure zone is correct
-
-          // Update the element's style directly for smoother feel *before* full re-render
+          currentBattlefield[draggedCardId].zone = "general";
           cardElement.style.left = `${newX}px`;
           cardElement.style.top = `${newY}px`;
-          // Optionally, re-append to ensure correct stacking order if needed, or rely on dragend visual update
-          // targetZoneElement.appendChild(cardElement);
-
-          // Optional: Could call displayBattlefield() here, but direct manipulation is often smoother.
-          // Full displayBattlefield() might be needed if complex interactions occur.
           updateTestStatus(
             `Moved ${escapeHtml(cardData.name)} on battlefield.`
-          ); // Update status maybe?
+          );
         } else {
           console.warn("Drop occurred on unexpected element:", dropZoneId);
         }
-        // Reset drag info regardless of drop target
-        // dragInfo is reset in handleDragEnd
       }
 
-      // --- Deck Search Logic ---
+      // --- Deck Search Logic (Major Changes) ---
       function toggleDeckSearchArea() {
         if (
           deckSearchArea.style.display === "none" ||
           !deckSearchArea.style.display
         ) {
           deckSearchArea.style.display = "block";
-          deckSearchInput.value = ""; // Clear previous search
-          deckSearchResults.innerHTML = ""; // Clear previous results
-          deckSearchInput.focus();
-          updateTestStatus("Searching library..."); // Indicate searching state
+          displayLibraryForSearch(); // Populate with images
+          updateTestStatus("Viewing library..."); // Update status
         } else {
           hideDeckSearchArea();
         }
       }
+
       function hideDeckSearchArea() {
         deckSearchArea.style.display = "none";
-        deckSearchInput.value = "";
-        deckSearchResults.innerHTML = "";
+        deckSearchResults.innerHTML = ""; // Clear images
         updateTestStatus(); // Restore normal status message
       }
-      function performDeckSearch() {
-        const query = deckSearchInput.value.trim().toLowerCase();
-        deckSearchResults.innerHTML = "";
 
-        if (!query || query.length < 2) {
-          // Require fewer characters for library search
+      // NEW: Populates the deck search area with card images from library
+      function displayLibraryForSearch() {
+        deckSearchResults.innerHTML = ""; // Clear previous results/images
+
+        if (currentLibrary.length === 0) {
+          deckSearchResults.innerHTML = "<li>Library is empty.</li>"; // Show message if empty
           return;
         }
 
-        const results = [];
-        currentLibrary.forEach((card, index) => {
-          if (card.name.toLowerCase().includes(query)) {
-            results.push({ ...card, libraryIndex: index }); // Add original index
-          }
-        });
+        // Sort library copy for display consistency (optional, remove if natural order preferred)
+        const sortedLibrary = [...currentLibrary].sort((a, b) =>
+          a.name.localeCompare(b.name)
+        );
 
-        if (results.length > 0) {
-          results.sort((a, b) => a.name.localeCompare(b.name)); // Sort results alphabetically
-          results.forEach((card) => {
-            const li = document.createElement("li");
-            const smallImageUrl = card.imageUrl || "";
-            const normalImageUrl = card.normalImageUrl || smallImageUrl;
-            li.innerHTML = `<img src="${escapeHtml(
-              smallImageUrl
-            )}" alt="${escapeHtml(
-              card.name
-            )}" class="search-result-image" loading="lazy"><span class="search-result-name">${escapeHtml(
-              card.name
-            )}</span>`;
-            li.dataset.libraryIndex = card.libraryIndex; // Store index to retrieve later
-            li.dataset.cardname = card.name; // For potential reuse/logging
-            li.dataset.imageurl = smallImageUrl;
-            li.dataset.normalimageurl = normalImageUrl;
-            deckSearchResults.appendChild(li);
-          });
-        } else {
-          deckSearchResults.innerHTML =
-            "<li>No matching cards found in library.</li>";
-        }
+        sortedLibrary.forEach((card, displayIndex) => {
+          // Use index from sorted array for display iteration
+          // Find the original index in the *actual* currentLibrary
+          const originalIndex = currentLibrary.findIndex(
+            (libCard) =>
+              libCard.name === card.name &&
+              libCard.imageUrl === card.imageUrl && // Add more checks if duplicates possible
+              !deckSearchResults.querySelector(
+                `[data-library-original-index="${currentLibrary.indexOf(
+                  libCard
+                )}"]`
+              ) // Ensure we haven't already added this specific instance if duplicates exist
+          );
+
+          if (originalIndex === -1) {
+            console.warn("Could not find original index for card:", card.name);
+            return; // Skip if we can't reliably find the original card instance
+          }
+
+          const li = document.createElement("li");
+          // Use smaller image for display, normal for popup
+          const displayImageUrl = card.imageUrl || "";
+          const normalImageUrl = card.normalImageUrl || displayImageUrl;
+
+          li.innerHTML = `<img src="${escapeHtml(
+            displayImageUrl
+          )}" alt="${escapeHtml(card.name)}" title="${escapeHtml(
+            card.name
+          )}" loading="lazy" data-normal-src="${escapeHtml(normalImageUrl)}">`;
+
+          // Store the ORIGINAL index from currentLibrary for removal later
+          li.dataset.libraryOriginalIndex = originalIndex;
+
+          // Store card details needed to add it to hand
+          li.dataset.cardname = card.name;
+          li.dataset.imageurl = card.imageUrl;
+          li.dataset.normalimageurl = card.normalImageUrl;
+
+          deckSearchResults.appendChild(li);
+        });
       }
-      const debouncedDeckSearch = debounce(performDeckSearch, 300);
 
       function handleDeckSearchResultClick(event) {
         const listItem = event.target.closest("li");
-        if (!listItem || !listItem.dataset.libraryIndex) {
-          return; // Clicked on empty area or the "not found" message
+        // Check if the click is on a list item with the necessary data attribute
+        if (!listItem || listItem.dataset.libraryOriginalIndex === undefined) {
+          console.log("Clicked non-card element in search results.");
+          return;
         }
 
-        const libraryIndex = parseInt(listItem.dataset.libraryIndex, 10);
+        const originalIndex = parseInt(
+          listItem.dataset.libraryOriginalIndex,
+          10
+        );
 
-        // Validate index (important if library changes during search)
-        if (libraryIndex >= 0 && libraryIndex < currentLibrary.length) {
-          // Retrieve the card using the stored index and remove it *carefully*
-          const [cardToMove] = currentLibrary.splice(libraryIndex, 1);
-
-          // Add to hand
-          currentHand.push({
-            handId: `h-${handCardIdCounter++}`,
-            name: cardToMove.name,
-            imageUrl: cardToMove.imageUrl,
-            normalImageUrl: cardToMove.normalImageUrl,
-          });
-
-          // Update displays
-          displayHand();
-          // Update status and buttons
-          updateTestStatus(
-            `Found and moved ${escapeHtml(cardToMove.name)} to hand.`
-          );
-          hideDeckSearchArea(); // Close search after selection
-        } else {
+        // --- Validation ---
+        // 1. Check if index is within bounds of the *current* library
+        if (originalIndex < 0 || originalIndex >= currentLibrary.length) {
           console.error(
-            "Library search result index out of bounds. Library might have changed."
+            "Library search result index out of bounds. Library might have changed.",
+            originalIndex,
+            currentLibrary.length
           );
           updateTestStatus(
-            "Error finding card in library. Please try searching again."
+            "Error finding card (index out of bounds). Library refreshed."
           );
-          hideDeckSearchArea();
+          displayLibraryForSearch(); // Refresh the view
+          return;
+        }
+
+        // 2. (Optional but safer) Check if the card at that index matches the clicked card's name
+        const expectedCardName = listItem.dataset.cardname;
+        const cardAtStoredIndex = currentLibrary[originalIndex];
+        if (!cardAtStoredIndex || cardAtStoredIndex.name !== expectedCardName) {
+          console.error(
+            "Card mismatch at index. Library likely changed significantly.",
+            originalIndex,
+            expectedCardName,
+            cardAtStoredIndex
+          );
+          updateTestStatus(
+            "Error finding card (content mismatch). Library refreshed."
+          );
+          displayLibraryForSearch(); // Refresh the view
+          return;
+        }
+        // --- End Validation ---
+
+        // Retrieve the card using the *validated* original index and remove it
+        const [cardToMove] = currentLibrary.splice(originalIndex, 1);
+
+        // Add to hand
+        currentHand.push({
+          handId: `h-${handCardIdCounter++}`,
+          name: cardToMove.name,
+          imageUrl: cardToMove.imageUrl,
+          normalImageUrl: cardToMove.normalImageUrl,
+        });
+
+        // Update hand display visually
+        displayHand();
+
+        // Update status
+        updateTestStatus(
+          `Moved ${escapeHtml(cardToMove.name)} from library to hand.`
+        );
+
+        // Refresh the library search view as the content (and indices) have changed
+        displayLibraryForSearch();
+
+        // Check if library is now empty and update buttons accordingly
+        if (currentLibrary.length === 0) {
+          disableDrawNextButton();
+          disableShuffleButton();
+          disableSearchButton();
+          // Optionally close search area if library becomes empty
+          // hideDeckSearchArea();
+        } else {
+          // Ensure buttons are enabled if library still has cards
+          enableDrawNextButton();
+          enableShuffleButton();
+          enableSearchButton();
         }
       }
 
-      // --- Image Popup Logic (Unchanged, but setup needs update) ---
+      // --- Image Popup Logic (setupPopupListeners updated) ---
       function showImagePopup(event, targetImage) {
         let largeImageUrl =
           targetImage.dataset.normalSrc || targetImage.getAttribute("src");
-        // Try to deduce normal URL if only small is available and follows common patterns
         if (largeImageUrl && largeImageUrl.includes("/small."))
           largeImageUrl = largeImageUrl.replace("/small.", "/normal.");
         else if (largeImageUrl && largeImageUrl.includes("size=small"))
           largeImageUrl = largeImageUrl.replace("size=small", "size=normal");
 
-        if (!largeImageUrl) return; // No URL, nothing to show
+        if (!largeImageUrl) return;
 
         popupImage.src = largeImageUrl;
         popupImage.onerror = () => {
-          // Fallback if the 'normal' URL failed
           console.warn(
-            `Failed to load large image: ${largeImageUrl}, falling back to original src.`
+            `Failed to load large image: ${largeImageUrl}, falling back.`
           );
           const originalSrc = targetImage.getAttribute("src");
           if (originalSrc && originalSrc !== largeImageUrl) {
             popupImage.src = originalSrc;
-            popupImage.onerror = null; // Prevent infinite loop if fallback also fails
+            popupImage.onerror = null;
           } else {
-            // If original src is same or also failed, just hide
             hideImagePopup();
           }
         };
@@ -1759,7 +1788,7 @@
       }
       function hideImagePopup() {
         imagePopup.style.display = "none";
-        popupImage.src = ""; // Clear src to prevent potential loading issues
+        popupImage.src = "";
         popupImage.onerror = null;
         popupVisible = false;
       }
@@ -1773,13 +1802,11 @@
         let top = event.clientY + offset;
         let left = event.clientX + offset;
         if (left + popupWidth > viewportWidth - offset)
-          // Adjust boundary check
           left = event.clientX - popupWidth - offset;
         if (top + popupHeight > viewportHeight - offset)
-          // Adjust boundary check
           top = event.clientY - popupHeight - offset;
-        if (top < offset) top = offset; // Keep within viewport top
-        if (left < offset) left = offset; // Keep within viewport left
+        if (top < offset) top = offset;
+        if (left < offset) left = offset;
         imagePopup.style.top = `${top}px`;
         imagePopup.style.left = `${left}px`;
       }
@@ -1819,14 +1846,13 @@
           );
       });
       document.addEventListener("click", (event) => {
-        // Close main search results if click is outside
         const searchSection = event.target.closest(".search-section");
         const resultsList = event.target.closest("#searchResults");
         if (!searchSection && !resultsList) {
           searchResults.innerHTML = "";
           searchResults.style.display = "none";
         }
-        // Close deck search results if click is outside *its* area
+        // Close deck search only if clicking *outside* the search area AND the search button
         const deckSearchDiv = event.target.closest("#deckSearchArea");
         const searchButton = event.target.closest("#searchDeckButton");
         if (
@@ -1834,10 +1860,7 @@
           !searchButton &&
           deckSearchArea.style.display === "block"
         ) {
-          // Don't hide if clicking inside the results list itself
-          if (!event.target.closest("#deckSearchResults")) {
-            // hideDeckSearchArea(); // Decide if clicking outside should close it
-          }
+          hideDeckSearchArea();
         }
       });
       searchInput.addEventListener("keypress", (event) => {
@@ -1875,30 +1898,29 @@
       // Test Area Buttons
       drawHandButton.addEventListener("click", drawTestHand);
       drawNextCardButton.addEventListener("click", drawNextCard);
-      shuffleDeckButton.addEventListener("click", shuffleLibrary); // New
-      searchDeckButton.addEventListener("click", toggleDeckSearchArea); // New
-      closeSearchAreaButton.addEventListener("click", hideDeckSearchArea); // New
+      shuffleDeckButton.addEventListener("click", shuffleLibrary);
+      searchDeckButton.addEventListener("click", toggleDeckSearchArea);
+      closeSearchAreaButton.addEventListener("click", hideDeckSearchArea);
 
-      // Deck Search Input/Results
-      deckSearchInput.addEventListener("input", debouncedDeckSearch); // New
-      deckSearchResults.addEventListener("click", handleDeckSearchResultClick); // New
+      // Deck Search Results Click Listener (MODIFIED)
+      deckSearchResults.addEventListener("click", handleDeckSearchResultClick);
 
-      // Drag Listeners for Drop Zones (Updated for new zones)
+      // Drag Listeners for Drop Zones (Unchanged)
       [generalZone, graveyardZone, exileZone].forEach((zone) => {
         zone.addEventListener("dragover", handleDragOver);
         zone.addEventListener("drop", handleDrop);
       });
 
-      // Image Popup Delegated Listeners (Updated for new zones/cards)
+      // Image Popup Delegated Listeners (UPDATED for deck search results)
       function setupPopupListeners() {
         const containers = [
-          searchResults, // Main search results
-          deckList, // Deck list
-          testHandContainer, // Hand
-          generalZone, // Battlefield (specific zone now)
-          graveyardZone, // Graveyard
-          exileZone, // Exile
-          deckSearchResults, // Deck search results
+          searchResults, // Main search results (text list)
+          deckList, // Deck list (images)
+          testHandContainer, // Hand (images)
+          generalZone, // Battlefield (images)
+          graveyardZone, // Graveyard (images)
+          exileZone, // Exile (images)
+          deckSearchResults, // Deck search results (images) - ADDED
         ];
         containers.forEach((container) => {
           if (!container) return;
@@ -1907,43 +1929,35 @@
             let targetImg = null;
             let targetElement = event.target;
 
-            // Find the image element associated with the hovered element
-            if (
-              targetElement.tagName === "IMG" &&
-              (targetElement.closest(
-                ".search-result-image, .card-image, .battlefield-card, .hand-card, .side-zone-card"
-              ) ||
-                targetElement.parentElement.matches("li > img"))
-            ) {
-              targetImg = targetElement; // Directly hovered over an image in a known context
-            } else if (targetElement.closest(".battlefield-card")) {
-              targetImg = targetElement
-                .closest(".battlefield-card")
-                .querySelector("img");
-            } else if (targetElement.closest(".hand-card")) {
-              targetImg = targetElement
-                .closest(".hand-card")
-                .querySelector("img");
-            } else if (targetElement.closest(".side-zone-card")) {
-              targetImg = targetElement
-                .closest(".side-zone-card")
-                .querySelector("img");
-            } else if (targetElement.closest("#searchResults li")) {
-              targetImg = targetElement
-                .closest("#searchResults li")
-                .querySelector(".search-result-image");
-            } else if (targetElement.closest("#deckSearchResults li")) {
-              targetImg = targetElement
-                .closest("#deckSearchResults li")
-                .querySelector(".search-result-image");
-            } else if (targetElement.closest("#deckList li")) {
-              targetImg = targetElement
-                .closest("#deckList li")
-                .querySelector(".card-image");
+            // Simplify finding the target image
+            const closestLi = targetElement.closest("li"); // For lists
+            const closestDiv = targetElement.closest(
+              ".battlefield-card, .hand-card, .side-zone-card"
+            ); // For divs
+
+            if (targetElement.tagName === "IMG") {
+              // If hovering directly over an image, use it
+              targetImg = targetElement;
+            } else if (closestLi && container.id === "searchResults") {
+              targetImg = closestLi.querySelector(".search-result-image");
+            } else if (closestLi && container.id === "deckList") {
+              targetImg = closestLi.querySelector(".card-image");
+            } else if (closestLi && container.id === "deckSearchResults") {
+              // Check deck search results li
+              targetImg = closestLi.querySelector("img");
+            } else if (closestDiv) {
+              // Check battlefield, hand, side zones
+              targetImg = closestDiv.querySelector("img");
             }
 
-            if (targetImg) {
+            if (targetImg && (targetImg.src || targetImg.dataset.normalSrc)) {
+              // Ensure image has a source
               showImagePopup(event, targetImg);
+            } else if (targetImg) {
+              console.log(
+                "Target image found but has no src/data-src",
+                targetImg
+              );
             }
           });
 
@@ -1954,7 +1968,6 @@
           });
 
           container.addEventListener("mouseout", (event) => {
-            // Hide popup if mouse leaves the container *and* isn't moving onto the popup itself
             if (
               !container.contains(event.relatedTarget) &&
               !imagePopup.contains(event.relatedTarget)
@@ -1964,9 +1977,7 @@
           });
         });
 
-        // Additional listener on the popup itself to prevent hiding when moving mouse inside it
         imagePopup.addEventListener("mouseout", (event) => {
-          // Hide if moving from popup to something that isn't a trigger element OR outside the window
           const isMovingToTrigger =
             event.relatedTarget &&
             (event.relatedTarget.closest(
@@ -1974,8 +1985,9 @@
             ) ||
               event.relatedTarget.closest(
                 "#searchResults li, #deckList li, #deckSearchResults li"
-              ));
-          if (!isMovingToTrigger) {
+              )); // Added deckSearchResults li
+          if (!isMovingToTrigger && event.relatedTarget !== imagePopup) {
+            // Check moving within popup too
             hideImagePopup();
           }
         });
@@ -1987,13 +1999,9 @@
       // --- Initial Load ---
       document.addEventListener("DOMContentLoaded", () => {
         loadTheme();
-        loadDeck(); // Loads deck, clears test area, renders deck, sets initial button states
+        loadDeck();
         setupPopupListeners();
-        // Initial render of empty areas (redundant after loadDeck calls clearTestArea, but safe)
-        displayHand();
-        displayBattlefield();
-        displaySideZones();
-        updateTestStatus(); // Set initial counts (should be 0)
+        // Initial display calls are handled within loadDeck/clearTestArea
       });
     </script>
   </body>
