@@ -456,12 +456,20 @@
         width: 100%;
       }
       #status,
-      #deckActionStatus {
+      #deckActionStatus,
+      #currentDeckNameStatus {
         margin-top: 10px;
         font-style: italic;
         color: var(--text-color-muted);
         min-height: 1.2em;
         font-size: 0.9em;
+      }
+      #currentDeckNameStatus {
+        font-weight: bold;
+        font-style: normal;
+        color: var(--text-color-secondary);
+        text-align: center;
+        margin-bottom: 10px;
       }
       #deckCount {
         text-align: right;
@@ -584,7 +592,7 @@
         display: block;
         width: 100%;
         height: auto;
-        pointer-events: none; /* Prevent img from interfering with drag */
+        pointer-events: none;
       }
       .battlefield-card {
         position: absolute;
@@ -890,9 +898,15 @@
 
     <div class="actions-section">
       <h2>Deck Actions</h2>
-      <button id="saveDeckButton" class="action-button">Save Deck</button
-      ><button id="loadDeckButton" class="action-button">Load Deck</button
-      ><button id="clearDeckButton" class="action-button">
+      <div id="currentDeckNameStatus">No Deck Loaded</div>
+      <button id="saveDeckButton" class="action-button">
+        Save Current Deck As...
+      </button>
+      <button id="loadDeckButton" class="action-button">Load Saved Deck</button>
+      <button id="deleteSavedDeckButton" class="action-button">
+        Delete Saved Deck
+      </button>
+      <button id="clearDeckButton" class="action-button">
         Clear Current Deck
       </button>
       <div id="deckActionStatus"></div>
@@ -991,8 +1005,14 @@
       );
       const saveDeckButton = document.getElementById("saveDeckButton");
       const loadDeckButton = document.getElementById("loadDeckButton");
+      const deleteSavedDeckButton = document.getElementById(
+        "deleteSavedDeckButton"
+      );
       const clearDeckButton = document.getElementById("clearDeckButton");
       const deckActionStatus = document.getElementById("deckActionStatus");
+      const currentDeckNameStatus = document.getElementById(
+        "currentDeckNameStatus"
+      );
       const drawHandButton = document.getElementById("drawHandButton");
       const drawNextCardButton = document.getElementById("drawNextCardButton");
       const shuffleDeckButton = document.getElementById("shuffleDeckButton");
@@ -1029,10 +1049,11 @@
         "closeCardViewPopupButton"
       );
 
-      const DECK_STORAGE_KEY = "mtgDeckBuilderSimpleDeckV3";
+      const MULTI_DECK_STORAGE_KEY = "mtgDeckBuilderMultiDeckStorageV1";
       const THEME_STORAGE_KEY = "mtgThemePreference";
 
       let currentDeck = {};
+      let currentLoadedDeckName = null;
       let searchAbortController = null;
       let currentHand = [];
       let currentBattlefield = {};
@@ -1091,6 +1112,15 @@
           if (deckActionStatus.textContent === message)
             deckActionStatus.textContent = "";
         }, 4000);
+      }
+      function updateCurrentDeckNameStatus(deckName) {
+        if (deckName) {
+          currentDeckNameStatus.textContent = `Editing: ${escapeHtml(
+            deckName
+          )}`;
+        } else {
+          currentDeckNameStatus.textContent = "No Deck Loaded / Unsaved Deck";
+        }
       }
       function escapeHtml(unsafe) {
         if (unsafe === null || unsafe === undefined) return "";
@@ -1250,7 +1280,7 @@
           const cardDiv = document.createElement("div");
           cardDiv.classList.add("hand-card");
           cardDiv.dataset.handId = card.handId;
-          cardDiv.draggable = true; // Make hand cards draggable
+          cardDiv.draggable = true;
           const displayImageUrl = card.imageUrl || "";
           const normalImageUrl = card.normalImageUrl || displayImageUrl;
           const safeCardName = card.name || "Unknown Card";
@@ -1260,8 +1290,8 @@
             safeCardName
           )}" loading="lazy" data-normal-src="${escapeHtml(normalImageUrl)}">`;
           cardDiv.addEventListener("click", handlePlayCardFromHand);
-          cardDiv.addEventListener("dragstart", handleHandDragStart); // Add drag start listener for hand cards
-          cardDiv.addEventListener("dragend", handleDragEnd); // Generic drag end handler
+          cardDiv.addEventListener("dragstart", handleHandDragStart);
+          cardDiv.addEventListener("dragend", handleDragEnd);
           testHandContainer.appendChild(cardDiv);
         });
         updateTestStatus();
@@ -1418,16 +1448,75 @@
           )
         ) {
           currentDeck = {};
+          currentLoadedDeckName = null;
           updateDeckActionStatus("Deck cleared.");
+          updateCurrentDeckNameStatus(null);
           renderDeck();
           clearTestArea();
         }
       }
 
+      function getSavedDecks() {
+        const savedData = localStorage.getItem(MULTI_DECK_STORAGE_KEY);
+        let decks = {};
+        if (savedData) {
+          try {
+            const parsedData = JSON.parse(savedData);
+            if (
+              typeof parsedData === "object" &&
+              parsedData !== null &&
+              !Array.isArray(parsedData)
+            ) {
+              decks = parsedData;
+            } else {
+              console.warn(
+                "Invalid data type found in multi-deck storage:",
+                parsedData
+              );
+            }
+          } catch (error) {
+            console.error("Error parsing saved decks:", error);
+          }
+        }
+        return decks;
+      }
+
       function saveDeck() {
+        const deckName = prompt(
+          "Enter a name for this deck:",
+          currentLoadedDeckName || ""
+        );
+        if (!deckName || deckName.trim() === "") {
+          updateDeckActionStatus("Save cancelled: Deck name cannot be empty.");
+          return;
+        }
+        const trimmedDeckName = deckName.trim();
+        const savedDecks = getSavedDecks();
+
+        if (
+          savedDecks[trimmedDeckName] &&
+          !confirm(
+            `A deck named "${escapeHtml(
+              trimmedDeckName
+            )}" already exists. Overwrite it?`
+          )
+        ) {
+          updateDeckActionStatus("Save cancelled.");
+          return;
+        }
+
+        savedDecks[trimmedDeckName] = { ...currentDeck };
+
         try {
-          localStorage.setItem(DECK_STORAGE_KEY, JSON.stringify(currentDeck));
-          updateDeckActionStatus("Deck saved successfully!");
+          localStorage.setItem(
+            MULTI_DECK_STORAGE_KEY,
+            JSON.stringify(savedDecks)
+          );
+          currentLoadedDeckName = trimmedDeckName;
+          updateDeckActionStatus(
+            `Deck "${escapeHtml(trimmedDeckName)}" saved successfully!`
+          );
+          updateCurrentDeckNameStatus(trimmedDeckName);
         } catch (error) {
           console.error("Error saving deck:", error);
           updateDeckActionStatus(
@@ -1435,100 +1524,154 @@
           );
         }
       }
+
       function loadDeck() {
-        const savedDeck = localStorage.getItem(DECK_STORAGE_KEY);
-        let deckLoaded = false;
-        let loadedData = {};
-        if (savedDeck) {
-          try {
-            const parsedDeck = JSON.parse(savedDeck);
-            if (
-              typeof parsedDeck === "object" &&
-              parsedDeck !== null &&
-              !Array.isArray(parsedDeck)
-            ) {
-              let isValid = true;
-              const validatedDeck = {};
-              for (const key in parsedDeck) {
-                if (typeof key !== "string" || key.trim() === "") {
-                  isValid = false;
-                  break;
-                }
-                const entry = parsedDeck[key];
-                if (
-                  typeof entry !== "object" ||
-                  entry === null ||
-                  typeof entry.quantity !== "number" ||
-                  !Number.isInteger(entry.quantity) ||
-                  entry.quantity <= 0 ||
-                  typeof entry.imageUrl !== "string" ||
-                  (entry.hasOwnProperty("normalImageUrl") &&
-                    typeof entry.normalImageUrl !== "string")
-                ) {
-                  if (
-                    typeof entry.imageUrl === "string" &&
-                    !entry.normalImageUrl
-                  ) {
-                    entry.normalImageUrl = entry.imageUrl;
-                  } else {
-                    isValid = false;
-                    break;
-                  }
-                }
-                validatedDeck[key] = {
-                  quantity: entry.quantity,
-                  imageUrl: entry.imageUrl,
-                  normalImageUrl: entry.normalImageUrl || entry.imageUrl,
-                };
-              }
-              if (isValid) {
-                loadedData = validatedDeck;
-                updateDeckActionStatus("Deck loaded successfully!");
-                deckLoaded = true;
-              } else {
-                updateDeckActionStatus(
-                  "Failed to load deck: Invalid data format found. Deck cleared."
-                );
-                console.warn(
-                  "Invalid deck structure found in localStorage, deck reset.",
-                  parsedDeck
-                );
-                loadedData = {};
-              }
-            } else {
-              updateDeckActionStatus(
-                "Failed to load deck: Invalid data type in storage. Deck cleared."
-              );
-              console.warn(
-                "Invalid data type found in localStorage:",
-                parsedDeck
-              );
-              loadedData = {};
+        const savedDecks = getSavedDecks();
+        const deckNames = Object.keys(savedDecks).sort();
+
+        if (deckNames.length === 0) {
+          updateDeckActionStatus("No saved decks found.");
+          return;
+        }
+
+        const promptMessage =
+          "Enter the name of the deck to load:\n\nAvailable decks:\n- " +
+          deckNames.join("\n- ");
+        const chosenName = prompt(promptMessage);
+
+        if (!chosenName) {
+          updateDeckActionStatus("Load cancelled.");
+          return;
+        }
+
+        const trimmedChosenName = chosenName.trim();
+        const deckData = savedDecks[trimmedChosenName];
+
+        if (deckData) {
+          let isValid = true;
+          const validatedDeck = {};
+          for (const key in deckData) {
+            if (typeof key !== "string" || key.trim() === "") {
+              isValid = false;
+              break;
             }
-          } catch (error) {
-            console.error("Error parsing saved deck:", error);
+            const entry = deckData[key];
+            if (
+              typeof entry !== "object" ||
+              entry === null ||
+              typeof entry.quantity !== "number" ||
+              !Number.isInteger(entry.quantity) ||
+              entry.quantity <= 0 ||
+              typeof entry.imageUrl !== "string" ||
+              (entry.hasOwnProperty("normalImageUrl") &&
+                typeof entry.normalImageUrl !== "string")
+            ) {
+              if (typeof entry.imageUrl === "string" && !entry.normalImageUrl) {
+                entry.normalImageUrl = entry.imageUrl;
+              } else {
+                isValid = false;
+                break;
+              }
+            }
+            validatedDeck[key] = {
+              quantity: entry.quantity,
+              imageUrl: entry.imageUrl,
+              normalImageUrl: entry.normalImageUrl || entry.imageUrl,
+            };
+          }
+
+          if (isValid) {
+            currentDeck = validatedDeck;
+            currentLoadedDeckName = trimmedChosenName;
             updateDeckActionStatus(
-              "Error loading deck: Could not parse saved data. Deck cleared."
+              `Deck "${escapeHtml(trimmedChosenName)}" loaded successfully!`
             );
-            loadedData = {};
+            updateCurrentDeckNameStatus(trimmedChosenName);
+            clearTestArea();
+            renderDeck();
+            drawHandButton.disabled =
+              Object.values(currentDeck).reduce(
+                (sum, card) => sum + card.quantity,
+                0
+              ) < 7;
+            disableDrawNextButton();
+            disableShuffleButton();
+            disableSearchButton();
+            disableScryButton();
+            hideDeckSearchArea();
+          } else {
+            updateDeckActionStatus(
+              `Failed to load deck "${escapeHtml(
+                trimmedChosenName
+              )}": Invalid data format found.`
+            );
+            console.warn(
+              "Invalid deck structure found in loaded deck data:",
+              deckData
+            );
           }
         } else {
-          updateDeckActionStatus("No saved deck found.");
-          loadedData = {};
+          updateDeckActionStatus(
+            `Deck "${escapeHtml(trimmedChosenName)}" not found.`
+          );
         }
-        currentDeck = loadedData;
-        clearTestArea();
-        renderDeck();
-        drawHandButton.disabled =
-          Object.values(currentDeck).reduce(
-            (sum, card) => sum + card.quantity,
-            0
-          ) < 7;
-        disableDrawNextButton();
-        disableShuffleButton();
-        disableSearchButton();
-        disableScryButton();
-        hideDeckSearchArea();
+      }
+
+      function deleteSavedDeck() {
+        const savedDecks = getSavedDecks();
+        const deckNames = Object.keys(savedDecks).sort();
+
+        if (deckNames.length === 0) {
+          updateDeckActionStatus("No saved decks to delete.");
+          return;
+        }
+
+        const promptMessage =
+          "Enter the name of the deck to DELETE:\n\nAvailable decks:\n- " +
+          deckNames.join("\n- ");
+        const chosenName = prompt(promptMessage);
+
+        if (!chosenName) {
+          updateDeckActionStatus("Delete cancelled.");
+          return;
+        }
+
+        const trimmedChosenName = chosenName.trim();
+
+        if (savedDecks[trimmedChosenName]) {
+          if (
+            confirm(
+              `Are you sure you want to permanently delete the deck "${escapeHtml(
+                trimmedChosenName
+              )}"? This cannot be undone.`
+            )
+          ) {
+            delete savedDecks[trimmedChosenName];
+            try {
+              localStorage.setItem(
+                MULTI_DECK_STORAGE_KEY,
+                JSON.stringify(savedDecks)
+              );
+              updateDeckActionStatus(
+                `Deck "${escapeHtml(trimmedChosenName)}" deleted.`
+              );
+              if (currentLoadedDeckName === trimmedChosenName) {
+                clearDeck();
+              }
+            } catch (error) {
+              console.error("Error deleting deck:", error);
+              updateDeckActionStatus(
+                "Error deleting deck. LocalStorage might be full or disabled."
+              );
+            }
+          } else {
+            updateDeckActionStatus("Delete cancelled.");
+          }
+        } else {
+          updateDeckActionStatus(
+            `Deck "${escapeHtml(trimmedChosenName)}" not found.`
+          );
+        }
       }
 
       function drawTestHand() {
@@ -1746,7 +1889,7 @@
         if (cardIndex > -1) {
           dragInfo.cardId = handId;
           dragInfo.sourceZone = "hand";
-          dragInfo.offsetX = event.offsetX; // Store offset for potential use
+          dragInfo.offsetX = event.offsetX;
           dragInfo.offsetY = event.offsetY;
 
           event.dataTransfer.setData("text/plain", handId);
@@ -1758,7 +1901,7 @@
           hideContextMenu();
           hideCardViewPopup();
         } else {
-          event.preventDefault(); // Prevent dragging if card not found in state
+          event.preventDefault();
         }
       }
 
@@ -1779,7 +1922,7 @@
         }
 
         dragInfo.cardId = cardId;
-        dragInfo.sourceZone = "battlefield"; // Identify source
+        dragInfo.sourceZone = "battlefield";
         const rect = cardElement.getBoundingClientRect();
 
         const isTapped = currentBattlefield[cardId].isTapped;
@@ -1820,13 +1963,11 @@
       }
 
       function handleDragEnd(event) {
-        // Generic cleanup
         const draggedElement = document.querySelector(".dragging");
         if (draggedElement) {
           draggedElement.classList.remove("dragging");
         }
 
-        // Reset dragInfo
         dragInfo.cardId = null;
         dragInfo.sourceZone = null;
         dragInfo.offsetX = 0;
@@ -1850,12 +1991,10 @@
 
         if (!draggedCardId || !sourceZone) return;
 
-        // --- Handle Drop onto Side Zones (Graveyard/Exile) ---
         if (dropZoneId === "graveyardZone" || dropZoneId === "exileZone") {
           let cardData = null;
           let cardRemoved = false;
 
-          // Remove from source
           if (
             sourceZone === "battlefield" &&
             currentBattlefield[draggedCardId]
@@ -1873,7 +2012,6 @@
             }
           }
 
-          // Add to destination if removed
           if (cardRemoved && cardData) {
             delete cardData.x;
             delete cardData.y;
@@ -1887,39 +2025,34 @@
                 `Moved ${escapeHtml(cardData.name)} to Graveyard.`
               );
             } else {
-              // exileZone
               cardData.exileId = `ex-${exileCardIdCounter++}`;
               currentExile.push(cardData);
               updateTestStatus(`Moved ${escapeHtml(cardData.name)} to Exile.`);
             }
-            displayBattlefield(); // Update battlefield if card came from there
-            displayHand(); // Update hand if card came from there
+            displayBattlefield();
+            displayHand();
             displaySideZones();
             updateUntapAllButtonVisibility();
           }
-        }
-        // --- Handle Drop onto General Battlefield Zone ---
-        else if (dropZoneId === "generalZone") {
+        } else if (dropZoneId === "generalZone") {
           const zoneRect = targetZoneElement.getBoundingClientRect();
           let cardData = null;
           let cardMoved = false;
 
-          // Case 1: Dragged from Hand to Battlefield
           if (sourceZone === "hand") {
             const cardIndex = currentHand.findIndex(
               (card) => card.handId === draggedCardId
             );
             if (cardIndex > -1) {
-              [cardData] = currentHand.splice(cardIndex, 1); // Remove from hand
+              [cardData] = currentHand.splice(cardIndex, 1);
 
               const battlefieldId = `bf-${battlefieldCardIdCounter++}`;
-              const cardWidth = 80; // Approximate width of battlefield card
-              const cardHeight = 112; // Approximate height
+              const cardWidth = 80;
+              const cardHeight = 112;
 
-              let newX = event.clientX - zoneRect.left - cardWidth / 2; // Center roughly under cursor
+              let newX = event.clientX - zoneRect.left - cardWidth / 2;
               let newY = event.clientY - zoneRect.top - cardHeight / 2;
 
-              // Boundary checks
               newX = Math.max(
                 0,
                 Math.min(newX, targetZoneElement.clientWidth - cardWidth - 5)
@@ -1930,24 +2063,22 @@
               );
 
               currentBattlefield[battlefieldId] = {
-                ...cardData, // Copy name, images
+                ...cardData,
                 zone: "general",
                 isTapped: false,
                 x: newX,
                 y: newY,
               };
-              delete currentBattlefield[battlefieldId].handId; // Remove hand-specific ID
+              delete currentBattlefield[battlefieldId].handId;
 
               updateTestStatus(
                 `Played ${escapeHtml(cardData.name)} from hand.`
               );
               cardMoved = true;
-              displayHand(); // Update hand display
-              displayBattlefield(); // Update battlefield display
+              displayHand();
+              displayBattlefield();
             }
-          }
-          // Case 2: Dragged within the Battlefield
-          else if (
+          } else if (
             sourceZone === "battlefield" &&
             currentBattlefield[draggedCardId]
           ) {
@@ -1963,7 +2094,6 @@
               let newX = event.clientX - zoneRect.left - dragInfo.offsetX;
               let newY = event.clientY - zoneRect.top - dragInfo.offsetY;
 
-              // Boundary checks
               newX = Math.max(
                 0,
                 Math.min(newX, targetZoneElement.clientWidth - cardWidth - 5)
@@ -1982,12 +2112,11 @@
                 `Moved ${escapeHtml(cardData.name)} on battlefield.`
               );
               cardMoved = true;
-              // No need to call displayBattlefield() here, just moved the element directly
             } else {
               console.error(
                 "Could not find dragged battlefield card element on drop."
               );
-              displayBattlefield(); // Force redraw if element missing
+              displayBattlefield();
             }
           }
 
@@ -2002,7 +2131,6 @@
           console.warn("Drop occurred on unexpected element:", dropZoneId);
         }
 
-        // Reset drag info after handling drop
         dragInfo.cardId = null;
         dragInfo.sourceZone = null;
         dragInfo.offsetX = 0;
@@ -2257,11 +2385,6 @@
           ? imageUrl.split("?")[0]
           : imageUrl;
         cardViewImage.src = normalImageUrl.replace("small", "normal");
-        // cardViewImage.onerror = () => {
-        //   console.error("Failed to load image in card view popup:", imageUrl);
-        //   cardViewImage.alt = "Image failed to load";
-        //   cardViewImage.src = imageUrl;
-        // };
         cardViewImage.alt = "Card Image";
         cardViewPopupOverlay.style.display = "flex";
       }
@@ -2745,6 +2868,7 @@
       });
       saveDeckButton.addEventListener("click", saveDeck);
       loadDeckButton.addEventListener("click", loadDeck);
+      deleteSavedDeckButton.addEventListener("click", deleteSavedDeck);
       clearDeckButton.addEventListener("click", clearDeck);
       drawHandButton.addEventListener("click", drawTestHand);
       drawNextCardButton.addEventListener("click", drawNextCard);
@@ -2815,7 +2939,8 @@
 
       document.addEventListener("DOMContentLoaded", () => {
         loadTheme();
-        loadDeck();
+        renderDeck();
+        updateCurrentDeckNameStatus(null);
       });
     </script>
   </body>
