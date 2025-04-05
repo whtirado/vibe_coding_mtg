@@ -1,0 +1,1386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MTG Duel Zone</title>
+    <!-- Include Socket.IO Client Library -->
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+      /* --- START: Copied & Adapted Styles from index.html --- */
+      :root {
+        --body-bg: #f0f2f5;
+        --section-bg: #ffffff;
+        --text-color-primary: #333333;
+        --text-color-secondary: #444444;
+        --text-color-muted: #555555;
+        --text-color-link: #007bff;
+        --border-color-light: #eeeeee;
+        --border-color-medium: #cccccc;
+        --border-color-dark: #aaaaaa;
+        --button-bg: #007bff;
+        --button-text: #ffffff;
+        --button-bg-hover: #0056b3;
+        --button-disabled-bg: #cccccc;
+        --button-disabled-text: #666666;
+        --button-delete-bg: #dc3545;
+        --button-delete-text: #ffffff;
+        --button-delete-bg-hover: #c82333;
+        --input-bg: #ffffff;
+        --input-border: #cccccc;
+        --input-text: #333333;
+        --list-item-hover-bg: #f0f8ff;
+        --search-result-hover-bg: #f0f0f0;
+        --battlefield-bg: #e0e0e0;
+        --battlefield-border: #cccccc;
+        --zone-general-bg: #e9f5e9;
+        --zone-general-border: #9ccc9c;
+        --zone-side-bg: #f0f0f0;
+        --zone-side-border: #aaaaaa;
+        --hand-container-bg: #f9f9f9;
+        --hand-card-bg: #ffffff;
+        --hand-card-border: #dddddd;
+        --hand-card-hover-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        --shadow-color: rgba(0, 0, 0, 0.1);
+        --shadow-color-heavy: rgba(0, 0, 0, 0.3);
+        --slider-bg: #ccc;
+        --slider-knob-bg: white;
+        --slider-checked-bg: #007bff;
+        --context-menu-bg: #ffffff;
+        --context-menu-border: #cccccc;
+        --context-menu-text: #333333;
+        --context-menu-hover-bg: #f0f0f0;
+        --context-menu-disabled-text: #aaaaaa;
+        --card-view-overlay-bg: rgba(0, 0, 0, 0.8);
+        --card-view-bg: #ffffff;
+        --card-view-border: #cccccc;
+        --card-view-close-bg: #6c757d;
+        --card-view-close-text: #ffffff;
+        --card-view-close-hover-bg: #5a6268;
+        --saved-deck-list-bg: #f8f9fa;
+        --saved-deck-list-border: #dee2e6;
+        --saved-deck-item-hover-bg: #e9ecef;
+        --saved-deck-item-text: #0056b3;
+        --chat-bg: #f1f1f1;
+        --chat-border: #ccc;
+        --chat-input-bg: #fff;
+        --life-counter-bg: #fff8dc; /* Cornsilk */
+        --opponent-hand-card-bg: #bdbdbd; /* Grey for opponent's hand */
+      }
+
+      body[data-theme="dark"] {
+        --body-bg: #1a1a1a;
+        --section-bg: #2c2c2c;
+        --text-color-primary: #e0e0e0;
+        --text-color-secondary: #cccccc;
+        --text-color-muted: #aaaaaa;
+        --text-color-link: #4dabf7;
+        --border-color-light: #444444;
+        --border-color-medium: #666666;
+        --border-color-dark: #888888;
+        --button-bg: #0056b3;
+        --button-text: #ffffff;
+        --button-bg-hover: #003d80;
+        --button-disabled-bg: #555555;
+        --button-disabled-text: #aaaaaa;
+        --button-delete-bg: #a02c38;
+        --button-delete-text: #ffffff;
+        --button-delete-bg-hover: #80232e;
+        --input-bg: #3a3a3a;
+        --input-border: #666666;
+        --input-text: #e0e0e0;
+        --list-item-hover-bg: #3a4a5a;
+        --search-result-hover-bg: #444444;
+        --battlefield-bg: #3a3a3a;
+        --battlefield-border: #666666;
+        --zone-general-bg: #2a4a2a;
+        --zone-general-border: #5c8c5c;
+        --zone-side-bg: #444444;
+        --zone-side-border: #777777;
+        --hand-container-bg: #252525;
+        --hand-card-bg: #383838;
+        --hand-card-border: #505050;
+        --hand-card-hover-shadow: 0 2px 8px rgba(255, 255, 255, 0.15);
+        --shadow-color: rgba(255, 255, 255, 0.05);
+        --shadow-color-heavy: rgba(255, 255, 255, 0.15);
+        --slider-bg: #555;
+        --slider-knob-bg: #bbb;
+        --slider-checked-bg: #0056b3;
+        --context-menu-bg: #3a3a3a;
+        --context-menu-border: #666666;
+        --context-menu-text: #e0e0e0;
+        --context-menu-hover-bg: #444444;
+        --context-menu-disabled-text: #888888;
+        --card-view-overlay-bg: rgba(0, 0, 0, 0.9);
+        --card-view-bg: #3a3a3a;
+        --card-view-border: #666666;
+        --card-view-close-bg: #5a6268;
+        --card-view-close-text: #ffffff;
+        --card-view-close-hover-bg: #495057;
+        --saved-deck-list-bg: #3a3a3a;
+        --saved-deck-list-border: #555555;
+        --saved-deck-item-hover-bg: #444444;
+        --saved-deck-item-text: #4dabf7;
+        --chat-bg: #2c2c2c;
+        --chat-border: #555;
+        --chat-input-bg: #3a3a3a;
+        --life-counter-bg: #4b422d; /* Darker cornsilk */
+        --opponent-hand-card-bg: #555555; /* Dark grey for opponent's hand */
+      }
+
+      body {
+        font-family: sans-serif;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        background-color: var(--body-bg);
+        color: var(--text-color-primary);
+        margin: 0;
+        padding: 0;
+        transition: background-color 0.3s ease, color 0.3s ease;
+        overflow-x: hidden; /* Prevent horizontal scroll */
+      }
+
+      .header-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        padding: 15px;
+        background-color: var(--section-bg);
+        box-shadow: 0 2px 5px var(--shadow-color);
+        z-index: 10;
+      }
+      h1 {
+        text-align: center;
+        color: var(--text-color-primary);
+        margin: 0;
+      }
+      h2, h3 { color: var(--text-color-primary); margin-bottom: 10px; text-align: center;}
+      h4 {
+        margin: 5px 0; font-size: 0.9em; color: var(--text-color-muted);
+        text-align: center; border-bottom: 1px solid var(--border-color-light);
+        padding-bottom: 3px; width: 100%; box-sizing: border-box;
+      }
+
+      .theme-switch-wrapper { /* Position adjusted */
+        position: absolute; right: 15px; top: 50%; transform: translateY(-50%);
+      }
+      .theme-switch { display: inline-block; height: 24px; position: relative; width: 44px; }
+      .theme-switch input { display: none; }
+      .slider { background-color: var(--slider-bg); bottom: 0; cursor: pointer; left: 0; position: absolute; right: 0; top: 0; transition: .4s; border-radius: 24px; }
+      .slider:before { background-color: var(--slider-knob-bg); bottom: 3px; content: ""; height: 18px; left: 3px; position: absolute; transition: .4s; width: 18px; border-radius: 50%; }
+      input:checked + .slider { background-color: var(--slider-checked-bg); }
+      input:checked + .slider:before { transform: translateX(20px); }
+
+      .main-content {
+        display: flex;
+        flex-grow: 1;
+        padding: 15px;
+        gap: 15px;
+        overflow: hidden; /* Prevent content overflow */
+      }
+
+      .setup-area {
+        background-color: var(--section-bg); padding: 20px; border-radius: 8px;
+        box-shadow: 0 2px 5px var(--shadow-color); text-align: center;
+        margin: 20px auto; max-width: 500px;
+      }
+      .setup-area select, .setup-area button {
+        display: block; width: 100%; padding: 10px; margin-bottom: 10px;
+        border: 1px solid var(--input-border); border-radius: 4px; box-sizing: border-box;
+        background-color: var(--input-bg); color: var(--input-text); font-size: 1em;
+      }
+      .setup-area button {
+        background-color: var(--button-bg); color: var(--button-text); cursor: pointer;
+      }
+      .setup-area button:hover:not(:disabled) { background-color: var(--button-bg-hover); }
+      .setup-area button:disabled {
+        background-color: var(--button-disabled-bg); color: var(--button-disabled-text);
+        cursor: not-allowed;
+      }
+      #statusMessage { font-weight: bold; margin-bottom: 15px; min-height: 1.2em; }
+
+      .game-area {
+        display: none; /* Hidden initially */
+        flex-direction: column; /* Stack player areas */
+        flex-grow: 1;
+        gap: 10px;
+        overflow: hidden; /* Important for containing player areas */
+      }
+
+      .player-area {
+        border: 2px solid var(--border-color-medium);
+        border-radius: 8px;
+        padding: 10px;
+        background-color: var(--section-bg);
+        display: flex;
+        flex-direction: column;
+        min-height: 45vh; /* Approx height for each player */
+        max-height: 48vh; /* Limit height */
+        overflow: hidden; /* Contains internal elements */
+        position: relative; /* For positioning absolute elements like life counter */
+        box-shadow: 0 2px 5px var(--shadow-color);
+      }
+      #opponentArea {
+        /* Maybe a slightly different background or border */
+        /* background-color: color-mix(in srgb, var(--section-bg) 95%, var(--text-color-muted) 5%); */
+      }
+
+      .player-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 5px;
+        padding: 0 5px;
+        flex-shrink: 0;
+      }
+      .player-name { font-weight: bold; font-size: 1.1em; }
+
+      .life-counter {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        background-color: var(--life-counter-bg);
+        padding: 3px 8px;
+        border-radius: 15px;
+        border: 1px solid var(--border-color-medium);
+        box-shadow: inset 0 1px 2px var(--shadow-color);
+      }
+      .life-total { font-size: 1.2em; font-weight: bold; min-width: 25px; text-align: center;}
+      .life-button {
+        background-color: var(--button-bg); color: var(--button-text);
+        border: none; border-radius: 50%; width: 22px; height: 22px;
+        font-size: 16px; line-height: 22px; text-align: center; cursor: pointer;
+        padding: 0;
+      }
+       .life-button:hover:not(:disabled) { background-color: var(--button-bg-hover); }
+       .life-button:disabled {
+         background-color: var(--button-disabled-bg); color: var(--button-disabled-text);
+         cursor: not-allowed;
+       }
+
+      .play-zones {
+        display: flex;
+        flex-grow: 1;
+        gap: 10px;
+        overflow: hidden; /* Contain the zones */
+        min-height: 0; /* Crucial for flex children with overflow */
+      }
+
+      .battlefield-and-side {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        overflow: hidden; /* Contain battlefield and side zones */
+        min-width: 0; /* Prevent flex blowout */
+      }
+
+      .battlefield-zone {
+        flex-grow: 1; /* Takes available vertical space */
+        border-radius: 4px;
+        padding: 10px 5px 5px 5px;
+        position: relative;
+        min-height: 200px; /* Ensure minimum battlefield size */
+        overflow: auto; /* Allow scrolling if needed */
+        display: flex;
+        flex-wrap: wrap;
+        align-content: flex-start;
+        gap: 5px;
+        background-color: var(--zone-general-bg);
+        border: 1px dashed var(--zone-general-border);
+        transition: background-color 0.3s ease, border-color 0.3s ease;
+      }
+      .battlefield-zone h4 { position: absolute; top: 5px; left: 5px; z-index: 1; background: rgba(255,255,255,0.7); padding: 2px 5px; border-radius: 3px; border: none; }
+      body[data-theme="dark"] .battlefield-zone h4 { background: rgba(44,44,44,0.8); }
+
+
+      .side-zones-container {
+        display: flex;
+        gap: 10px;
+        flex-shrink: 0;
+        height: 100px; /* Fixed height for GY/Exile/Library */
+      }
+
+      .side-zone { /* Combined Graveyard/Exile Style */
+        flex: 1; /* Equal width */
+        border-radius: 4px;
+        padding: 5px;
+        position: relative;
+        min-height: 80px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column; /* Stack cards vertically */
+        align-items: center; /* Center horizontally */
+        gap: 3px;
+        background-color: var(--zone-side-bg);
+        border: 1px dashed var(--zone-side-border);
+        transition: background-color 0.3s ease, border-color 0.3s ease;
+      }
+       .side-zone h4 {
+          margin-bottom: 3px; font-size: 0.8em; width: auto;
+          border-bottom: none; padding-bottom: 0; text-align: center;
+          position: sticky; top: 0; background: var(--zone-side-bg); /* Keep title visible */
+          z-index: 1;
+        }
+
+       .library-zone { /* Style for library count */
+         flex: 0 0 80px; /* Fixed width */
+         border-radius: 4px; padding: 5px; background-color: var(--zone-side-bg);
+         border: 1px dashed var(--zone-side-border); display: flex; flex-direction: column;
+         align-items: center; justify-content: center; text-align: center;
+       }
+       .library-zone h4 { margin-bottom: 5px; font-size: 0.8em; border: none; }
+       #myLibraryCount, #opponentLibraryCount { font-size: 1.5em; font-weight: bold; }
+
+
+      .hand-zone {
+        flex-shrink: 0;
+        display: flex;
+        flex-wrap: nowrap; /* Prevent wrapping, allow scroll */
+        gap: 8px;
+        padding: 10px 5px;
+        background-color: var(--hand-container-bg);
+        border: 1px solid var(--border-color-medium);
+        border-radius: 5px;
+        min-height: 120px;
+        max-height: 130px; /* Fixed hand height */
+        overflow-x: auto; /* Allow horizontal scrolling for hand */
+        overflow-y: hidden;
+        transition: background-color 0.3s ease, border-color 0.3s ease;
+        width: 100%; /* Take full width within player area */
+        box-sizing: border-box;
+      }
+       #opponentArea .hand-zone {
+         /* Optionally different style for opponent hand */
+         /* justify-content: center; */ /* Center card backs */
+       }
+
+
+      /* --- Card Styles (Copied/Adapted) --- */
+      .hand-card {
+        width: 80px; /* Slightly smaller */
+        height: auto;
+        border-radius: 4px;
+        box-shadow: 1px 1px 3px var(--shadow-color);
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        overflow: hidden;
+        flex-shrink: 0; /* Prevent shrinking */
+      }
+      .hand-card:hover {
+        transform: translateY(-3px) scale(1.03);
+        box-shadow: var(--hand-card-hover-shadow);
+      }
+      .hand-card img {
+        display: block; width: 100%; height: auto; pointer-events: none;
+      }
+      .opponent-hand-card { /* Style for opponent card backs */
+         width: 80px; height: 112px; /* Match approx card aspect ratio */
+         border-radius: 4px;
+         background-color: var(--opponent-hand-card-bg);
+         border: 1px solid var(--border-color-dark);
+         display: flex; align-items: center; justify-content: center;
+         font-size: 0.8em; color: var(--text-color-primary);
+         flex-shrink: 0;
+      }
+
+      .battlefield-card {
+        position: absolute; width: 70px; height: auto; border-radius: 4px;
+        box-shadow: 1px 1px 3px var(--shadow-color-heavy); cursor: grab;
+        user-select: none;
+        transition: box-shadow 0.2s ease, transform 0.2s ease-in-out, left 0.1s ease-out, top 0.1s ease-out;
+        transform-origin: center center; background-color: var(--section-bg); z-index: 5; /* Above h4 */
+      }
+      .battlefield-card.tapped { transform: rotate(90deg); }
+      .battlefield-card:active { cursor: grabbing; box-shadow: 2px 2px 6px var(--shadow-color-heavy); z-index: 1000; transition: box-shadow 0.2s ease, transform 0.2s ease-in-out; }
+      .battlefield-card img { width: 100%; height: auto; display: block; pointer-events: none; border-radius: 4px; }
+      .dragging { opacity: 0.4; }
+
+      .side-zone-card {
+        width: 45px; /* Smaller for side zones */
+        height: auto; border-radius: 3px;
+        margin-bottom: 2px; cursor: default;
+        box-shadow: 0 1px 2px var(--shadow-color);
+        position: relative; /* For context menu */
+        flex-shrink: 0;
+      }
+      .side-zone-card img { display: block; width: 100%; height: auto; border-radius: 3px; }
+      .opponent-side-zone-card { /* If we want to hide opponent GY/Exile details */
+         width: 45px; height: 63px; border-radius: 3px;
+         background-color: var(--opponent-hand-card-bg);
+         border: 1px solid var(--border-color-dark);
+         margin-bottom: 2px; flex-shrink: 0;
+      }
+
+      /* --- Chat Styles --- */
+      .chat-container {
+        width: 280px; /* Fixed width chat */
+        flex-shrink: 0; /* Don't shrink chat */
+        display: flex;
+        flex-direction: column;
+        background-color: var(--section-bg);
+        border-radius: 8px;
+        box-shadow: 0 2px 5px var(--shadow-color);
+        overflow: hidden; /* Contain chat elements */
+        max-height: 90vh; /* Limit chat height */
+      }
+      .chat-container h3 {
+          margin-top: 10px; margin-bottom: 5px; font-size: 1.1em; text-align: center;
+          padding-bottom: 5px; border-bottom: 1px solid var(--border-color-light);
+      }
+      #chatMessages {
+        list-style: none; padding: 10px; margin: 0; flex-grow: 1;
+        overflow-y: auto; word-wrap: break-word;
+        background-color: var(--chat-bg);
+      }
+      #chatMessages li { margin-bottom: 6px; font-size: 0.9em; }
+      #chatMessages li strong { color: var(--text-color-link); }
+      #chatMessages li.system { font-style: italic; color: var(--text-color-muted); }
+      .chat-input-area { display: flex; padding: 10px; border-top: 1px solid var(--chat-border); }
+      #chatInput {
+        flex-grow: 1; padding: 8px; border: 1px solid var(--input-border);
+        border-radius: 4px 0 0 4px; background-color: var(--chat-input-bg);
+        color: var(--input-text);
+      }
+      #sendChatButton {
+        padding: 8px 15px; background-color: var(--button-bg); color: var(--button-text);
+        border: none; border-radius: 0 4px 4px 0; cursor: pointer; font-size: 0.9em;
+      }
+      #sendChatButton:hover { background-color: var(--button-bg-hover); }
+
+      /* --- Context Menu & Card View (Copied/Adapted) --- */
+      #cardContextMenu {
+        position: absolute; display: none; background-color: var(--context-menu-bg);
+        border: 1px solid var(--context-menu-border); border-radius: 4px;
+        box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2); padding: 5px 0; z-index: 10011;
+        min-width: 150px;
+      }
+      #cardContextMenu ul { list-style: none; padding: 0; margin: 0; }
+      #cardContextMenu li { padding: 6px 12px; cursor: pointer; color: var(--context-menu-text); font-size: 0.9em; white-space: nowrap; }
+      #cardContextMenu li:hover:not(.disabled):not(.hidden) { background-color: var(--context-menu-hover-bg); }
+      #cardContextMenu li.disabled { color: var(--context-menu-disabled-text); cursor: not-allowed; background-color: transparent; }
+      #cardContextMenu li.hidden { display: none; }
+
+      #cardViewPopupOverlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--card-view-overlay-bg);
+        display: none; justify-content: center; align-items: center; z-index: 10020;
+        padding: 20px; box-sizing: border-box;
+      }
+      #cardViewPopupContent { position: relative; min-width: 30vw; max-width: 90vw; max-height: 90vh; display: flex; justify-content: center; align-items: center; background-color: var(--card-view-bg); padding: 10px; border-radius: 8px; border: 1px solid var(--card-view-border); box-shadow: 0 5px 20px var(--shadow-color-heavy); }
+      #cardViewImage { display: block; width: 100%; max-height: calc(90vh - 60px); height: auto; border-radius: 25px; object-fit: contain; }
+      #closeCardViewPopupButton { position: absolute; top: -10px; right: -10px; background-color: var(--card-view-close-bg); color: var(--card-view-close-text); border: none; border-radius: 50%; width: 30px; height: 30px; font-size: 18px; line-height: 30px; text-align: center; cursor: pointer; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); transition: background-color 0.2s ease; }
+      #closeCardViewPopupButton:hover { background-color: var(--card-view-close-hover-bg); }
+
+      .hidden { display: none !important; }
+      /* --- END: Copied & Adapted Styles --- */
+    </style>
+</head>
+<body data-theme="light">
+
+    <div class="header-container">
+        <h1>MTG Duel Zone</h1>
+        <div class="theme-switch-wrapper">
+            <label class="theme-switch" for="themeToggleCheckbox">
+                <input type="checkbox" id="themeToggleCheckbox" />
+                <span class="slider round"></span>
+            </label>
+        </div>
+    </div>
+
+    <div class="setup-area" id="setupArea">
+        <h2>Game Setup</h2>
+        <div id="statusMessage">Connecting to server...</div>
+        <label for="deckSelect">Choose your deck:</label>
+        <select id="deckSelect" disabled>
+            <option value="">-- Loading Decks --</option>
+        </select>
+        <button id="readyButton" disabled>Select Deck</button>
+    </div>
+
+    <div class="main-content">
+        <div class="game-area" id="gameArea">
+            <!-- Opponent's Area -->
+            <div class="player-area" id="opponentArea">
+                <div class="player-info">
+                    <span class="player-name" id="opponentName">Opponent</span>
+                    <div class="life-counter">
+                        <!-- Opponent life changes are display only -->
+                        <span class="life-total" id="opponentLife">20</span>
+                    </div>
+                </div>
+                 <div class="hand-zone" id="opponentHand">
+                    <!-- Opponent hand cards (likely just backs or counts) -->
+                 </div>
+                <div class="play-zones">
+                    <div class="battlefield-and-side">
+                        <div class="battlefield-zone" id="opponentBattlefield"><h4>Opponent's Battlefield</h4></div>
+                        <div class="side-zones-container">
+                            <div class="side-zone" id="opponentGraveyard"><h4>GY (<span id="opponentGraveyardCount">0</span>)</h4></div>
+                            <div class="side-zone" id="opponentExile"><h4>Exile (<span id="opponentExileCount">0</span>)</h4></div>
+                            <div class="library-zone" id="opponentLibrary">
+                                <h4>Library</h4>
+                                <span id="opponentLibraryCount">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Player's Area -->
+            <div class="player-area" id="myArea">
+                <div class="play-zones">
+                     <div class="battlefield-and-side">
+                        <div class="battlefield-zone" id="myBattlefield"><h4>My Battlefield</h4></div>
+                         <div class="side-zones-container">
+                            <div class="side-zone" id="myGraveyard"><h4>GY (<span id="myGraveyardCount">0</span>)</h4></div>
+                            <div class="side-zone" id="myExile"><h4>Exile (<span id="myExileCount">0</span>)</h4></div>
+                            <div class="library-zone" id="myLibrary">
+                                <h4>Library</h4>
+                                <span id="myLibraryCount">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="hand-zone" id="myHand">
+                    <!-- My hand cards -->
+                </div>
+                <div class="player-info">
+                    <span class="player-name" id="myName">You</span>
+                    <div class="life-counter">
+                        <button class="life-button" id="lifeDecrease" disabled>-</button>
+                        <span class="life-total" id="myLife">20</span>
+                        <button class="life-button" id="lifeIncrease" disabled>+</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Area -->
+        <div class="chat-container" id="chatContainer">
+            <h3>Chat</h3>
+            <ul id="chatMessages">
+                <li class="system">Welcome to the Duel Zone!</li>
+            </ul>
+            <div class="chat-input-area">
+                <input type="text" id="chatInput" placeholder="Type message..." disabled />
+                <button id="sendChatButton" disabled>Send</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reusable Context Menu -->
+    <div id="cardContextMenu">
+        <ul>
+            <li data-action="toggleTap">Tap/Untap</li>
+            <li data-action="viewCard">View Card</li>
+            <li data-action="toHand">Move to Hand</li>
+            <li data-action="toGraveyard">Move to Graveyard</li>
+            <li data-action="toExile">Move to Exile</li>
+            <li data-action="toLibraryTop">Move to Library (Top)</li>
+            <li data-action="toLibraryBottom">Move to Library (Bottom)</li>
+            <!-- Add other actions as needed -->
+        </ul>
+    </div>
+
+    <!-- Reusable Card View Popup -->
+    <div id="cardViewPopupOverlay">
+        <div id="cardViewPopupContent">
+            <img id="cardViewImage" src="" alt="Card Image" />
+            <button id="closeCardViewPopupButton">×</button>
+        </div>
+    </div>
+
+    <script>
+        const socket = io(); // Connect to the server
+
+        // --- DOM Elements ---
+        const setupArea = document.getElementById('setupArea');
+        const gameArea = document.getElementById('gameArea');
+        const statusMessage = document.getElementById('statusMessage');
+        const deckSelect = document.getElementById('deckSelect');
+        const readyButton = document.getElementById('readyButton');
+        const chatContainer = document.getElementById('chatContainer');
+        const chatMessages = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
+        const sendChatButton = document.getElementById('sendChatButton');
+        const themeToggle = document.getElementById('themeToggleCheckbox');
+        const cardContextMenu = document.getElementById('cardContextMenu');
+        const cardViewPopupOverlay = document.getElementById('cardViewPopupOverlay');
+        const cardViewImage = document.getElementById('cardViewImage');
+        const closeCardViewPopupButton = document.getElementById('closeCardViewPopupButton');
+
+        // Player specific elements
+        const myArea = document.getElementById('myArea');
+        const myName = document.getElementById('myName');
+        const myLife = document.getElementById('myLife');
+        const lifeDecrease = document.getElementById('lifeDecrease');
+        const lifeIncrease = document.getElementById('lifeIncrease');
+        const myHand = document.getElementById('myHand');
+        const myBattlefield = document.getElementById('myBattlefield');
+        const myGraveyard = document.getElementById('myGraveyard');
+        const myGraveyardCount = document.getElementById('myGraveyardCount');
+        const myExile = document.getElementById('myExile');
+        const myExileCount = document.getElementById('myExileCount');
+        const myLibraryCount = document.getElementById('myLibraryCount');
+
+        const opponentArea = document.getElementById('opponentArea');
+        const opponentName = document.getElementById('opponentName');
+        const opponentLife = document.getElementById('opponentLife');
+        const opponentHand = document.getElementById('opponentHand');
+        const opponentBattlefield = document.getElementById('opponentBattlefield');
+        const opponentGraveyard = document.getElementById('opponentGraveyard');
+        const opponentGraveyardCount = document.getElementById('opponentGraveyardCount');
+        const opponentExile = document.getElementById('opponentExile');
+        const opponentExileCount = document.getElementById('opponentExileCount');
+        const opponentLibraryCount = document.getElementById('opponentLibraryCount');
+
+        // --- State ---
+        const MULTI_DECK_STORAGE_KEY = "mtgDeckBuilderMultiDeckStorageV1";
+        const THEME_STORAGE_KEY = "mtgThemePreference";
+        let myPlayerId = null;
+        let currentGameState = null; // Received from server
+        let savedDecks = {};
+        let dragInfo = { cardId: null, sourceZone: null, offsetX: 0, offsetY: 0, ownerId: null };
+        let contextMenuVisible = false;
+        let contextMenuTarget = { cardId: null, cardData: null, sourceZone: null, ownerId: null };
+
+        // --- Helper Functions (Copied/Adapted) ---
+        function escapeHtml(unsafe) {
+           if (unsafe === null || unsafe === undefined) return "";
+           return unsafe.toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        function updateStatus(message) {
+            statusMessage.textContent = message;
+        }
+
+        function addChatMessage(sender, message, isSystem = false) {
+            const li = document.createElement('li');
+            if (isSystem) {
+                li.classList.add('system');
+                li.textContent = message;
+            } else {
+                li.innerHTML = `<strong>${escapeHtml(sender)}:</strong> ${escapeHtml(message)}`;
+            }
+            chatMessages.appendChild(li);
+            chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll
+        }
+
+        function getSavedDecks() {
+            const savedData = localStorage.getItem(MULTI_DECK_STORAGE_KEY);
+            let decks = {};
+            if (savedData) {
+                try {
+                    const parsedData = JSON.parse(savedData);
+                    if (typeof parsedData === 'object' && parsedData !== null && !Array.isArray(parsedData)) {
+                        decks = parsedData;
+                    }
+                } catch (error) {
+                    console.error("Error parsing saved decks:", error);
+                }
+            }
+            return decks;
+        }
+
+        function populateDeckSelect() {
+            savedDecks = getSavedDecks();
+            const deckNames = Object.keys(savedDecks).sort();
+            deckSelect.innerHTML = '<option value="">-- Select a Deck --</option>'; // Reset
+
+            if (deckNames.length === 0) {
+                deckSelect.innerHTML = '<option value="">-- No Saved Decks Found --</option>';
+                deckSelect.disabled = true;
+                readyButton.disabled = true;
+                updateStatus("No saved decks found in browser storage. Create decks in the builder first.");
+            } else {
+                deckNames.forEach(name => {
+                    const option = document.createElement('option');
+                    option.value = name;
+                    option.textContent = escapeHtml(name);
+                    deckSelect.appendChild(option);
+                });
+                deckSelect.disabled = false;
+            }
+        }
+
+        // --- Theme Functions (Copied) ---
+        function setTheme(themeName) {
+            localStorage.setItem(THEME_STORAGE_KEY, themeName);
+            document.body.setAttribute('data-theme', themeName);
+            themeToggle.checked = themeName === 'dark';
+        }
+        function toggleTheme() {
+            setTheme(themeToggle.checked ? 'dark' : 'light');
+        }
+        function loadTheme() {
+           const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+           const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+           if (storedTheme) setTheme(storedTheme);
+           else if (prefersDark) setTheme('dark');
+           else setTheme('light');
+        }
+
+        // --- Rendering Functions ---
+        function renderGameState(state) {
+            if (!state || !myPlayerId) return;
+            currentGameState = state; // Store the latest state
+
+            const myState = state.players[myPlayerId];
+            const opponentId = Object.keys(state.players).find(id => id !== myPlayerId);
+            const opponentState = opponentId ? state.players[opponentId] : null;
+
+            // Update My Info
+            if (myState) {
+                myName.textContent = myState.name || "You";
+                myLife.textContent = myState.life;
+                myHand.innerHTML = ''; // Clear existing
+                myState.hand.forEach(card => myHand.appendChild(createCardElement(card, 'hand', myPlayerId)));
+                renderBattlefield(myBattlefield, myState.battlefield, myPlayerId);
+                renderSideZone(myGraveyard, myState.graveyard, 'graveyard', myPlayerId, myGraveyardCount);
+                renderSideZone(myExile, myState.exile, 'exile', myPlayerId, myExileCount);
+                myLibraryCount.textContent = myState.libraryCount;
+                lifeDecrease.disabled = false;
+                lifeIncrease.disabled = false;
+            } else {
+                console.error("My state not found in game update");
+                 lifeDecrease.disabled = true;
+                 lifeIncrease.disabled = true;
+            }
+
+            // Update Opponent Info
+            if (opponentState) {
+                opponentName.textContent = opponentState.name || "Opponent";
+                opponentLife.textContent = opponentState.life;
+                opponentHand.innerHTML = ''; // Clear existing
+                // Render opponent hand as backs or count
+                for (let i = 0; i < opponentState.handCount; i++) {
+                    opponentHand.appendChild(createCardElement(null, 'opponent-hand', opponentId));
+                }
+                renderBattlefield(opponentBattlefield, opponentState.battlefield, opponentId);
+                renderSideZone(opponentGraveyard, opponentState.graveyard, 'graveyard', opponentId, opponentGraveyardCount);
+                renderSideZone(opponentExile, opponentState.exile, 'exile', opponentId, opponentExileCount);
+                opponentLibraryCount.textContent = opponentState.libraryCount;
+            } else {
+                // Handle case where opponent hasn't joined or left
+                opponentName.textContent = "Opponent";
+                opponentLife.textContent = "20";
+                opponentHand.innerHTML = '';
+                opponentBattlefield.innerHTML = '<h4>Opponent\'s Battlefield</h4>';
+                opponentGraveyard.innerHTML = '<h4>GY (<span id="opponentGraveyardCount">0</span>)</h4>';
+                opponentExile.innerHTML = '<h4>Exile (<span id="opponentExileCount">0</span>)</h4>';
+                opponentLibraryCount.textContent = "0";
+                opponentGraveyardCount.textContent = "0";
+                opponentExileCount.textContent = "0";
+            }
+
+            // Enable chat once game starts
+            chatInput.disabled = false;
+            sendChatButton.disabled = false;
+
+             hideContextMenu(); // Hide context menu on any state update
+        }
+
+        function createCardElement(cardData, type, ownerId) {
+            const div = document.createElement('div');
+            const isOwner = ownerId === myPlayerId;
+
+            if (type === 'hand' && isOwner && cardData) {
+                div.classList.add('hand-card');
+                div.dataset.cardId = cardData.id; // Use server-assigned unique ID
+                div.dataset.ownerId = ownerId;
+                div.draggable = true; // Only owner can drag from hand
+                const img = document.createElement('img');
+                img.src = escapeHtml(cardData.imageUrl || '');
+                img.alt = escapeHtml(cardData.name);
+                img.title = escapeHtml(cardData.name);
+                img.dataset.normalSrc = escapeHtml(cardData.normalImageUrl || cardData.imageUrl || '');
+                div.appendChild(img);
+                div.addEventListener('dragstart', handleDragStart);
+                div.addEventListener('dragend', handleDragEnd);
+                div.addEventListener('contextmenu', handleContextMenu);
+                div.addEventListener('dblclick', handleDoubleClick);
+            } else if (type === 'opponent-hand') {
+                div.classList.add('opponent-hand-card');
+                // Maybe add a simple "Card" text
+                // div.textContent = 'Card';
+            } else if (type === 'battlefield' && cardData) {
+                div.classList.add('battlefield-card');
+                div.dataset.cardId = cardData.id;
+                div.dataset.ownerId = ownerId;
+                div.style.left = `${cardData.x || 10}px`;
+                div.style.top = `${cardData.y || 10}px`;
+                div.classList.toggle('tapped', cardData.isTapped);
+                if (isOwner) {
+                    div.draggable = true; // Only owner can drag on battlefield
+                    div.addEventListener('dragstart', handleDragStart);
+                    div.addEventListener('dragend', handleDragEnd);
+                }
+                 const img = document.createElement('img');
+                 img.src = escapeHtml(cardData.imageUrl || '');
+                 img.alt = escapeHtml(cardData.name);
+                 img.title = escapeHtml(cardData.name);
+                 img.dataset.normalSrc = escapeHtml(cardData.normalImageUrl || cardData.imageUrl || '');
+                 div.appendChild(img);
+                 div.addEventListener('contextmenu', handleContextMenu); // Anyone can view, but actions depend on ownership
+                 div.addEventListener('dblclick', handleDoubleClick);
+
+            } else if ((type === 'graveyard' || type === 'exile') && cardData) {
+                div.classList.add('side-zone-card');
+                div.dataset.cardId = cardData.id;
+                div.dataset.ownerId = ownerId;
+                // div.draggable = isOwner; // Optionally allow dragging from GY/Exile
+                 const img = document.createElement('img');
+                 img.src = escapeHtml(cardData.imageUrl || '');
+                 img.alt = escapeHtml(cardData.name);
+                 img.title = escapeHtml(cardData.name);
+                 img.dataset.normalSrc = escapeHtml(cardData.normalImageUrl || cardData.imageUrl || '');
+                 div.appendChild(img);
+                 div.addEventListener('contextmenu', handleContextMenu);
+                 div.addEventListener('dblclick', handleDoubleClick);
+                 // Add drag handlers if needed
+                 // if(isOwner) {
+                 //   div.addEventListener('dragstart', handleDragStart);
+                 //   div.addEventListener('dragend', handleDragEnd);
+                 // }
+            }
+            return div;
+        }
+
+        function renderBattlefield(zoneElement, cards, ownerId) {
+            // Clear existing cards, keep the H4 title
+            while (zoneElement.children.length > 1) {
+                zoneElement.removeChild(zoneElement.lastChild);
+            }
+             if (!cards) return;
+             cards.forEach(card => zoneElement.appendChild(createCardElement(card, 'battlefield', ownerId)));
+        }
+
+        function renderSideZone(zoneElement, cards, zoneName, ownerId, countElement) {
+             // Clear existing cards, keep the H4 title
+             const titleElement = zoneElement.querySelector('h4');
+             zoneElement.innerHTML = ''; // Clear all
+             if (titleElement) zoneElement.appendChild(titleElement); // Add title back
+
+             if (!cards) {
+                 if(countElement) countElement.textContent = 0;
+                 return;
+             };
+
+             cards.forEach(card => zoneElement.appendChild(createCardElement(card, zoneName, ownerId)));
+             if(countElement) countElement.textContent = cards.length;
+        }
+
+        // --- Drag and Drop Handlers ---
+        function handleDragStart(event) {
+            const cardElement = event.target.closest('[data-card-id]');
+            if (!cardElement) return event.preventDefault();
+
+            const cardId = cardElement.dataset.cardId;
+            const ownerId = cardElement.dataset.ownerId;
+
+            // IMPORTANT: Check ownership server-side, but basic client check prevents dragging opponent's stuff
+            if (ownerId !== myPlayerId) {
+                 console.log("Attempted to drag opponent's card");
+                 return event.preventDefault();
+            }
+
+            let sourceZone;
+            if (cardElement.classList.contains('hand-card')) sourceZone = 'hand';
+            else if (cardElement.classList.contains('battlefield-card')) sourceZone = 'battlefield';
+            else if (cardElement.classList.contains('side-zone-card')) {
+                 const parentZone = cardElement.closest('.side-zone');
+                 if (parentZone.id.includes('Graveyard')) sourceZone = 'graveyard';
+                 else if (parentZone.id.includes('Exile')) sourceZone = 'exile';
+                 else { console.warn("Unknown side zone drag source"); return event.preventDefault(); }
+            } else {
+                console.warn("Unknown drag source element");
+                return event.preventDefault();
+            }
+
+
+            dragInfo = { cardId, sourceZone, ownerId, offsetX: event.offsetX, offsetY: event.offsetY };
+
+            // Special offset calculation for tapped battlefield cards (simplified)
+             if(sourceZone === 'battlefield' && cardElement.classList.contains('tapped')) {
+                 const rect = cardElement.getBoundingClientRect();
+                 // Rough approximation - treat center as origin for tapped drag
+                 dragInfo.offsetX = rect.height / 2; // Tapped width is original height
+                 dragInfo.offsetY = rect.width / 2;  // Tapped height is original width
+             }
+
+            event.dataTransfer.setData('text/plain', cardId);
+            event.dataTransfer.effectAllowed = 'move';
+            setTimeout(() => cardElement.classList.add('dragging'), 0);
+            event.stopPropagation();
+            hideContextMenu();
+        }
+
+        function handleDragEnd(event) {
+            const draggedElement = document.querySelector('.dragging');
+            if (draggedElement) draggedElement.classList.remove('dragging');
+            dragInfo = { cardId: null, sourceZone: null, ownerId: null, offsetX: 0, offsetY: 0 };
+        }
+
+        function handleDragOver(event) {
+            event.preventDefault(); // Necessary to allow dropping
+            event.dataTransfer.dropEffect = 'move';
+        }
+
+        function handleDrop(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            const targetZoneElement = event.currentTarget;
+            const targetZoneId = targetZoneElement.id; // e.g., 'myBattlefield', 'myGraveyard'
+
+            const { cardId, sourceZone, ownerId, offsetX, offsetY } = dragInfo;
+
+            if (!cardId || !sourceZone || ownerId !== myPlayerId) {
+                 console.warn("Invalid drop state", dragInfo);
+                 return; // Invalid drag info or not owner
+            }
+
+            let targetZoneName = null;
+            let targetOwnerId = null; // Should always be 'myPlayerId' for dropping in own zones
+
+            if (targetZoneId === 'myBattlefield') { targetZoneName = 'battlefield'; targetOwnerId = myPlayerId; }
+            else if (targetZoneId === 'myGraveyard') { targetZoneName = 'graveyard'; targetOwnerId = myPlayerId; }
+            else if (targetZoneId === 'myExile') { targetZoneName = 'exile'; targetOwnerId = myPlayerId; }
+            // Add drops for opponent's zones if needed (e.g., direct damage effects) - requires server logic
+
+            if (!targetZoneName || targetOwnerId !== myPlayerId) {
+                 console.warn("Invalid drop target zone:", targetZoneId);
+                 return; // Dropped somewhere invalid
+            }
+
+            const dropData = {
+                cardId: cardId,
+                sourceZone: sourceZone,
+                targetZone: targetZoneName,
+            };
+
+            // If dropping onto battlefield, calculate position
+            if (targetZoneName === 'battlefield') {
+                const zoneRect = targetZoneElement.getBoundingClientRect();
+                const cardWidth = 70; // Approximate width
+                const cardHeight= 98; // Approximate height
+
+                let dropX = event.clientX - zoneRect.left - offsetX;
+                let dropY = event.clientY - zoneRect.top - offsetY;
+
+                 // Clamp position within the zone bounds (approximate)
+                dropX = Math.max(0, Math.min(dropX, zoneRect.width - cardWidth - 5));
+                dropY = Math.max(0, Math.min(dropY, zoneRect.height - cardHeight - 5));
+
+                dropData.position = { x: Math.round(dropX), y: Math.round(dropY) };
+            }
+
+            // Send the action to the server
+            console.log("Emitting cardAction:", dropData);
+            socket.emit('cardAction', dropData);
+
+            // Clear drag info - rely on server for state update
+            handleDragEnd();
+            hideContextMenu();
+        }
+
+         // Add drop listeners to player's zones
+         myBattlefield.addEventListener('dragover', handleDragOver);
+         myBattlefield.addEventListener('drop', handleDrop);
+         myGraveyard.addEventListener('dragover', handleDragOver);
+         myGraveyard.addEventListener('drop', handleDrop);
+         myExile.addEventListener('dragover', handleDragOver);
+         myExile.addEventListener('drop', handleDrop);
+         // Hand zone doesn't typically receive drops from other zones in basic MTG
+
+        // --- Context Menu Functions ---
+         function showContextMenu(event, cardElement) {
+            event.preventDefault();
+            hideContextMenu(); // Hide any previous menu
+
+            const cardId = cardElement.dataset.cardId;
+            const ownerId = cardElement.dataset.ownerId;
+
+            if (!cardId || !ownerId) {
+                console.error("Cannot show context menu: Missing cardId or ownerId");
+                return;
+            }
+
+             // Find the card data from the current game state
+            let cardData = null;
+            let sourceZone = null;
+            const playerState = currentGameState?.players[ownerId];
+            if (!playerState) return; // Player state not found
+
+            if (cardElement.classList.contains('battlefield-card')) {
+                 sourceZone = 'battlefield';
+                 cardData = playerState.battlefield.find(c => c.id === cardId);
+            } else if (cardElement.classList.contains('hand-card')) {
+                 sourceZone = 'hand';
+                 cardData = playerState.hand.find(c => c.id === cardId);
+            } else if (cardElement.classList.contains('side-zone-card')) {
+                const parentZone = cardElement.closest('.side-zone');
+                if (parentZone.id.includes('Graveyard')) {
+                     sourceZone = 'graveyard';
+                     cardData = playerState.graveyard.find(c => c.id === cardId);
+                } else if (parentZone.id.includes('Exile')) {
+                     sourceZone = 'exile';
+                     cardData = playerState.exile.find(c => c.id === cardId);
+                }
+            }
+
+            if (!cardData || !sourceZone) {
+                console.error("Could not find card data for context menu", cardId, sourceZone);
+                return;
+            }
+
+             // *** Crucial Check: Only show full menu for OWNED cards ***
+            const isOwner = ownerId === myPlayerId;
+
+            contextMenuTarget = { cardId, cardData, sourceZone, ownerId };
+            updateContextMenuItems(sourceZone, cardData, isOwner); // Pass ownership flag
+
+            const cardRect = cardElement.getBoundingClientRect();
+            positionContextMenu(cardRect);
+            cardContextMenu.style.display = 'block';
+            contextMenuVisible = true;
+         }
+
+         function hideContextMenu() {
+            cardContextMenu.style.display = 'none';
+            contextMenuVisible = false;
+            contextMenuTarget = { cardId: null, cardData: null, sourceZone: null, ownerId: null };
+         }
+
+         function positionContextMenu(cardRect) {
+            const menuWidth = cardContextMenu.offsetWidth;
+            const menuHeight = cardContextMenu.offsetHeight;
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+            const scrollX = window.scrollX;
+            const scrollY = window.scrollY;
+            const buffer = 5;
+
+            // Try above first
+            let idealTop = cardRect.top + scrollY - menuHeight - buffer;
+            let idealLeft = cardRect.left + scrollX;
+
+            // If above goes off screen, try below
+            if (idealTop < scrollY + buffer) {
+                idealTop = cardRect.bottom + scrollY + buffer;
+            }
+
+             // Adjust left if it goes off screen right
+            if (idealLeft + menuWidth > viewportWidth + scrollX - buffer) {
+                idealLeft = viewportWidth + scrollX - menuWidth - buffer;
+            }
+            idealLeft = Math.max(scrollX + buffer, idealLeft); // Don't go off screen left
+
+            // Final adjustment for bottom overflow
+            if (idealTop + menuHeight > viewportHeight + scrollY - buffer) {
+                // If trying below overflowed, but trying above didn't, revert to above
+                if (idealTop > cardRect.bottom + scrollY + buffer) {
+                     idealTop = cardRect.top + scrollY - menuHeight - buffer;
+                 }
+                 // If still overflowing, clamp to bottom
+                if (idealTop + menuHeight > viewportHeight + scrollY - buffer){
+                    idealTop = viewportHeight + scrollY - menuHeight - buffer;
+                }
+                idealTop = Math.max(scrollY + buffer, idealTop); // Don't go off screen top
+            }
+
+            cardContextMenu.style.left = `${idealLeft}px`;
+            cardContextMenu.style.top = `${idealTop}px`;
+         }
+
+        function updateContextMenuItems(sourceZone, cardData, isOwner) {
+            const items = cardContextMenu.querySelectorAll('li');
+            items.forEach(item => {
+                const action = item.dataset.action;
+                item.classList.remove('disabled', 'hidden');
+
+                if (action === 'viewCard') {
+                     item.classList.remove('hidden'); // Always allow viewing
+                     item.classList.remove('disabled');
+                     return; // Skip other checks for viewCard
+                }
+
+                // If not the owner, hide all actions except 'viewCard'
+                if (!isOwner) {
+                    item.classList.add('hidden');
+                    return;
+                }
+
+                // Owner checks
+                if (action === 'toggleTap') {
+                    if (sourceZone === 'battlefield') {
+                        item.textContent = cardData?.isTapped ? 'Untap' : 'Tap';
+                    } else {
+                        item.classList.add('hidden'); // Only battlefield cards tap
+                    }
+                } else if (
+                    (action === 'toHand' && sourceZone === 'hand') ||
+                    (action === 'toGraveyard' && sourceZone === 'graveyard') ||
+                    (action === 'toExile' && sourceZone === 'exile')
+                    // Cannot move *to* battlefield from battlefield via menu usually
+                ) {
+                    item.classList.add('disabled'); // Cannot move to current zone
+                } else if (action === 'toHand' && sourceZone === 'library') {
+                     item.classList.add('disabled'); // Cannot move from library via this menu
+                } else if (action === 'toBattlefield') { // Allow from Hand, GY, Exile
+                     if (sourceZone === 'battlefield' || sourceZone === 'library') {
+                        item.classList.add('disabled');
+                     }
+                } else if (action === 'toLibraryTop' || action === 'toLibraryBottom') {
+                    if (sourceZone === 'library') { // Can't move from library to library
+                         item.classList.add('disabled');
+                    }
+                    // Usually allowed from Hand, Battlefield, GY, Exile
+                }
+            });
+        }
+
+        function handleContextMenuAction(event) {
+            const targetLi = event.target.closest('li');
+            if (!targetLi || targetLi.classList.contains('disabled') || targetLi.classList.contains('hidden')) {
+                hideContextMenu();
+                return;
+            }
+
+            const action = targetLi.dataset.action;
+            const { cardId, cardData, sourceZone, ownerId } = contextMenuTarget;
+
+            if (!cardId || !cardData || !sourceZone || ownerId !== myPlayerId) {
+                console.error("Invalid context menu action state:", contextMenuTarget);
+                hideContextMenu();
+                return;
+            }
+
+            // Handle View Card locally
+            if (action === 'viewCard') {
+                 const imageUrl = cardData.normalImageUrl || cardData.imageUrl;
+                 showCardViewPopup(imageUrl);
+                 hideContextMenu();
+                 return;
+            }
+
+            // --- Send Action to Server ---
+            const actionData = {
+                cardId: cardId,
+                sourceZone: sourceZone,
+                action: action, // e.g., 'toggleTap', 'toHand', 'toGraveyard'
+            };
+
+             console.log("Emitting cardAction from context menu:", actionData);
+             socket.emit('cardAction', actionData);
+
+             hideContextMenu();
+             // Rely on server gameStateUpdate to reflect the change
+        }
+
+
+        // --- Card View Popup Functions ---
+        function showCardViewPopup(imageUrl) {
+            if (!imageUrl) return;
+            // Use normal size image if available
+            const normalImageUrl = imageUrl.replace(/small|normal|large|png|art_crop|border_crop/g, 'normal');
+            cardViewImage.src = normalImageUrl;
+            cardViewImage.alt = "Card Image"; // Set alt dynamically if needed
+            cardViewPopupOverlay.style.display = 'flex';
+        }
+
+        function hideCardViewPopup() {
+            cardViewPopupOverlay.style.display = 'none';
+            cardViewImage.src = "";
+            cardViewImage.alt = "";
+        }
+
+        function handleDoubleClick(event) {
+             const cardElement = event.target.closest('[data-card-id]');
+             if (cardElement) {
+                 const img = cardElement.querySelector('img');
+                 if (img && img.dataset.normalSrc) {
+                     showCardViewPopup(img.dataset.normalSrc);
+                 } else if (img && img.src) { // Fallback for simple cases
+                      showCardViewPopup(img.src);
+                 }
+             }
+        }
+
+        // --- Event Listeners ---
+        deckSelect.addEventListener('change', () => {
+            readyButton.disabled = deckSelect.value === "";
+            readyButton.textContent = deckSelect.value ? `Select Deck: "${deckSelect.value}"` : 'Select Deck';
+        });
+
+        readyButton.addEventListener('click', () => {
+            const selectedDeckName = deckSelect.value;
+            if (selectedDeckName && savedDecks[selectedDeckName]) {
+                const deckData = savedDecks[selectedDeckName];
+                socket.emit('playerReady', { deckName: selectedDeckName, deckList: deckData });
+                updateStatus(`Selected deck: "${selectedDeckName}". Waiting for opponent...`);
+                readyButton.disabled = true;
+                deckSelect.disabled = true;
+            } else {
+                 updateStatus("Error: Could not find selected deck data.");
+            }
+        });
+
+        sendChatButton.addEventListener('click', () => {
+            const message = chatInput.value.trim();
+            if (message) {
+                socket.emit('chatMessage', message);
+                chatInput.value = '';
+            }
+        });
+
+        chatInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                sendChatButton.click();
+            }
+        });
+
+        lifeDecrease.addEventListener('click', () => {
+            if (currentGameState && myPlayerId) {
+                const currentLife = currentGameState.players[myPlayerId].life;
+                socket.emit('updateLife', currentLife - 1);
+            }
+        });
+        lifeIncrease.addEventListener('click', () => {
+             if (currentGameState && myPlayerId) {
+                const currentLife = currentGameState.players[myPlayerId].life;
+                socket.emit('updateLife', currentLife + 1);
+             }
+        });
+
+        themeToggle.addEventListener('change', toggleTheme);
+        cardContextMenu.addEventListener('click', handleContextMenuAction);
+        closeCardViewPopupButton.addEventListener('click', hideCardViewPopup);
+        cardViewPopupOverlay.addEventListener('click', (event) => {
+            if (event.target === cardViewPopupOverlay) hideCardViewPopup();
+        });
+
+        // Hide context menu on general clicks or scrolls
+        document.addEventListener('click', (event) => {
+            if (contextMenuVisible && !cardContextMenu.contains(event.target)) {
+                 const targetCard = event.target.closest('[data-card-id]');
+                 if (!targetCard) { // Don't hide if clicking another card
+                     hideContextMenu();
+                 }
+             }
+        });
+        window.addEventListener('scroll', hideContextMenu, true);
+        window.addEventListener('resize', hideContextMenu, true);
+
+        // Add context menu listener to the document body to catch events on cards
+        document.body.addEventListener('contextmenu', (event) => {
+            const targetCard = event.target.closest('[data-card-id]');
+            if (targetCard) {
+                showContextMenu(event, targetCard);
+            } else {
+                 hideContextMenu(); // Hide if right-clicking elsewhere
+            }
+        });
+
+
+        // --- Socket.IO Event Handlers ---
+        socket.on('connect', () => {
+            console.log('Connected to server with ID:', socket.id);
+            // Moved status update to 'assignId' or 'roomStatus'
+        });
+
+        socket.on('assignId', (id) => {
+            console.log("Assigned Player ID:", id);
+            myPlayerId = id;
+            // Now that we have an ID, try to populate decks
+             populateDeckSelect();
+             // Update status based on whether decks loaded
+             if (deckSelect.disabled && deckSelect.options.length > 0 && deckSelect.options[0].value === "") {
+                 // Already handled by populateDeckSelect
+             } else {
+                 updateStatus("Connected. Waiting for opponent...");
+             }
+        });
+
+        socket.on('roomStatus', (message) => {
+            console.log("Room Status:", message);
+            // Only update status if game hasn't started
+             if (gameArea.style.display === 'none' || gameArea.style.display === '') {
+                updateStatus(message);
+             }
+        });
+
+        socket.on('opponentReady', (opponentName) => {
+             console.log(`${opponentName} is ready.`);
+             // Update status if we are still waiting to select our deck
+             if (readyButton.disabled === false) {
+                 updateStatus(`Opponent "${opponentName}" is ready. Select your deck!`);
+             } else if (deckSelect.disabled === true && !readyButton.disabled) {
+                 // We are ready, opponent just readied up
+                 updateStatus(`Opponent "${opponentName}" is ready. Starting game...`);
+             }
+        });
+
+
+        socket.on('startGame', (initialGameState) => {
+            console.log('Game starting!', initialGameState);
+            setupArea.classList.add('hidden');
+            gameArea.style.display = 'flex'; // Show game area
+            chatContainer.style.display = 'flex'; // Ensure chat is visible
+            renderGameState(initialGameState);
+            addChatMessage("System", "Game started! Good luck!", true);
+        });
+
+        socket.on('gameStateUpdate', (newState) => {
+             console.log('Received game state update');
+             renderGameState(newState);
+        });
+
+        socket.on('chatMessage', (data) => {
+            console.log('Chat received:', data);
+            addChatMessage(data.senderName || 'Opponent', data.message);
+        });
+
+         socket.on('playerLeft', (playerName) => {
+             console.log(`${playerName} left the game.`);
+             addChatMessage("System", `${playerName} has disconnected.`, true);
+             updateStatus(`${playerName} has disconnected. Game ended.`);
+             // Disable interactions
+             lifeDecrease.disabled = true;
+             lifeIncrease.disabled = true;
+             chatInput.disabled = true;
+             sendChatButton.disabled = true;
+             // Optionally reset UI or redirect
+         });
+
+        socket.on('gameError', (message) => {
+            console.error("Game Error:", message);
+            addChatMessage("System", `Error: ${message}`, true);
+            // You might want to display a more prominent error
+        });
+
+        socket.on('disconnect', () => {
+            console.error('Disconnected from server!');
+            updateStatus("Disconnected! Please refresh the page to reconnect.");
+            addChatMessage("System", "Lost connection to the server.", true);
+            gameArea.style.display = 'none';
+            setupArea.classList.remove('hidden');
+             lifeDecrease.disabled = true;
+             lifeIncrease.disabled = true;
+             chatInput.disabled = true;
+             sendChatButton.disabled = true;
+             deckSelect.disabled = true;
+             readyButton.disabled = true;
+        });
+
+        // --- Initial Load ---
+        document.addEventListener('DOMContentLoaded', () => {
+            loadTheme();
+            // Deck select populated after getting player ID from server
+            // Initial status set in 'connect'/'assignId' handler
+        });
+
+    </script>
+</body>
+</html>
