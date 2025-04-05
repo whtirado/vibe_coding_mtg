@@ -1818,7 +1818,7 @@
         else setTheme("light");
       }
 
-      // --- NEW: Context Menu Logic ---
+      // --- NEW/MODIFIED: Context Menu Logic ---
       function showContextMenu(event, cardElement) {
         event.preventDefault();
         hideContextMenu(); // Hide any previous menu
@@ -1827,26 +1827,26 @@
         let cardId = null;
         let sourceZone = null;
         let cardData = null;
+        const cardRect = cardElement.getBoundingClientRect(); // Get card position
 
         // Determine source zone and card ID/data
         if (cardElement.classList.contains("battlefield-card")) {
           sourceZone = "battlefield";
           cardId = cardElement.dataset.battlefieldId;
-          if (currentBattlefield[cardId]) {
-            cardData = { ...currentBattlefield[cardId] }; // Clone data
-          }
+          if (currentBattlefield[cardId])
+            cardData = { ...currentBattlefield[cardId] };
         } else if (cardElement.classList.contains("side-zone-card")) {
           const parentZone = cardElement.closest("#graveyardZone, #exileZone");
           if (parentZone.id === "graveyardZone") {
             sourceZone = "graveyard";
             cardId = cardElement.dataset.gyId;
             const foundCard = currentGraveyard.find((c) => c.gyId === cardId);
-            if (foundCard) cardData = { ...foundCard }; // Clone data
+            if (foundCard) cardData = { ...foundCard };
           } else if (parentZone.id === "exileZone") {
             sourceZone = "exile";
             cardId = cardElement.dataset.exileId;
             const foundCard = currentExile.find((c) => c.exileId === cardId);
-            if (foundCard) cardData = { ...foundCard }; // Clone data
+            if (foundCard) cardData = { ...foundCard };
           }
         }
 
@@ -1861,13 +1861,13 @@
         // Store target info
         contextMenuTarget = { cardId, cardData, sourceZone };
 
-        // Position and show menu
-        positionContextMenu(event.clientX, event.clientY);
+        // Update menu items based on source zone *before* calculating position (needs dimensions)
+        updateContextMenuItems(sourceZone);
+
+        // Position and show menu (pass cardRect for positioning)
+        positionContextMenu(cardRect); // MODIFIED: Pass rect instead of x, y
         cardContextMenu.style.display = "block";
         contextMenuVisible = true;
-
-        // Update menu items based on source zone
-        updateContextMenuItems(sourceZone);
       }
 
       function hideContextMenu() {
@@ -1876,28 +1876,51 @@
         contextMenuTarget = { cardId: null, cardData: null, sourceZone: null }; // Clear target
       }
 
-      function positionContextMenu(x, y) {
+      // MODIFIED: Position menu relative to the card element
+      function positionContextMenu(cardRect) {
         const menuWidth = cardContextMenu.offsetWidth;
         const menuHeight = cardContextMenu.offsetHeight;
         const viewportWidth = window.innerWidth;
         const viewportHeight = window.innerHeight;
+        const scrollX = window.scrollX;
+        const scrollY = window.scrollY;
+        const buffer = 5; // Small gap between card and menu, and edge of screen
 
-        let left = x;
-        let top = y;
+        // Calculate desired position ABOVE the card
+        let idealTop = cardRect.top + scrollY - menuHeight - buffer;
+        let idealLeft = cardRect.left + scrollX;
 
-        // Adjust if menu goes off-screen
-        if (left + menuWidth > viewportWidth - 5) {
-          left = viewportWidth - menuWidth - 5;
+        // If placing above goes off-screen top, try placing BELOW
+        if (idealTop < scrollY + buffer) {
+          idealTop = cardRect.bottom + scrollY + buffer;
         }
-        if (top + menuHeight > viewportHeight - 5) {
-          top = viewportHeight - menuHeight - 5;
-        }
-        // Ensure non-negative coordinates
-        left = Math.max(5, left);
-        top = Math.max(5, top);
 
-        cardContextMenu.style.left = `${left}px`;
-        cardContextMenu.style.top = `${top}px`;
+        // Final position starts with ideal calculation
+        let finalTop = idealTop;
+        let finalLeft = idealLeft;
+
+        // Adjust LEFT boundary
+        finalLeft = Math.max(scrollX + buffer, finalLeft);
+
+        // Adjust RIGHT boundary
+        if (finalLeft + menuWidth > viewportWidth + scrollX - buffer) {
+          finalLeft = viewportWidth + scrollX - menuWidth - buffer;
+        }
+
+        // Adjust TOP boundary (redundant if already checked above, but safe)
+        finalTop = Math.max(scrollY + buffer, finalTop);
+
+        // Adjust BOTTOM boundary
+        if (finalTop + menuHeight > viewportHeight + scrollY - buffer) {
+          finalTop = viewportHeight + scrollY - menuHeight - buffer;
+          // If adjusting bottom *still* makes it go off the top (very tall menu/small screen), reset to top boundary
+          if (finalTop < scrollY + buffer) {
+            finalTop = scrollY + buffer;
+          }
+        }
+
+        cardContextMenu.style.left = `${finalLeft}px`;
+        cardContextMenu.style.top = `${finalTop}px`;
       }
 
       function updateContextMenuItems(sourceZone) {
@@ -1906,12 +1929,25 @@
           const action = item.dataset.action;
           item.classList.remove("disabled"); // Reset disabled state
 
+          // Disable moving to the zone the card is already in
           if (
             (action === "toBattlefield" && sourceZone === "battlefield") ||
             (action === "toGraveyard" && sourceZone === "graveyard") ||
             (action === "toExile" && sourceZone === "exile")
           ) {
             item.classList.add("disabled");
+          }
+
+          // Disable putting into library if library is technically empty (though button is disabled too)
+          if (
+            action.startsWith("toLibrary") &&
+            currentLibrary.length === 0 &&
+            action !== "toLibraryShuffle"
+          ) {
+            // Allow shuffle-in even if empty? Let's disable all library options if empty.
+            // item.classList.add('disabled');
+            // Decided against disabling library options if empty, let the move attempt handle it (though shuffle won't happen).
+            // Keep it simple: only disable moving to the current zone.
           }
         });
       }
@@ -1964,7 +2000,7 @@
             cardId
           );
           hideContextMenu();
-          return; // Don't proceed if removal failed
+          return;
         }
 
         // --- Clean card data (remove zone-specific IDs/properties) ---
@@ -1972,7 +2008,6 @@
           name: cardData.name,
           imageUrl: cardData.imageUrl,
           normalImageUrl: cardData.normalImageUrl,
-          // Add other essential properties if they exist (e.g., type, mana cost - not currently stored)
         };
 
         // 2. Add card to target zone
@@ -1985,7 +2020,6 @@
             break;
           case "toBattlefield":
             const bfId = `bf-${battlefieldCardIdCounter++}`;
-            // Add battlefield specific properties (position, zone)
             cleanCardData.x = 10 + Math.floor(Math.random() * 10);
             cleanCardData.y = 10 + Math.floor(Math.random() * 10);
             cleanCardData.zone = "general";
@@ -2003,23 +2037,22 @@
             statusMsg += " to Exile.";
             break;
           case "toLibraryTop":
-            currentLibrary.unshift(cleanCardData); // Add to beginning
+            currentLibrary.unshift(cleanCardData);
             statusMsg += " to top of Library.";
             break;
           case "toLibraryBottom":
-            currentLibrary.push(cleanCardData); // Add to end
+            currentLibrary.push(cleanCardData);
             statusMsg += " to bottom of Library.";
             break;
           case "toLibraryShuffle":
-            currentLibrary.push(cleanCardData); // Add to end then shuffle
-            shuffleLibrary(); // This already updates status, avoid double message
+            currentLibrary.push(cleanCardData);
+            shuffleLibrary(); // This already updates status
             statusMsg = `Shuffled ${escapeHtml(
               cleanCardData.name
             )} into Library.`;
             break;
           default:
             console.warn("Unknown context menu action:", action);
-            // Re-add card to original zone? Or leave it removed? For now, leave removed.
             statusMsg = `Error processing action for ${escapeHtml(
               cleanCardData.name
             )}.`;
@@ -2030,7 +2063,6 @@
         displayBattlefield();
         displaySideZones();
         displayHand();
-        // Shuffle action already updates status, others use generated message
         if (action !== "toLibraryShuffle") {
           updateTestStatus(statusMsg);
         }
@@ -2144,6 +2176,7 @@
         containers.forEach((container) => {
           if (!container) return;
           container.addEventListener("mouseover", (event) => {
+            if (contextMenuVisible) return; // Don't show popup if context menu is open
             let targetImg = null;
             let targetElement = event.target;
             const closestLi = targetElement.closest("li");
