@@ -357,7 +357,6 @@
       }
 
       .action-button,
-      .delete-card-btn,
       #drawHandButton,
       #drawNextCardButton,
       #shuffleDeckButton,
@@ -373,6 +372,16 @@
         font-size: 0.9em;
         margin-bottom: 10px;
       }
+      .delete-card-btn {
+        padding: 9px 15px;
+        background-color: var(--button-bg);
+        color: var(--button-text);
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+        font-size: 0.9em;
+      }
       .test-controls {
         margin-bottom: 10px;
         display: flex;
@@ -384,7 +393,6 @@
         display: inline-block;
         width: auto;
         margin-right: 10px;
-        margin-bottom: 5px;
       }
       .scry-control {
         display: inline-flex;
