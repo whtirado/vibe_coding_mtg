@@ -9,20 +9,33 @@
       body {
         font-family: sans-serif;
         display: grid;
-        grid-template-columns: 1fr 2fr; /* Search/Actions on left, Deck on right */
+        /* UPDATED GRID DEFINITION */
+        grid-template-columns: 1fr 2fr; /* Keep column ratio */
+        grid-template-rows: auto auto auto 1fr; /* Add row for test area */
         gap: 20px;
-        max-width: 1300px; /* Increased width slightly */
+        max-width: 1300px; /* Keep overall container width */
         margin: 20px auto;
         padding: 15px;
-        background-color: #f0f2f5; /* Slightly different background */
+        background-color: #f0f2f5;
       }
 
-      h1,
-      h2 {
+      h1 {
         text-align: center;
         color: #333;
-        grid-column: 1 / -1; /* Span across both columns */
+        /* UPDATED: Make H1 span columns, place in row 1 */
+        grid-column: 1 / -1;
+        grid-row: 1 / 2;
         margin-bottom: 15px;
+      }
+      /* Apply h2 specific grid placement within sections */
+      .search-section h2,
+      .deck-section h2,
+      .actions-section h2,
+      .test-hand-section h2 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 15px;
+        /* Removed grid-column from generic h2 */
       }
       h3 {
         /* Basic h3 style */
@@ -43,24 +56,26 @@
         flex-direction: column;
       }
 
+      /* --- UPDATED GRID PLACEMENT --- */
       .search-section {
         grid-column: 1 / 2;
-        grid-row: 2 / 3;
+        grid-row: 2 / 3; /* Row 2 */
         position: relative; /* For positioning results */
-      }
-      .deck-section {
-        grid-column: 2 / 3;
-        grid-row: 2 / 5; /* Span more rows */
       }
       .actions-section {
         grid-column: 1 / 2;
-        grid-row: 3 / 4;
+        grid-row: 3 / 4; /* Row 3 */
+      }
+      .deck-section {
+        grid-column: 2 / 3;
+        grid-row: 2 / 4; /* Span rows 2 and 3 */
       }
       .test-hand-section {
-        grid-column: 1 / 2;
-        grid-row: 4 / 5;
+        grid-column: 1 / -1; /* Span ALL columns */
+        grid-row: 4 / 5; /* Place in Row 4 */
         min-height: 450px; /* Ensure enough space for play area */
       }
+      /* --- END UPDATED GRID PLACEMENT --- */
 
       #searchInput {
         width: 100%; /* Take full width */
@@ -71,7 +86,7 @@
         box-sizing: border-box; /* Include padding in width */
       }
 
-      /* --- Search Results Styling (MODIFIED) --- */
+      /* --- Search Results Styling (MODIFIED POSITIONING) --- */
       #searchResults {
         list-style: none;
         padding: 0;
@@ -85,7 +100,8 @@
         position: absolute; /* Position below input */
         width: calc(100% - 40px); /* Match parent padding */
         left: 20px; /* Match parent padding */
-        top: 95px; /* Adjust based on input height + margin + heading */
+        /* ADJUSTED TOP POSITIONING slightly */
+        top: 85px; /* Adjust based on h2/input height+margin */
         z-index: 10; /* Ensure it's above other elements if needed */
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       }
@@ -252,7 +268,7 @@
         font-size: 0.9em;
       }
 
-      /* --- Test Area Enhancements --- */
+      /* --- Test Area Enhancements (Unchanged logic, layout adapts) --- */
       .play-area {
         display: flex;
         gap: 15px;
@@ -325,7 +341,7 @@
         flex-grow: 1; /* Take available space in hand-zone */
       }
 
-      /* Card on Battlefield */
+      /* Card on Battlefield (Unchanged - Already setup for dragging) */
       .battlefield-card {
         position: absolute; /* Allows dragging */
         width: 65px; /* Slightly larger image */
@@ -360,6 +376,7 @@
   <body>
     <h1>Simple MTG Deck Builder</h1>
 
+    <!-- Grid Item: Search -->
     <div class="search-section">
       <h2>Card Search</h2>
       <input
@@ -372,6 +389,7 @@
       <div id="status">Type at least 3 characters for suggestions.</div>
     </div>
 
+    <!-- Grid Item: Actions -->
     <div class="actions-section">
       <h2>Deck Actions</h2>
       <button id="saveDeckButton" class="action-button">Save Deck</button>
@@ -382,7 +400,16 @@
       <div id="deckActionStatus"></div>
     </div>
 
-    <!-- MODIFIED Test Hand Section -->
+    <!-- Grid Item: Deck -->
+    <div class="deck-section">
+      <h2>Current Deck (<span id="deckTotalCount">0</span> cards)</h2>
+      <ul id="deckList">
+        <!-- Deck items will be populated here -->
+      </ul>
+      <div id="deckCount">Total: <span id="deckTotalCountBottom">0</span></div>
+    </div>
+
+    <!-- Grid Item: Test Area (Now spans full width) -->
     <div class="test-hand-section">
       <h2>Test Area</h2>
       <button id="drawHandButton" class="action-button">Draw 7 Cards</button>
@@ -403,15 +430,7 @@
         </div>
       </div>
     </div>
-    <!-- END MODIFIED Test Hand Section -->
-
-    <div class="deck-section">
-      <h2>Current Deck (<span id="deckTotalCount">0</span> cards)</h2>
-      <ul id="deckList">
-        <!-- Deck items will be populated here -->
-      </ul>
-      <div id="deckCount">Total: <span id="deckTotalCountBottom">0</span></div>
-    </div>
+    <!-- END Test Hand Section -->
 
     <script>
       const searchInput = document.getElementById("searchInput");
@@ -482,12 +501,13 @@
       }
       function escapeHtml(unsafe) {
         if (unsafe === null || unsafe === undefined) return "";
+        // Updated to use more robust escaping
         return unsafe
-          .replace(/&/g, "&") // Must be first
+          .replace(/&/g, "&")
           .replace(/</g, "<")
           .replace(/>/g, ">")
           .replace(/"/g, '"')
-          .replace(/'/g, "'"); // Use HTML entity for single quote
+          .replace(/'/g, "'"); // Use numeric entity for single quote
       }
 
       // --- API Interaction ---
@@ -514,7 +534,7 @@
           const response = await fetch(apiUrl, { signal });
           if (!response.ok) {
             if (response.status === 404) {
-              updateStatus(`No cards found matching "${query}".`);
+              updateStatus(`No cards found matching "${escapeHtml(query)}".`);
             } else if (response.status === 400) {
               updateStatus(`Invalid search query. Try different terms.`);
             } else {
@@ -529,31 +549,19 @@
         } catch (error) {
           if (error.name === "AbortError") {
             console.log("Search fetch aborted");
+            // Don't clear status here, let next search handle it
             return;
           }
           console.error("Search Error:", error);
-          updateStatus(`Error searching cards: ${error.message}`);
+          updateStatus(`Error searching cards: ${escapeHtml(error.message)}`);
           searchResults.style.display = "none"; // Hide on error
         } finally {
-          removeLoadingIndicator();
+          removeLoadingIndicator(); // Always remove loading text
           searchAbortController = null;
         }
       }
 
-      async function getCardDataByName(cardName) {
-        // This function remains available but isn't the primary way cards are added anymore
-        const apiUrl = `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(
-          cardName
-        )}`;
-        try {
-          const response = await fetch(apiUrl);
-          if (!response.ok) throw new Error(`API error ${response.status}`);
-          return await response.json();
-        } catch (error) {
-          console.error("Error fetching card data by name:", error);
-          return null;
-        }
-      }
+      // Removed unused getCardDataByName function
 
       const debouncedLiveSearch = debounce(performLiveSearch, 350);
 
@@ -561,7 +569,7 @@
       function displaySearchResults(cards) {
         searchResults.innerHTML = "";
         if (!cards || cards.length === 0) {
-          updateStatus("No cards found.");
+          // Status is already set by performLiveSearch in case of no results
           searchResults.style.display = "none";
           return;
         }
@@ -573,15 +581,17 @@
           const li = document.createElement("li");
           const imageUrl =
             card.image_uris?.small || card.image_uris?.normal || "";
+          const cardName = card.name || "Unknown Card"; // Handle missing name
+
           li.innerHTML = `
                   <img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(
-            card.name
+            cardName
           )}" class="search-result-image" loading="lazy">
                   <span class="search-result-name">${escapeHtml(
-                    card.name
+                    cardName
                   )}</span>
               `;
-          li.dataset.cardname = card.name;
+          li.dataset.cardname = cardName;
           li.dataset.imageurl = imageUrl;
           searchResults.appendChild(li);
         });
@@ -595,16 +605,17 @@
         sortedCardNames.forEach((cardName) => {
           const cardInfo = currentDeck[cardName];
           if (!cardInfo || cardInfo.quantity <= 0) {
-            // Ensure we don't render cards with 0 or negative quantity if data gets corrupted
-            if (cardInfo) delete currentDeck[cardName]; // Clean up bad entry
+            if (cardInfo) delete currentDeck[cardName];
             return;
           }
           totalCards += cardInfo.quantity;
           const li = document.createElement("li");
+          // Ensure imageUrl is treated safely
+          const safeImageUrl = cardInfo.imageUrl || "";
           li.innerHTML = `
                       <div class="card-info">
                           <img src="${escapeHtml(
-                            cardInfo.imageUrl || ""
+                            safeImageUrl
                           )}" alt="${escapeHtml(
             cardName
           )}" class="card-image" loading="lazy">
@@ -641,16 +652,17 @@
         currentHand.forEach((card) => {
           const li = document.createElement("li");
           li.dataset.handId = card.handId; // Store unique hand ID
+          // Ensure imageUrl is treated safely
+          const safeImageUrl = card.imageUrl || "";
+          const safeCardName = card.name || "Unknown Card";
           li.innerHTML = `
                   <div class="card-info">
-                      <img src="${escapeHtml(
-                        card.imageUrl || ""
-                      )}" alt="${escapeHtml(
-            card.name
+                      <img src="${escapeHtml(safeImageUrl)}" alt="${escapeHtml(
+            safeCardName
           )}" class="card-image" loading="lazy">
                       <span class="card-name" title="${escapeHtml(
-                        card.name
-                      )}">${escapeHtml(card.name)}</span>
+                        safeCardName
+                      )}">${escapeHtml(safeCardName)}</span>
                   </div>
               `;
           li.addEventListener("click", handlePlayCardFromHand); // Add click listener to move
@@ -670,17 +682,18 @@
           cardDiv.classList.add("battlefield-card");
           cardDiv.dataset.battlefieldId = id;
           cardDiv.draggable = true;
-          // Ensure x/y are numbers before setting style
+
           const posX = typeof card.x === "number" ? card.x : 10;
           const posY = typeof card.y === "number" ? card.y : 10;
           cardDiv.style.left = `${posX}px`;
           cardDiv.style.top = `${posY}px`;
+          // Ensure imageUrl is treated safely
+          const safeImageUrl = card.imageUrl || "";
+          const safeCardName = card.name || "Unknown Card";
           cardDiv.innerHTML = `
-                  <img src="${escapeHtml(
-                    card.imageUrl || ""
-                  )}" alt="${escapeHtml(card.name)}" title="${escapeHtml(
-            card.name
-          )}">
+                  <img src="${escapeHtml(safeImageUrl)}" alt="${escapeHtml(
+            safeCardName
+          )}" title="${escapeHtml(safeCardName)}">
               `;
           // Add drag event listeners directly to the card element
           cardDiv.addEventListener("dragstart", handleDragStart);
@@ -692,32 +705,33 @@
 
       // --- Deck Management Logic ---
       function addCardToDeck(cardName, imageUrl) {
+        if (!cardName) {
+          console.error("Attempted to add card with no name.");
+          updateDeckActionStatus("Error: Cannot add card without a name.");
+          return;
+        }
         const existingCard = currentDeck[cardName];
+        const safeCardName = escapeHtml(cardName); // Escape early
 
         if (existingCard) {
           existingCard.quantity++;
           updateDeckActionStatus(
-            `Incremented "${cardName}" to ${existingCard.quantity}.`
+            `Incremented "${safeCardName}" to ${existingCard.quantity}.`
           );
         } else {
-          // Ensure imageUrl is a string, provide a placeholder if missing
           const safeImageUrl = typeof imageUrl === "string" ? imageUrl : "";
           if (!imageUrl) {
-            console.warn(
-              `Missing image URL for card: ${cardName}. Using placeholder logic if needed.`
-            );
-            // Optionally add a placeholder image URL here
+            console.warn(`Missing image URL for card: ${safeCardName}.`);
           }
 
           currentDeck[cardName] = {
             quantity: 1,
             imageUrl: safeImageUrl,
           };
-          updateDeckActionStatus(`Added "${cardName}" to deck.`);
+          updateDeckActionStatus(`Added "${safeCardName}" to deck.`);
         }
         renderDeck();
 
-        // Clear search input and results after adding
         searchInput.value = "";
         searchResults.innerHTML = "";
         searchResults.style.display = "none";
@@ -728,15 +742,17 @@
         const quantity = parseInt(newQuantity, 10);
         const cardInfo = currentDeck[cardName];
         if (!cardInfo) return;
+        const safeCardName = escapeHtml(cardName);
 
         if (isNaN(quantity) || quantity <= 0) {
-          // Treat 0 or invalid input as deletion
-          deleteCardFromDeck(cardName); // This already calls renderDeck
-          updateDeckActionStatus(`Removed "${cardName}" (invalid quantity).`);
+          deleteCardFromDeck(cardName); // This already calls renderDeck and updates status
+          updateDeckActionStatus(
+            `Removed "${safeCardName}" (quantity set to 0 or less).`
+          );
         } else {
           cardInfo.quantity = quantity;
           updateDeckActionStatus(
-            `Updated "${cardName}" quantity to ${quantity}.`
+            `Updated "${safeCardName}" quantity to ${quantity}.`
           );
           renderDeck();
         }
@@ -744,10 +760,10 @@
 
       function deleteCardFromDeck(cardName) {
         if (currentDeck[cardName]) {
+          const safeCardName = escapeHtml(cardName);
           delete currentDeck[cardName];
-          updateDeckActionStatus(`Removed "${cardName}" from deck.`);
-          renderDeck(); // Update deck display
-          // Note: This doesn't affect a currently drawn hand/battlefield
+          updateDeckActionStatus(`Removed "${safeCardName}" from deck.`);
+          renderDeck();
         }
       }
 
@@ -760,7 +776,7 @@
           currentDeck = {};
           updateDeckActionStatus("Deck cleared.");
           renderDeck();
-          clearTestHand(); // Clear the test area as well
+          clearTestArea(); // Clear the test area as well
         }
       }
 
@@ -779,94 +795,110 @@
 
       function loadDeck() {
         const savedDeck = localStorage.getItem(DECK_STORAGE_KEY);
+        let deckLoaded = false; // Flag to track if a deck was loaded
+
         if (savedDeck) {
           try {
             const parsedDeck = JSON.parse(savedDeck);
-            // Basic validation
             if (
               typeof parsedDeck === "object" &&
               parsedDeck !== null &&
               !Array.isArray(parsedDeck)
             ) {
               let isValid = true;
+              const validatedDeck = {}; // Build a validated deck object
+
               for (const key in parsedDeck) {
-                if (
-                  typeof parsedDeck[key] !== "object" ||
-                  parsedDeck[key] === null ||
-                  typeof parsedDeck[key].quantity !== "number" ||
-                  parsedDeck[key].quantity <= 0 || // Ensure quantity is positive
-                  typeof parsedDeck[key].imageUrl !== "string"
-                ) {
+                // Check if the key is a valid non-empty string
+                if (typeof key !== "string" || key.trim() === "") {
+                  console.warn(`Invalid key found: ${key}`, parsedDeck[key]);
                   isValid = false;
-                  console.warn(
-                    `Invalid entry found for key: ${key}`,
-                    parsedDeck[key]
-                  );
                   break;
                 }
+
+                const entry = parsedDeck[key];
+                if (
+                  typeof entry !== "object" ||
+                  entry === null ||
+                  typeof entry.quantity !== "number" ||
+                  !Number.isInteger(entry.quantity) || // Ensure integer
+                  entry.quantity <= 0 || // Ensure positive
+                  typeof entry.imageUrl !== "string" // Allow empty string '' but not other types
+                ) {
+                  isValid = false;
+                  console.warn(`Invalid entry found for key: ${key}`, entry);
+                  break;
+                }
+                // Add validated entry to the new deck object
+                validatedDeck[key] = {
+                  quantity: entry.quantity,
+                  imageUrl: entry.imageUrl, // Already validated as string
+                };
               }
 
               if (isValid) {
-                currentDeck = parsedDeck;
+                currentDeck = validatedDeck;
                 updateDeckActionStatus("Deck loaded successfully!");
-                renderDeck();
-                clearTestHand(); // Clear test area when loading a new deck
+                deckLoaded = true; // Set flag
               } else {
                 updateDeckActionStatus(
-                  "Failed to load deck: Invalid data format in storage."
+                  "Failed to load deck: Invalid data format found. Deck cleared."
                 );
-                currentDeck = {}; // Reset deck if loaded data is bad
-                renderDeck();
-                clearTestHand();
                 console.warn(
                   "Invalid deck structure found in localStorage, deck reset.",
                   parsedDeck
                 );
+                currentDeck = {}; // Reset deck
               }
             } else {
               updateDeckActionStatus(
-                "Failed to load deck: Invalid data type in storage."
+                "Failed to load deck: Invalid data type in storage. Deck cleared."
               );
-              currentDeck = {}; // Reset deck if loaded data is bad
-              renderDeck();
-              clearTestHand();
               console.warn(
                 "Invalid data type found in localStorage:",
                 parsedDeck
               );
+              currentDeck = {}; // Reset deck
             }
           } catch (error) {
             console.error("Error parsing saved deck:", error);
             updateDeckActionStatus(
-              "Error loading deck: Could not parse saved data."
+              "Error loading deck: Could not parse saved data. Deck cleared."
             );
-            currentDeck = {}; // Reset deck on parsing error
-            renderDeck();
-            clearTestHand();
+            currentDeck = {}; // Reset deck
           }
         } else {
           updateDeckActionStatus("No saved deck found.");
-          // Ensure deck is empty if nothing is loaded
-          if (Object.keys(currentDeck).length > 0) {
-            currentDeck = {};
-            renderDeck();
-            clearTestHand();
-          }
+          currentDeck = {}; // Ensure deck is empty if nothing found
+        }
+
+        // Always clear test area and render after attempting load
+        clearTestArea();
+        renderDeck();
+
+        // Add message if no deck was loaded and current deck is empty
+        if (!deckLoaded && Object.keys(currentDeck).length === 0) {
+          // Wait slightly for previous status message to clear if needed
+          setTimeout(() => {
+            if (
+              deckActionStatus.textContent === "No saved deck found." ||
+              deckActionStatus.textContent === ""
+            ) {
+              updateDeckActionStatus("Create a new deck or load a saved one.");
+            }
+          }, 100);
         }
       }
 
       // --- Test Hand / Play Area Logic ---
       function drawTestHand() {
-        // Clear previous test state
-        clearTestHand(); // Clears hand, battlefield, counters, status
+        clearTestArea();
 
         const deckArray = [];
         for (const cardName in currentDeck) {
           const cardInfo = currentDeck[cardName];
           if (cardInfo && cardInfo.quantity > 0) {
-            // Ensure card exists and has quantity
             for (let i = 0; i < cardInfo.quantity; i++) {
-              // Store name and URL together
               deckArray.push({ name: cardName, imageUrl: cardInfo.imageUrl });
             }
           }
@@ -878,16 +910,14 @@
           return;
         }
 
-        // Shuffle the deck array (Fisher-Yates)
+        // Fisher-Yates Shuffle
         for (let i = deckArray.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
           [deckArray[i], deckArray[j]] = [deckArray[j], deckArray[i]];
         }
 
-        // Draw the top 7 cards
         const hand = deckArray.slice(0, 7);
 
-        // Populate currentHand with unique IDs
         currentHand = hand.map((card) => ({
           handId: handCardIdCounter++,
           name: card.name,
@@ -895,39 +925,36 @@
         }));
 
         testHandStatus.textContent = `Drew 7 cards. Click a card in hand to play it. Drag cards on battlefield.`;
-        displayHand(); // Render the hand
-        displayBattlefield(); // Render the (initially empty) battlefield
+        displayHand();
+        displayBattlefield(); // Render empty battlefield
       }
 
-      // Renamed and updated to clear the entire test area state
-      function clearTestHand() {
+      // Renamed to clear the entire test area state
+      function clearTestArea() {
         currentHand = [];
         currentBattlefield = {};
-        handCardIdCounter = 0; // Reset IDs
+        handCardIdCounter = 0;
         battlefieldCardIdCounter = 0;
-        dragInfo = { cardId: null, offsetX: 0, offsetY: 0 }; // Reset drag info
+        dragInfo = { cardId: null, offsetX: 0, offsetY: 0 };
 
-        // Clear displays
         if (testHandDisplay) testHandDisplay.innerHTML = "";
         if (battlefieldDisplay) battlefieldDisplay.innerHTML = "";
         if (handCardCountSpan) handCardCountSpan.textContent = "0";
-        if (testHandStatus) testHandStatus.textContent = ""; // Clear status message
+        if (testHandStatus) testHandStatus.textContent = "";
       }
 
       // Handles clicking a card in the hand list
       function handlePlayCardFromHand(event) {
-        const listItem = event.currentTarget; // Get the LI element that was clicked
+        const listItem = event.currentTarget;
         const handId = parseInt(listItem.dataset.handId, 10);
 
         const cardIndex = currentHand.findIndex(
           (card) => card.handId === handId
         );
         if (cardIndex > -1) {
-          const [cardToPlay] = currentHand.splice(cardIndex, 1); // Remove from hand array
+          const [cardToPlay] = currentHand.splice(cardIndex, 1);
 
-          // Add to battlefield state
           const battlefieldId = `bf-${battlefieldCardIdCounter++}`;
-          // Add some randomness to initial placement to avoid exact stacking
           const initialX = 10 + Math.floor(Math.random() * 30);
           const initialY = 10 + Math.floor(Math.random() * 30);
 
@@ -938,7 +965,6 @@
             y: initialY,
           };
 
-          // Re-render both zones
           displayHand();
           displayBattlefield();
         }
@@ -947,64 +973,56 @@
       // --- Drag and Drop Handlers ---
       function handleDragStart(event) {
         const cardElement = event.target.closest(".battlefield-card");
-        if (!cardElement) return;
+        if (!cardElement || !cardElement.dataset.battlefieldId) return;
 
         const cardId = cardElement.dataset.battlefieldId;
-        if (!cardId) return;
-
         dragInfo.cardId = cardId;
 
-        // Calculate offset from cursor to top-left corner of the card
         const rect = cardElement.getBoundingClientRect();
         dragInfo.offsetX = event.clientX - rect.left;
         dragInfo.offsetY = event.clientY - rect.top;
 
-        // Set data for the drag operation (needed for Firefox)
         event.dataTransfer.setData("text/plain", cardId);
         event.dataTransfer.effectAllowed = "move";
 
-        // Optional: Add styling to the image inside the card div
-        setTimeout(
-          () => cardElement.querySelector("img")?.classList.add("dragging"),
-          0
-        );
-        event.stopPropagation(); // Prevent event bubbling
+        setTimeout(() => {
+          const img = cardElement.querySelector("img");
+          if (img) img.classList.add("dragging");
+        }, 0);
+        event.stopPropagation();
       }
 
       function handleDragEnd(event) {
-        // Clean up styling regardless of drop success
-        const cardId = dragInfo.cardId; // Get id from dragInfo as event.target might be unreliable
+        const cardId = dragInfo.cardId; // Use ID from reliable dragInfo
         if (cardId) {
           const cardElement = battlefieldDisplay.querySelector(
             `[data-battlefield-id="${cardId}"]`
           );
-          if (cardElement) {
-            cardElement.querySelector("img")?.classList.remove("dragging");
-          }
+          const img = cardElement?.querySelector("img");
+          if (img) img.classList.remove("dragging");
         }
-        dragInfo.cardId = null; // Reset drag info
+        // Reset drag info regardless of drop success
+        dragInfo.cardId = null;
         dragInfo.offsetX = 0;
         dragInfo.offsetY = 0;
-        // No stopPropagation needed here usually
       }
 
       function handleDragOver(event) {
-        event.preventDefault(); // Necessary to allow dropping
+        event.preventDefault();
         event.dataTransfer.dropEffect = "move";
-        // No stopPropagation needed here usually
       }
 
       function handleDrop(event) {
-        event.preventDefault(); // Prevent default drop behavior
-        const battlefieldZone = event.currentTarget; // The #battlefieldDisplay div
-        const draggedCardId = dragInfo.cardId; // Use reliable dragInfo
+        event.preventDefault();
+        const battlefieldZone = event.currentTarget;
+        const draggedCardId = dragInfo.cardId;
 
         if (!draggedCardId || !currentBattlefield[draggedCardId]) {
           console.warn(
-            "Drop failed: Could not identify dragged card ID or card not in state."
+            "Drop failed: Invalid dragged card ID or card not in state."
           );
           dragInfo.cardId = null; // Reset just in case
-          return; // Card ID not found or invalid
+          return;
         }
 
         const cardElement = battlefieldZone.querySelector(
@@ -1018,40 +1036,32 @@
           return;
         }
 
-        // Calculate drop position relative to the battlefield container
         const battlefieldRect = battlefieldZone.getBoundingClientRect();
         let newX = event.clientX - battlefieldRect.left - dragInfo.offsetX;
         let newY = event.clientY - battlefieldRect.top - dragInfo.offsetY;
 
-        // --- Boundary Checks (Keep card within battlefield) ---
-        const cardWidth = cardElement.offsetWidth; // Use offsetWidth
-        const cardHeight = cardElement.offsetHeight; // Use offsetHeight
-        const containerWidth = battlefieldZone.clientWidth; // Use clientWidth
-        const containerHeight = battlefieldZone.clientHeight; // Use clientHeight
+        // Boundary Checks
+        const cardWidth = cardElement.offsetWidth;
+        const cardHeight = cardElement.offsetHeight;
+        const containerWidth = battlefieldZone.clientWidth;
+        const containerHeight = battlefieldZone.clientHeight;
 
-        // Ensure left edge is not less than 0
-        newX = Math.max(0, newX);
-        // Ensure top edge is not less than 0
-        newY = Math.max(0, newY);
-        // Ensure right edge doesn't go past container width
-        newX = Math.min(newX, containerWidth - cardWidth);
-        // Ensure bottom edge doesn't go past container height
-        newY = Math.min(newY, containerHeight - cardHeight);
-        // Ensure values are not negative if container/card dimensions are weird
+        newX = Math.max(0, Math.min(newX, containerWidth - cardWidth));
+        newY = Math.max(0, Math.min(newY, containerHeight - cardHeight));
+        // Final safety check for non-negative coords
         newX = Math.max(0, newX);
         newY = Math.max(0, newY);
-        // --- End Boundary Checks ---
 
-        // Update the element's position directly
+        // Update element style immediately
         cardElement.style.left = `${newX}px`;
         cardElement.style.top = `${newY}px`;
 
-        // Update the position in the state object
+        // Update state
         currentBattlefield[draggedCardId].x = newX;
         currentBattlefield[draggedCardId].y = newY;
 
-        // Reset drag info handled by dragend
-        event.stopPropagation(); // Prevent event bubbling up further
+        // dragInfo reset is handled by dragend
+        event.stopPropagation();
       }
 
       // --- Event Listeners ---
@@ -1059,7 +1069,7 @@
       // Search Input
       searchInput.addEventListener("input", (event) => {
         const query = event.target.value.trim();
-        debouncedLiveSearch(query); // Use debounced search
+        debouncedLiveSearch(query);
       });
 
       // Clicking Search Results
@@ -1074,21 +1084,16 @@
 
       // Clicking Outside Search
       document.addEventListener("click", (event) => {
-        const searchSection = document.querySelector(".search-section");
-        // Check if the click was outside the search section AND outside the results list
-        if (
-          !searchSection.contains(event.target) &&
-          !searchResults.contains(event.target)
-        ) {
+        // Use closest() to check if click is inside search or results
+        const searchSection = event.target.closest(".search-section");
+        const resultsList = event.target.closest("#searchResults");
+
+        if (!searchSection && !resultsList) {
           searchResults.innerHTML = "";
-          searchResults.style.display = "none"; // Hide it
-          // clearStatus(); // Keep status message if needed
+          searchResults.style.display = "none";
         }
       });
-      // Prevent clicks *inside* the search results list from closing it
-      searchResults.addEventListener("click", (event) => {
-        event.stopPropagation();
-      });
+      // Stop propagation handled inside searchResults click listener
 
       // Enter Key in Search Input
       searchInput.addEventListener("keypress", (event) => {
@@ -1100,13 +1105,13 @@
             const imageUrl = firstResult.dataset.imageurl;
             addCardToDeck(cardName, imageUrl);
           } else {
-            // If no results are visible, trigger a non-debounced search immediately
+            // Trigger immediate search if no results shown/selected
             performLiveSearch(searchInput.value.trim());
           }
         }
       });
 
-      // Deck List Interactions (Delete / Quantity Change)
+      // Deck List Interactions (Delegated Listeners)
       deckList.addEventListener("click", (event) => {
         if (event.target.classList.contains("delete-card-btn")) {
           const cardName = event.target.getAttribute("data-cardname");
@@ -1118,7 +1123,7 @@
       deckList.addEventListener("change", (event) => {
         if (event.target.classList.contains("quantity-input")) {
           const cardName = event.target.getAttribute("data-cardname");
-          const newQuantity = event.target.value; // Value is string
+          const newQuantity = event.target.value;
           if (cardName) {
             updateCardQuantity(cardName, newQuantity);
           }
@@ -1137,17 +1142,9 @@
 
       // --- Initial Load ---
       document.addEventListener("DOMContentLoaded", () => {
-        loadDeck(); // Attempt to load saved deck
-        // If loadDeck resulted in an empty deck (or no saved deck existed),
-        // currentDeck will be {}, so no need for explicit check here.
-        // loadDeck already calls clearTestHand if needed.
-        if (Object.keys(currentDeck).length === 0) {
-          updateDeckActionStatus("Create a new deck or load a saved one.");
-          // Ensure test area is clear if starting fresh
-          clearTestHand();
-        }
-        renderDeck(); // Render the initial deck state (could be empty or loaded)
-        // Hand/Battlefield are cleared by loadDeck or clearTestHand and only rendered on Draw
+        // loadDeck now handles initial state, rendering, and messages
+        loadDeck();
+        // No explicit render/clear needed here as loadDeck covers it
       });
     </script>
   </body>
