@@ -5,9 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Simple MTG Deck Builder (w/ Play Area)</title>
     <style>
-      /* --- CSS Variables for Theming --- */
       :root {
-        /* Default Light Theme */
         --body-bg: #f0f2f5;
         --section-bg: #ffffff;
         --text-color-primary: #333333;
@@ -28,15 +26,15 @@
         --input-bg: #ffffff;
         --input-border: #cccccc;
         --input-text: #333333;
-        --list-item-hover-bg: #f0f8ff; /* Kept for deck list */
+        --list-item-hover-bg: #f0f8ff;
         --search-result-hover-bg: #f0f0f0;
         --popup-bg: rgba(0, 0, 0, 0.8);
         --popup-border: #555555;
         --battlefield-bg: #e0e0e0;
         --battlefield-border: #cccccc;
-        --zone-general-bg: #e9f5e9; /* General Zone Only Now */
+        --zone-general-bg: #e9f5e9;
         --zone-general-border: #9ccc9c;
-        --zone-side-bg: #f0f0f0; /* NEW: Graveyard/Exile bg */
+        --zone-side-bg: #f0f0f0;
         --zone-side-border: #aaaaaa;
         --hand-container-bg: #f9f9f9;
         --hand-card-bg: #ffffff;
@@ -47,19 +45,19 @@
         --slider-bg: #ccc;
         --slider-knob-bg: white;
         --slider-checked-bg: #007bff;
-        --context-menu-bg: #ffffff; /* NEW */
-        --context-menu-border: #cccccc; /* NEW */
-        --context-menu-text: #333333; /* NEW */
-        --context-menu-hover-bg: #f0f0f0; /* NEW */
-        --context-menu-disabled-text: #aaaaaa; /* NEW */
-        --scry-overlay-bg: rgba(0, 0, 0, 0.75); /* NEW */
-        --scry-modal-bg: #ffffff; /* NEW */
-        --scry-card-bg: #f9f9f9; /* NEW */
-        --scry-card-border: #dddddd; /* NEW */
-        --scry-button-bg: #6c757d; /* NEW */
-        --scry-button-text: #ffffff; /* NEW */
-        --scry-button-hover-bg: #5a6268; /* NEW */
-        --scry-button-selected-bg: #0056b3; /* NEW */
+        --context-menu-bg: #ffffff;
+        --context-menu-border: #cccccc;
+        --context-menu-text: #333333;
+        --context-menu-hover-bg: #f0f0f0;
+        --context-menu-disabled-text: #aaaaaa;
+        --scry-overlay-bg: rgba(0, 0, 0, 0.75);
+        --scry-modal-bg: #ffffff;
+        --scry-card-bg: #f9f9f9;
+        --scry-card-border: #dddddd;
+        --scry-button-bg: #6c757d;
+        --scry-button-text: #ffffff;
+        --scry-button-hover-bg: #5a6268;
+        --scry-button-selected-bg: #0056b3;
       }
 
       body[data-theme="dark"] {
@@ -83,15 +81,15 @@
         --input-bg: #3a3a3a;
         --input-border: #666666;
         --input-text: #e0e0e0;
-        --list-item-hover-bg: #3a4a5a; /* Kept for deck list */
+        --list-item-hover-bg: #3a4a5a;
         --search-result-hover-bg: #444444;
         --popup-bg: rgba(20, 20, 20, 0.9);
         --popup-border: #aaaaaa;
         --battlefield-bg: #3a3a3a;
         --battlefield-border: #666666;
-        --zone-general-bg: #2a4a2a; /* General Zone Only Now */
+        --zone-general-bg: #2a4a2a;
         --zone-general-border: #5c8c5c;
-        --zone-side-bg: #444444; /* NEW: Dark Graveyard/Exile bg */
+        --zone-side-bg: #444444;
         --zone-side-border: #777777;
         --hand-container-bg: #252525;
         --hand-card-bg: #383838;
@@ -102,21 +100,20 @@
         --slider-bg: #555;
         --slider-knob-bg: #bbb;
         --slider-checked-bg: #0056b3;
-        --context-menu-bg: #3a3a3a; /* NEW */
-        --context-menu-border: #666666; /* NEW */
-        --context-menu-text: #e0e0e0; /* NEW */
-        --context-menu-hover-bg: #444444; /* NEW */
-        --context-menu-disabled-text: #888888; /* NEW */
-        --scry-overlay-bg: rgba(0, 0, 0, 0.85); /* NEW */
-        --scry-modal-bg: #2c2c2c; /* NEW */
-        --scry-card-bg: #383838; /* NEW */
-        --scry-card-border: #505050; /* NEW */
-        --scry-button-bg: #5a6268; /* NEW */
-        --scry-button-text: #ffffff; /* NEW */
-        --scry-button-hover-bg: #495057; /* NEW */
-        --scry-button-selected-bg: #003d80; /* NEW */
+        --context-menu-bg: #3a3a3a;
+        --context-menu-border: #666666;
+        --context-menu-text: #e0e0e0;
+        --context-menu-hover-bg: #444444;
+        --context-menu-disabled-text: #888888;
+        --scry-overlay-bg: rgba(0, 0, 0, 0.85);
+        --scry-modal-bg: #2c2c2c;
+        --scry-card-bg: #383838;
+        --scry-card-border: #505050;
+        --scry-button-bg: #5a6268;
+        --scry-button-text: #ffffff;
+        --scry-button-hover-bg: #495057;
+        --scry-button-selected-bg: #003d80;
       }
-      /* --- End CSS Variables --- */
 
       body {
         font-family: sans-serif;
@@ -124,7 +121,7 @@
         grid-template-columns: 1fr 2fr;
         grid-template-rows: auto auto auto 1fr;
         gap: 20px;
-        max-width: 1400px; /* Slightly wider to accommodate side zones */
+        max-width: 1400px;
         margin: 20px auto;
         padding: 15px;
         background-color: var(--body-bg);
@@ -147,7 +144,6 @@
         margin: 0;
       }
 
-      /* Theme Toggle Switch Styles (Unchanged) */
       .theme-switch-wrapper {
         display: flex;
         align-items: center;
@@ -231,7 +227,6 @@
         transition: background-color 0.3s ease, box-shadow 0.3s ease;
       }
 
-      /* Grid Placement (Unchanged) */
       .search-section {
         grid-column: 1 / 2;
         grid-row: 2 / 3;
@@ -251,7 +246,6 @@
         min-height: 750px;
       }
 
-      /* Search Styles (Unchanged) */
       #searchInput {
         width: 100%;
         padding: 10px;
@@ -307,7 +301,6 @@
         margin-top: 0;
       }
 
-      /* Deck List Styles (Unchanged) */
       #deckList {
         list-style: none;
         padding: 0;
@@ -363,8 +356,13 @@
         color: var(--input-text);
       }
 
-      /* Buttons and Status */
-      .action-button, .delete-card-btn, #drawHandButton, #drawNextCardButton, #shuffleDeckButton, #searchDeckButton, #scryButton /* Added */ {
+      .action-button,
+      .delete-card-btn,
+      #drawHandButton,
+      #drawNextCardButton,
+      #shuffleDeckButton,
+      #searchDeckButton,
+      #scryButton {
         padding: 9px 15px;
         background-color: var(--button-bg);
         color: var(--button-text);
@@ -381,13 +379,13 @@
         align-items: center;
         flex-wrap: wrap;
       }
-      .test-controls .action-button, .test-controls .scry-control /* Added scry-control */ {
+      .test-controls .action-button,
+      .test-controls .scry-control {
         display: inline-block;
         width: auto;
         margin-right: 10px;
         margin-bottom: 5px;
       }
-      /* Style for Scry input */
       .scry-control {
         display: inline-flex;
         align-items: center;
@@ -401,7 +399,7 @@
         border-radius: 4px;
         background-color: var(--input-bg);
         color: var(--input-text);
-        font-size: 0.9em; /* Match button */
+        font-size: 0.9em;
         margin-bottom: 10px;
       }
 
@@ -414,10 +412,20 @@
         font-size: 0.9em;
         color: var(--text-color-muted);
       }
-      .action-button:hover, .delete-card-btn:hover, #drawHandButton:hover, #drawNextCardButton:hover, #shuffleDeckButton:hover, #searchDeckButton:hover, #scryButton:hover /* Added */ {
+      .action-button:hover,
+      .delete-card-btn:hover,
+      #drawHandButton:hover,
+      #drawNextCardButton:hover,
+      #shuffleDeckButton:hover,
+      #searchDeckButton:hover,
+      #scryButton:hover {
         background-color: var(--button-bg-hover);
       }
-      .action-button:disabled, #drawNextCardButton:disabled, #shuffleDeckButton:disabled, #searchDeckButton:disabled, #scryButton:disabled /* Added */ {
+      .action-button:disabled,
+      #drawNextCardButton:disabled,
+      #shuffleDeckButton:disabled,
+      #searchDeckButton:disabled,
+      #scryButton:disabled {
         background-color: var(--button-disabled-bg);
         color: var(--button-disabled-text);
         cursor: not-allowed;
@@ -460,7 +468,6 @@
         font-size: 0.9em;
       }
 
-      /* --- Test Area Layout --- */
       .play-area-container {
         display: flex;
         flex-direction: column;
@@ -535,7 +542,6 @@
         padding-bottom: 0;
       }
 
-      /* Hand/Card Styles (Unchanged) */
       #testHandContainer {
         flex-shrink: 0;
         display: flex;
@@ -611,7 +617,6 @@
         border-radius: 3px;
       }
 
-      /* Deck Search Area (Unchanged) */
       #deckSearchArea {
         display: none;
         padding: 10px;
@@ -674,7 +679,6 @@
         border-radius: 3px;
       }
 
-      /* Image Popup Styles (Unchanged) */
       #imagePopup {
         position: fixed;
         display: none;
@@ -695,7 +699,6 @@
         border: 1px solid var(--popup-border);
       }
 
-      /* Context Menu Styles (Unchanged) */
       #cardContextMenu {
         position: absolute;
         display: none;
@@ -728,7 +731,6 @@
         background-color: transparent;
       }
 
-      /* --- Scry Overlay/Modal Styles --- */
       #scryOverlay {
         position: fixed;
         top: 0;
@@ -736,10 +738,10 @@
         width: 100%;
         height: 100%;
         background-color: var(--scry-overlay-bg);
-        display: none; /* Hidden by default */
+        display: none;
         justify-content: center;
         align-items: center;
-        z-index: 10010; /* Above context menu */
+        z-index: 10010;
         padding: 20px;
         box-sizing: border-box;
       }
@@ -776,7 +778,7 @@
         border-radius: 6px;
       }
       .scry-card-item img {
-        width: 100px; /* Larger than hand/bf */
+        width: 100px;
         height: auto;
         border-radius: 4px;
         margin-bottom: 5px;
@@ -792,19 +794,18 @@
         color: var(--scry-button-text);
         transition: background-color 0.2s ease;
       }
-      .scry-card-item .scry-choice-buttons button:hover {
+      .scry-card-item .scry-choice-buttons button:hover:not(:disabled) {
         background-color: var(--scry-button-hover-bg);
       }
-      .scry-card-item .scry-choice-buttons button.selected {
-        background-color: var(--scry-button-selected-bg);
-        font-weight: bold;
+      .scry-card-item .scry-choice-buttons button:disabled {
+        background-color: var(--button-disabled-bg);
+        color: var(--button-disabled-text);
+        cursor: not-allowed;
       }
-      /* Confirm button removed */
-      /* --- End Scry Styles --- */
+      /* Removed selected class styles as buttons get disabled */
     </style>
   </head>
   <body data-theme="light">
-    <!-- Header, Theme Toggle -->
     <div class="header-container">
       <h1>Simple MTG Deck Builder</h1>
       <div class="theme-switch-wrapper">
@@ -816,7 +817,6 @@
       </div>
     </div>
 
-    <!-- Search -->
     <div class="search-section">
       <h2>Card Search</h2>
       <input
@@ -829,7 +829,6 @@
       <div id="status">Type at least 3 characters for suggestions.</div>
     </div>
 
-    <!-- Actions -->
     <div class="actions-section">
       <h2>Deck Actions</h2>
       <button id="saveDeckButton" class="action-button">Save Deck</button
@@ -840,14 +839,12 @@
       <div id="deckActionStatus"></div>
     </div>
 
-    <!-- Deck -->
     <div class="deck-section">
       <h2>Current Deck (<span id="deckTotalCount">0</span> cards)</h2>
       <ul id="deckList"></ul>
       <div id="deckCount">Total: <span id="deckTotalCountBottom">0</span></div>
     </div>
 
-    <!-- Test Area -->
     <div class="test-hand-section">
       <h2>Test Area</h2>
       <div class="test-controls">
@@ -861,16 +858,13 @@
         <button id="searchDeckButton" class="action-button" disabled>
           Search Library
         </button>
-        <!-- Scry Controls -->
         <div class="scry-control">
           <button id="scryButton" class="action-button" disabled>Scry</button>
           <input type="number" id="scryCountInput" value="1" min="1" max="10" />
-          <!-- Default to 1, reasonable max -->
         </div>
         <span id="testHandStatus"></span>
       </div>
 
-      <!-- Deck Search Area -->
       <div id="deckSearchArea">
         <p>Click a card in the library to add it to your hand:</p>
         <ul id="deckSearchResults"></ul>
@@ -879,7 +873,6 @@
         </button>
       </div>
 
-      <!-- Play Area Container -->
       <div class="play-area-container">
         <div class="battlefield-and-side-zones">
           <div class="battlefield-zone" id="battlefieldDisplayContainer">
@@ -898,10 +891,8 @@
       </div>
     </div>
 
-    <!-- Image Popup -->
     <div id="imagePopup"><img id="popupImage" src="" alt="Card Preview" /></div>
 
-    <!-- Context Menu -->
     <div id="cardContextMenu">
       <ul>
         <li data-action="toHand">Move to Hand</li>
@@ -914,20 +905,15 @@
       </ul>
     </div>
 
-    <!-- Scry Overlay -->
     <div id="scryOverlay">
       <div id="scryModal">
         <h3 id="scryModalTitle">Scry X</h3>
-        <div id="scryCardContainer">
-          <!-- Scryed cards will be populated here -->
-        </div>
+        <div id="scryCardContainer"></div>
         <!-- Confirm Button Removed -->
-        <!-- <button id="scryConfirmButton" class="action-button" disabled>Confirm Scry</button> -->
       </div>
     </div>
 
     <script>
-      // --- DOM Element References ---
       const searchInput = document.getElementById("searchInput");
       const searchResults = document.getElementById("searchResults");
       const statusDiv = document.getElementById("status");
@@ -969,12 +955,10 @@
       const scryModal = document.getElementById("scryModal");
       const scryModalTitle = document.getElementById("scryModalTitle");
       const scryCardContainer = document.getElementById("scryCardContainer");
-      // const scryConfirmButton = document.getElementById("scryConfirmButton"); // Button Removed
 
       const DECK_STORAGE_KEY = "mtgDeckBuilderSimpleDeckV3";
       const THEME_STORAGE_KEY = "mtgThemePreference";
 
-      // --- State Variables ---
       let currentDeck = {};
       let searchAbortController = null;
       let currentHand = [];
@@ -996,12 +980,11 @@
       };
       let scryingState = {
         active: false,
-        cards: [], // { originalIndex, name, imageUrl, normalImageUrl }
-        choices: {}, // { originalIndex: 'top' | 'bottom' | null }
-        expectedCount: 0, // Track how many cards we started scrying
+        cards: [],
+        choices: {}, // We still need this temporarily to track which cards remain
+        expectedCount: 0,
       };
 
-      // --- Utility Functions (Unchanged) ---
       function debounce(func, wait) {
         let timeout;
         return function executedFunction(...args) {
@@ -1041,7 +1024,6 @@
           .replace(/'/g, "'");
       }
 
-      // --- API Interaction (Unchanged) ---
       async function performLiveSearch(query) {
         if (searchAbortController) {
           searchAbortController.abort();
@@ -1088,7 +1070,6 @@
       }
       const debouncedLiveSearch = debounce(performLiveSearch, 350);
 
-      // --- Display Logic ---
       function displaySearchResults(cards) {
         searchResults.innerHTML = "";
         if (!cards || cards.length === 0) {
@@ -1262,13 +1243,13 @@
           if (libraryAvailable) scryCountInput.max = libraryCount;
           else scryCountInput.max = 1;
         }
-        if (!libraryAvailable) {
+        if (!libraryAvailable && !scryingState.active) {
+          // Only add "Library is empty" if not currently scrying
           statusText += " Library is empty.";
         }
         testHandStatus.textContent = statusText;
       }
 
-      // --- Deck Management Logic (Unchanged) ---
       function addCardToDeck(cardName, smallImageUrl, normalImageUrl) {
         if (!cardName) {
           console.error("Attempted to add card with no name.");
@@ -1341,7 +1322,6 @@
         }
       }
 
-      // --- Local Storage (Deck - Unchanged) ---
       function saveDeck() {
         try {
           localStorage.setItem(DECK_STORAGE_KEY, JSON.stringify(currentDeck));
@@ -1449,7 +1429,6 @@
         hideDeckSearchArea();
       }
 
-      // --- Test Hand / Play Area Logic ---
       function drawTestHand() {
         clearTestArea();
         const deckArray = [];
@@ -1518,7 +1497,7 @@
         if (deckSearchArea.style.display === "block") {
           displayLibraryForSearch();
         }
-        updateTestStatus(); /* Update counts and button states */
+        updateTestStatus();
       }
       function shuffleLibrary() {
         if (currentLibrary.length > 1) {
@@ -1616,7 +1595,7 @@
         hideImagePopup();
         hideDeckSearchArea();
         hideContextMenu();
-        cancelScry(); /* Ensure scry is cancelled */
+        endScrySession();
       }
       function handlePlayCardFromHand(event) {
         const cardDiv = event.currentTarget;
@@ -1643,7 +1622,6 @@
         }
       }
 
-      // --- Drag and Drop Handlers (Unchanged) ---
       function handleDragStart(event) {
         if (scryingState.active) {
           event.preventDefault();
@@ -1746,7 +1724,6 @@
         }
       }
 
-      // --- Deck Search Logic (Unchanged) ---
       function toggleDeckSearchArea() {
         if (scryingState.active) return;
         if (
@@ -1861,7 +1838,6 @@
         }
       }
 
-      // --- Image Popup Logic (Unchanged) ---
       function showImagePopup(event, targetImage) {
         if (scryingState.active) return;
         let largeImageUrl =
@@ -1913,7 +1889,6 @@
         imagePopup.style.left = `${left}px`;
       }
 
-      // --- Theme Management Logic (Unchanged) ---
       function setTheme(themeName) {
         localStorage.setItem(THEME_STORAGE_KEY, themeName);
         document.body.setAttribute("data-theme", themeName);
@@ -1933,7 +1908,6 @@
         else setTheme("light");
       }
 
-      // --- Context Menu Logic (Unchanged) ---
       function showContextMenu(event, cardElement) {
         if (scryingState.active) {
           event.preventDefault();
@@ -2138,10 +2112,8 @@
         hideContextMenu();
       }
 
-      // --- Scry Logic ---
       function handleScry() {
         if (scryingState.active) return;
-
         const count = parseInt(scryCountInput.value, 10);
         if (isNaN(count) || count <= 0) {
           updateTestStatus("Invalid scry amount.");
@@ -2152,34 +2124,31 @@
           updateTestStatus("Library is empty, cannot scry.");
           return;
         }
-
         scryingState.active = true;
         scryingState.cards = [];
         scryingState.choices = {};
-        scryingState.expectedCount = actualCount; // Store how many cards we expect choices for
-
+        scryingState.expectedCount = actualCount;
         for (let i = 0; i < actualCount; i++) {
           const card = currentLibrary.shift();
           if (card) {
             const scryCard = { ...card, originalIndex: i };
             scryingState.cards.push(scryCard);
-            scryingState.choices[i] = null; // Initialize choice
+            scryingState.choices[i] = null;
           }
         }
-
         disableDrawNextButton();
         disableShuffleButton();
         disableSearchButton();
         disableScryButton();
-
         displayScryModal(actualCount);
-        updateTestStatus(`Scrying ${actualCount} cards... Make selections.`);
+        updateTestStatus(
+          `Scrying ${actualCount} cards... Choose Top or Bottom for each.`
+        );
       }
 
       function displayScryModal(count) {
         scryModalTitle.textContent = `Scry ${count}`;
         scryCardContainer.innerHTML = "";
-        // Confirm button removed
 
         scryingState.cards.forEach((card) => {
           const cardDiv = document.createElement("div");
@@ -2219,82 +2188,56 @@
       }
 
       function handleScryChoice(event) {
-        if (!scryingState.active) return; // Ignore clicks if not scrying
+        if (!scryingState.active) return;
 
         const button = event.target;
         const choice = button.dataset.choice;
         const cardItem = button.closest(".scry-card-item");
         const originalIndex = parseInt(cardItem.dataset.originalIndex, 10);
 
-        // Only update if the choice hasn't been made yet for this card
-        if (scryingState.choices[originalIndex] === null) {
-          scryingState.choices[originalIndex] = choice;
-
-          // Update button visuals (disable both, highlight selected)
-          const buttons = cardItem.querySelectorAll(
-            ".scry-choice-buttons button"
+        const cardIndexInState = scryingState.cards.findIndex(
+          (c) => c.originalIndex === originalIndex
+        );
+        if (cardIndexInState === -1) {
+          console.error(
+            "Scry choice error: Card not found in scrying state for original index",
+            originalIndex
           );
-          buttons.forEach((btn) => {
-            btn.disabled = true; // Disable both buttons once choice is made
-            if (btn.dataset.choice === choice) {
-              btn.classList.add("selected");
-            }
-          });
-
-          // Check if all choices are made
-          const choicesMadeCount = Object.values(scryingState.choices).filter(
-            (c) => c !== null
-          ).length;
-          if (choicesMadeCount === scryingState.expectedCount) {
-            // All choices made, finalize automatically
-            finalizeScry();
-          }
-        }
-      }
-
-      // NEW function to finalize the scry process
-      function finalizeScry() {
-        if (!scryingState.active) {
-          console.warn("finalizeScry called when not active.");
           return;
         }
 
-        const toTop = [];
-        const toBottom = [];
+        const [cardToMove] = scryingState.cards.splice(cardIndexInState, 1);
+        const cleanCardData = {
+          name: cardToMove.name,
+          imageUrl: cardToMove.imageUrl,
+          normalImageUrl: cardToMove.normalImageUrl,
+        };
 
-        // Sort cards based on choice and original reveal order
-        scryingState.cards.sort((a, b) => a.originalIndex - b.originalIndex);
-        scryingState.cards.forEach((card) => {
-          const choice = scryingState.choices[card.originalIndex];
-          const cleanCardData = {
-            name: card.name,
-            imageUrl: card.imageUrl,
-            normalImageUrl: card.normalImageUrl,
-          };
-          if (choice === "top") {
-            toTop.push(cleanCardData);
-          } else if (choice === "bottom") {
-            toBottom.push(cleanCardData);
-          } else {
-            // This shouldn't happen if finalizeScry is called correctly
-            console.error(
-              "Error finalizing scry: Card found without choice.",
-              card
-            );
-          }
-        });
+        let actionMsg = "";
+        if (choice === "top") {
+          currentLibrary.unshift(cleanCardData);
+          actionMsg = `Moved ${escapeHtml(
+            cleanCardData.name
+          )} to top of library.`;
+        } else {
+          currentLibrary.push(cleanCardData);
+          actionMsg = `Moved ${escapeHtml(
+            cleanCardData.name
+          )} to bottom of library.`;
+        }
 
-        // Return cards to library in the correct order
-        currentLibrary.push(...toBottom);
-        currentLibrary.unshift(...toTop);
+        cardItem.remove();
+        updateTestStatus(actionMsg);
 
-        const statusMsg = `Scry complete. ${toTop.length} to top, ${toBottom.length} to bottom.`;
-
-        cancelScry(); // Reset state and UI
-        updateTestStatus(statusMsg); // Update status *after* cancelScry re-enables buttons
+        // Check if all cards originally scryed have been processed
+        scryingState.expectedCount--; // Decrement expected count as a choice is made
+        if (scryingState.expectedCount === 0) {
+          endScrySession(); // Call the function that cleans up and closes modal
+        }
       }
 
-      function cancelScry() {
+      function endScrySession() {
+        const finalStatus = testHandStatus.textContent; // Preserve last action message
         scryingState.active = false;
         scryingState.cards = [];
         scryingState.choices = {};
@@ -2305,10 +2248,30 @@
         enableShuffleButton();
         enableSearchButton();
         enableScryButton();
-        updateTestStatus();
+        // Use the preserved status or add a generic "Scry finished" message
+        updateTestStatus(
+          finalStatus +
+            (finalStatus.endsWith(".") ? " Scry finished." : ". Scry finished.")
+        );
       }
 
-      // --- Event Listeners ---
+      function cancelScry() {
+        if (scryingState.active) {
+          // If cancelled mid-scry, put remaining cards back on top in original order
+          scryingState.cards.sort((a, b) => b.originalIndex - a.originalIndex); // sort highest index first
+          scryingState.cards.forEach((card) => {
+            const cleanCardData = {
+              name: card.name,
+              imageUrl: card.imageUrl,
+              normalImageUrl: card.normalImageUrl,
+            };
+            currentLibrary.unshift(cleanCardData);
+          });
+          updateTestStatus("Scry cancelled, remaining cards returned to top.");
+        }
+        endScrySession(); // Reset state and UI fully
+      }
+
       searchInput.addEventListener("input", (event) => {
         debouncedLiveSearch(event.target.value.trim());
       });
@@ -2377,7 +2340,6 @@
       searchDeckButton.addEventListener("click", toggleDeckSearchArea);
       closeSearchAreaButton.addEventListener("click", hideDeckSearchArea);
       scryButton.addEventListener("click", handleScry);
-      // scryConfirmButton listener removed
       deckSearchResults.addEventListener("click", handleDeckSearchResultClick);
       [generalZone, graveyardZone, exileZone].forEach((zone) => {
         zone.addEventListener("dragover", handleDragOver);
@@ -2468,7 +2430,6 @@
       cardContextMenu.addEventListener("click", handleContextMenuAction);
       window.addEventListener("scroll", hideContextMenu, true);
 
-      // --- Initial Load ---
       document.addEventListener("DOMContentLoaded", () => {
         loadTheme();
         loadDeck();
