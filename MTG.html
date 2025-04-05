@@ -371,7 +371,6 @@
       #searchDeckButton,
       #scryButton,
       #untapAllButton {
-        /* Added untapAllButton */
         padding: 9px 15px;
         background-color: var(--button-bg);
         color: var(--button-text);
@@ -429,7 +428,6 @@
       #searchDeckButton:hover,
       #scryButton:hover,
       #untapAllButton:hover {
-        /* Added untapAllButton */
         background-color: var(--button-bg-hover);
       }
       .action-button:disabled,
@@ -438,7 +436,6 @@
       #searchDeckButton:disabled,
       #scryButton:disabled,
       #untapAllButton:disabled {
-        /* Added untapAllButton */
         background-color: var(--button-disabled-bg);
         color: var(--button-disabled-text);
         cursor: not-allowed;
@@ -597,7 +594,7 @@
         cursor: grab;
         user-select: none;
         transition: box-shadow 0.2s ease, transform 0.2s ease-in-out,
-          left 0.1s ease-out, top 0.1s ease-out; /* Added transition for position */
+          left 0.1s ease-out, top 0.1s ease-out;
         transform-origin: center center;
         background-color: var(--section-bg);
         z-index: 1;
@@ -609,7 +606,7 @@
         cursor: grabbing;
         box-shadow: 2px 2px 6px var(--shadow-color-heavy);
         z-index: 1000;
-        transition: box-shadow 0.2s ease, transform 0.2s ease-in-out; /* Remove position transition while dragging */
+        transition: box-shadow 0.2s ease, transform 0.2s ease-in-out;
       }
       .battlefield-card img {
         width: 100%;
@@ -1342,7 +1339,7 @@
           statusText += " Library is empty.";
         }
         testHandStatus.textContent = statusText;
-        updateUntapAllButtonVisibility(); // Ensure button visibility is checked on status updates
+        updateUntapAllButtonVisibility();
       }
 
       function addCardToDeck(cardName, smallImageUrl, normalImageUrl) {
@@ -1844,7 +1841,7 @@
           );
           if (!cardElement) {
             console.error("Could not find dragged card element on drop.");
-            displayBattlefield(); // Should redraw with correct state
+            displayBattlefield();
             return;
           }
 
@@ -1869,7 +1866,6 @@
           updateTestStatus(
             `Moved ${escapeHtml(cardData.name)} on battlefield.`
           );
-          // No need to call displayBattlefield() here, just moved the element
         } else {
           console.warn("Drop occurred on unexpected element:", dropZoneId);
         }
@@ -2349,7 +2345,7 @@
           displayHand();
           updateTestStatus(statusMsg);
         } else {
-          updateTestStatus(); // Update status anyway to refresh counts etc.
+          updateTestStatus();
         }
 
         if (libraryAction && deckSearchArea.style.display === "block") {
@@ -2361,7 +2357,7 @@
           enableSearchButton();
           enableScryButton();
         }
-        updateUntapAllButtonVisibility(); // Check button visibility after any move
+        updateUntapAllButtonVisibility();
         hideContextMenu();
       }
 
@@ -2394,7 +2390,7 @@
         disableShuffleButton();
         disableSearchButton();
         disableScryButton();
-        untapAllButton.disabled = true; // Disable untap during scry
+        untapAllButton.disabled = true;
         displayScryModal(actualCount);
         updateTestStatus(
           `Scrying ${actualCount} cards... Choose Top or Bottom for each.`
@@ -2501,7 +2497,7 @@
         enableShuffleButton();
         enableSearchButton();
         enableScryButton();
-        untapAllButton.disabled = false; // Re-enable untap button
+        untapAllButton.disabled = false;
 
         if (wasActive) {
           let currentStatus = testHandStatus.textContent || "";
@@ -2596,7 +2592,17 @@
       deckList.addEventListener("click", (event) => {
         if (event.target.classList.contains("delete-card-btn")) {
           const cardName = event.target.getAttribute("data-cardname");
-          if (cardName) deleteCardFromDeck(cardName);
+          if (cardName) {
+            if (
+              confirm(
+                `Are you sure you want to remove "${escapeHtml(
+                  cardName
+                )}" from the deck?`
+              )
+            ) {
+              deleteCardFromDeck(cardName);
+            }
+          }
         }
       });
       deckList.addEventListener("change", (event) => {
@@ -2632,10 +2638,10 @@
           }
         }
         if (untappedCount > 0) {
-          displayBattlefield(); // Re-render the battlefield with untapped cards
+          displayBattlefield();
           updateTestStatus(`Untapped ${untappedCount} card(s).`);
         }
-        updateUntapAllButtonVisibility(); // This will hide the button
+        updateUntapAllButtonVisibility();
       });
 
       themeToggle.addEventListener("change", toggleTheme);
