@@ -5,48 +5,189 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Simple MTG Deck Builder (w/ Play Area)</title>
     <style>
-      /* --- Base Styles (mostly unchanged) --- */
+      /* --- NEW: CSS Variables for Theming --- */
+      :root {
+        /* Default Light Theme */
+        --body-bg: #f0f2f5;
+        --section-bg: #ffffff;
+        --text-color-primary: #333333;
+        --text-color-secondary: #444444;
+        --text-color-muted: #555555;
+        --text-color-link: #007bff;
+        --border-color-light: #eeeeee;
+        --border-color-medium: #cccccc;
+        --border-color-dark: #aaaaaa;
+        --button-bg: #007bff;
+        --button-text: #ffffff;
+        --button-bg-hover: #0056b3;
+        --button-disabled-bg: #cccccc;
+        --button-disabled-text: #666666;
+        --button-delete-bg: #dc3545;
+        --button-delete-text: #ffffff;
+        --button-delete-bg-hover: #c82333;
+        --input-bg: #ffffff;
+        --input-border: #cccccc;
+        --input-text: #333333;
+        --list-item-hover-bg: #f0f8ff;
+        --search-result-hover-bg: #f0f0f0;
+        --popup-bg: rgba(0, 0, 0, 0.8);
+        --popup-border: #555555;
+        --battlefield-bg: #e0e0e0;
+        --battlefield-border: #cccccc;
+        --zone-general-bg: #e9f5e9;
+        --zone-general-border: #9ccc9c;
+        --zone-creature-bg: #f5e9e9;
+        --zone-creature-border: #cc9c9c;
+        --zone-land-bg: #e9e9f5;
+        --zone-land-border: #9c9ccc;
+        --shadow-color: rgba(0, 0, 0, 0.1);
+        --shadow-color-heavy: rgba(0, 0, 0, 0.3);
+        --slider-bg: #ccc;
+        --slider-knob-bg: white;
+        --slider-checked-bg: #007bff;
+      }
+
+      body[data-theme="dark"] {
+        --body-bg: #1a1a1a;
+        --section-bg: #2c2c2c;
+        --text-color-primary: #e0e0e0;
+        --text-color-secondary: #cccccc;
+        --text-color-muted: #aaaaaa;
+        --text-color-link: #4dabf7;
+        --border-color-light: #444444;
+        --border-color-medium: #666666;
+        --border-color-dark: #888888;
+        --button-bg: #0056b3; /* Slightly different blue */
+        --button-text: #ffffff;
+        --button-bg-hover: #003d80;
+        --button-disabled-bg: #555555;
+        --button-disabled-text: #aaaaaa;
+        --button-delete-bg: #a02c38; /* Darker red */
+        --button-delete-text: #ffffff;
+        --button-delete-bg-hover: #80232e;
+        --input-bg: #3a3a3a;
+        --input-border: #666666;
+        --input-text: #e0e0e0;
+        --list-item-hover-bg: #3a4a5a;
+        --search-result-hover-bg: #444444;
+        --popup-bg: rgba(20, 20, 20, 0.9);
+        --popup-border: #aaaaaa;
+        --battlefield-bg: #3a3a3a;
+        --battlefield-border: #666666;
+        --zone-general-bg: #2a4a2a;
+        --zone-general-border: #5c8c5c;
+        --zone-creature-bg: #4a2a2a;
+        --zone-creature-border: #8c5c5c;
+        --zone-land-bg: #2a2a4a;
+        --zone-land-border: #5c5c8c;
+        --shadow-color: rgba(255, 255, 255, 0.05);
+        --shadow-color-heavy: rgba(255, 255, 255, 0.15);
+        --slider-bg: #555;
+        --slider-knob-bg: #bbb;
+        --slider-checked-bg: #0056b3;
+      }
+      /* --- End CSS Variables --- */
+
       body {
         font-family: sans-serif;
         display: grid;
         grid-template-columns: 1fr 2fr;
-        grid-template-rows: auto auto auto 1fr; /* Added row for test area */
+        grid-template-rows: auto auto auto 1fr; /* Row for test area */
         gap: 20px;
         max-width: 1300px;
         margin: 20px auto;
         padding: 15px;
-        background-color: #f0f2f5;
+        background-color: var(--body-bg); /* USE VAR */
+        color: var(--text-color-primary); /* USE VAR */
+        transition: background-color 0.3s ease, color 0.3s ease;
+      }
+
+      .header-container {
+        /* NEW container for H1 and Toggle */
+        grid-column: 1 / -1;
+        grid-row: 1 / 2;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative; /* For positioning the toggle */
+        margin-bottom: 15px;
       }
 
       h1 {
         text-align: center;
-        color: #333;
-        grid-column: 1 / -1;
-        grid-row: 1 / 2;
-        margin-bottom: 15px;
+        color: var(--text-color-primary); /* USE VAR */
+        margin: 0; /* Reset margin as it's in flex container */
       }
+
+      /* --- NEW: Theme Toggle Switch Styles --- */
+      .theme-switch-wrapper {
+        display: flex;
+        align-items: center;
+        position: absolute; /* Position relative to header-container */
+        right: 15px; /* Adjust as needed */
+        top: 50%;
+        transform: translateY(-50%);
+      }
+      .theme-switch {
+        display: inline-block;
+        height: 24px; /* Adjusted size */
+        position: relative;
+        width: 44px; /* Adjusted size */
+      }
+      .theme-switch input {
+        display: none;
+      }
+      .slider {
+        background-color: var(--slider-bg);
+        bottom: 0;
+        cursor: pointer;
+        left: 0;
+        position: absolute;
+        right: 0;
+        top: 0;
+        transition: 0.4s;
+        border-radius: 24px; /* Keep it rounded */
+      }
+      .slider:before {
+        background-color: var(--slider-knob-bg);
+        bottom: 3px; /* Adjusted position */
+        content: "";
+        height: 18px; /* Adjusted size */
+        left: 3px; /* Adjusted position */
+        position: absolute;
+        transition: 0.4s;
+        width: 18px; /* Adjusted size */
+        border-radius: 50%;
+      }
+      input:checked + .slider {
+        background-color: var(--slider-checked-bg);
+      }
+      input:checked + .slider:before {
+        transform: translateX(20px); /* Adjusted travel distance */
+      }
+      /* --- End Theme Toggle Styles --- */
+
       .search-section h2,
       .deck-section h2,
       .actions-section h2,
       .test-hand-section h2 {
         text-align: center;
-        color: #333;
+        color: var(--text-color-primary); /* USE VAR */
         margin-bottom: 15px;
       }
       h3 {
         margin-top: 0;
         margin-bottom: 10px;
-        color: #444;
-        font-size: 1em; /* Consistent H3 size */
+        color: var(--text-color-secondary); /* USE VAR */
+        font-size: 1em;
         padding: 0 5px;
       }
       h4 {
-        /* Style for sub-zone headings */
         margin: 5px 0;
         font-size: 0.9em;
-        color: #555;
+        color: var(--text-color-muted); /* USE VAR */
         text-align: center;
-        border-bottom: 1px solid #eee;
+        border-bottom: 1px solid var(--border-color-light); /* USE VAR */
         padding-bottom: 3px;
       }
 
@@ -54,15 +195,16 @@
       .deck-section,
       .actions-section,
       .test-hand-section {
-        background-color: #fff;
+        background-color: var(--section-bg); /* USE VAR */
         padding: 20px;
         border-radius: 8px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 2px 5px var(--shadow-color); /* USE VAR */
         display: flex;
         flex-direction: column;
+        transition: background-color 0.3s ease, box-shadow 0.3s ease;
       }
 
-      /* --- Grid Placement (Unchanged) --- */
+      /* Grid Placement (Unchanged) */
       .search-section {
         grid-column: 1 / 2;
         grid-row: 2 / 3;
@@ -79,17 +221,19 @@
       .test-hand-section {
         grid-column: 1 / -1;
         grid-row: 4 / 5;
-        min-height: 550px; /* Increased min-height slightly for zones */
+        min-height: 550px;
       }
 
-      /* --- Search Styles (Unchanged) --- */
+      /* Search Styles */
       #searchInput {
         width: 100%;
         padding: 10px;
         margin-bottom: 10px;
-        border: 1px solid #ccc;
+        border: 1px solid var(--input-border); /* USE VAR */
         border-radius: 4px;
         box-sizing: border-box;
+        background-color: var(--input-bg); /* USE VAR */
+        color: var(--input-text); /* USE VAR */
       }
       #searchResults {
         list-style: none;
@@ -97,22 +241,18 @@
         margin: 0;
         max-height: 300px;
         overflow-y: auto;
-        border: 1px solid #eee;
+        border: 1px solid var(--border-color-light); /* USE VAR */
         border-top: none;
         border-radius: 0 0 4px 4px;
-        background-color: white;
-        /* Removed positioning as it was likely for a dropdown */
-        /* position: absolute; */
-        width: calc(100% - 40px); /* Adjust width based on parent padding */
-        /* left: 20px; */
-        /* top: 85px; */
+        background-color: var(--section-bg); /* USE VAR */
+        width: calc(100% - 40px);
         z-index: 10;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 6px var(--shadow-color); /* USE VAR */
       }
       #searchResults li {
         padding: 5px 10px;
         cursor: pointer;
-        border-bottom: 1px solid #eee;
+        border-bottom: 1px solid var(--border-color-light); /* USE VAR */
         display: flex;
         align-items: center;
         gap: 8px;
@@ -121,7 +261,7 @@
         border-bottom: none;
       }
       #searchResults li:hover {
-        background-color: #f0f0f0;
+        background-color: var(--search-result-hover-bg); /* USE VAR */
       }
       .search-result-image {
         width: 30px;
@@ -139,10 +279,9 @@
         border: none;
         box-shadow: none;
         max-height: 0;
-        /* No need to explicitly hide if empty and position: static */
       }
 
-      /* --- Deck List Styles (Unchanged) --- */
+      /* Deck List Styles */
       #deckList {
         list-style: none;
         padding: 0;
@@ -153,7 +292,7 @@
       }
       #deckList li {
         padding: 8px 5px;
-        border-bottom: 1px solid #eee;
+        border-bottom: 1px solid var(--border-color-light); /* USE VAR */
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -169,14 +308,13 @@
         flex-grow: 1;
         min-width: 0;
       }
-      /* Make card image hoverable */
       .card-image {
         width: 60px;
         height: auto;
         border-radius: 3px;
         vertical-align: middle;
         flex-shrink: 0;
-        cursor: help; /* Indicate hover interaction */
+        cursor: help;
       }
       .card-name {
         overflow: hidden;
@@ -193,68 +331,65 @@
         width: 40px;
         text-align: center;
         padding: 4px;
-        border: 1px solid #ccc;
+        border: 1px solid var(--input-border); /* USE VAR */
         border-radius: 3px;
+        background-color: var(--input-bg); /* USE VAR */
+        color: var(--input-text); /* USE VAR */
       }
 
-      /* --- Buttons and Status --- */
+      /* Buttons and Status */
       .action-button,
       .delete-card-btn,
       #drawHandButton,
       #drawNextCardButton {
-        /* Added new button ID */
         padding: 9px 15px;
-        background-color: #007bff;
-        color: white;
+        background-color: var(--button-bg); /* USE VAR */
+        color: var(--button-text); /* USE VAR */
         border: none;
         border-radius: 4px;
         cursor: pointer;
         transition: background-color 0.2s ease;
         font-size: 0.9em;
-        margin-bottom: 10px; /* Consistent margin */
+        margin-bottom: 10px;
       }
-
-      /* Specific button styles */
       .test-hand-section .action-button {
-        /* Style buttons within test section */
-        display: inline-block; /* Allow side-by-side */
-        width: auto; /* Don't force full width */
-        margin-right: 10px; /* Space between buttons */
+        display: inline-block;
+        width: auto;
+        margin-right: 10px;
       }
-
       .action-button:hover,
       .delete-card-btn:hover,
       #drawHandButton:hover,
       #drawNextCardButton:hover {
-        background-color: #0056b3;
+        background-color: var(--button-bg-hover); /* USE VAR */
       }
-      /* Disabled button style */
       .action-button:disabled,
       #drawNextCardButton:disabled {
-        background-color: #cccccc;
+        background-color: var(--button-disabled-bg); /* USE VAR */
+        color: var(--button-disabled-text); /* USE VAR */
         cursor: not-allowed;
       }
-
       .delete-card-btn {
-        background-color: #dc3545;
+        background-color: var(--button-delete-bg); /* USE VAR */
+        color: var(--button-delete-text); /* USE VAR */
         padding: 4px 8px;
         font-size: 0.8em;
         line-height: 1;
       }
       .delete-card-btn:hover {
-        background-color: #c82333;
+        background-color: var(--button-delete-bg-hover); /* USE VAR */
       }
       .actions-section .action-button {
         display: block;
         width: 100%;
-      } /* Keep actions section buttons full width */
+      }
 
       #status,
       #deckActionStatus,
       #testHandStatus {
         margin-top: 10px;
         font-style: italic;
-        color: #555;
+        color: var(--text-color-muted); /* USE VAR */
         min-height: 1.2em;
         font-size: 0.9em;
       }
@@ -263,29 +398,28 @@
         font-weight: bold;
         margin-top: 15px;
         padding-top: 10px;
-        border-top: 1px solid #eee;
+        border-top: 1px solid var(--border-color-light); /* USE VAR */
       }
       .loading::after {
         content: " Loading...";
         display: inline-block;
         margin-left: 5px;
         font-style: italic;
-        color: #888;
+        color: var(--text-color-muted); /* USE VAR */
         font-size: 0.9em;
       }
 
-      /* --- Test Area Enhancements --- */
+      /* Test Area Enhancements */
       .play-area {
         display: flex;
         gap: 15px;
         margin-top: 15px;
-        border-top: 1px solid #eee;
+        border-top: 1px solid var(--border-color-light); /* USE VAR */
         padding-top: 15px;
         flex-grow: 1;
-        min-height: 400px; /* Adjusted min-height */
+        min-height: 400px;
         overflow: hidden;
       }
-
       .hand-zone {
         flex-basis: 250px;
         flex-shrink: 0;
@@ -298,54 +432,50 @@
         padding-left: 5px;
       }
 
-      /* MODIFIED: Battlefield now contains sub-zones */
       .battlefield-zone {
         flex-grow: 1;
-        display: flex; /* Use flex to arrange sub-zones */
-        flex-direction: column; /* Stack zones vertically */
+        display: flex;
+        flex-direction: column;
         gap: 10px;
-        background-color: #e0e0e0; /* Neutral background for container */
-        border: 1px solid #ccc; /* Solid border for container */
+        background-color: var(--battlefield-bg); /* USE VAR */
+        border: 1px solid var(--battlefield-border); /* USE VAR */
         border-radius: 5px;
         padding: 10px;
-        overflow: hidden; /* Let sub-zones handle internal scroll/overflow if needed */
+        overflow: hidden;
       }
-      /* REMOVED: h3 directly inside .battlefield-zone */
-
-      /* NEW: Sub-zone Styling */
       .bf-subzone {
-        flex-grow: 1; /* Share space vertically */
+        flex-grow: 1;
         border-radius: 4px;
-        padding: 10px 5px 5px 5px; /* Padding around cards */
-        position: relative; /* CRUCIAL for card positioning */
-        min-height: 150px; /* Ensure drop target area */
-        overflow: hidden; /* Hide card overflow */
-        display: flex; /* Use flexbox for cards */
-        flex-wrap: wrap; /* Allow cards to wrap */
-        align-content: flex-start; /* Align wrapped lines to top */
-        gap: 5px; /* Space between cards */
+        padding: 10px 5px 5px 5px;
+        position: relative;
+        min-height: 150px;
+        overflow: hidden;
+        display: flex;
+        flex-wrap: wrap;
+        align-content: flex-start;
+        gap: 5px;
+        transition: background-color 0.3s ease, border-color 0.3s ease; /* Smooth zone transition */
       }
       #generalZone {
-        background-color: #e9f5e9; /* Light green */
-        border: 1px dashed #9ccc9c;
-      }
+        background-color: var(--zone-general-bg);
+        border: 1px dashed var(--zone-general-border);
+      } /* USE VARS */
       #creatureZone {
-        background-color: #f5e9e9; /* Light red/pink */
-        border: 1px dashed #cc9c9c;
-      }
+        background-color: var(--zone-creature-bg);
+        border: 1px dashed var(--zone-creature-border);
+      } /* USE VARS */
       #landZone {
-        background-color: #e9e9f5; /* Light blue/purple */
-        border: 1px dashed #9c9ccc;
-      }
-      /* --- END NEW SUB-ZONE STYLING --- */
+        background-color: var(--zone-land-bg);
+        border: 1px dashed var(--zone-land-border);
+      } /* USE VARS */
 
-      /* Hand card display (Unchanged) */
+      /* Hand card display */
       #testHandDisplay li {
         padding: 5px;
-        border: 1px solid #eee;
+        border: 1px solid var(--border-color-light); /* USE VAR */
         margin-bottom: 4px;
         border-radius: 3px;
-        background-color: #fff;
+        background-color: var(--section-bg); /* Use section bg for cards */
         cursor: pointer;
         transition: background-color 0.2s ease;
         display: flex;
@@ -354,7 +484,7 @@
         gap: 8px;
       }
       #testHandDisplay li:hover {
-        background-color: #f0f8ff;
+        background-color: var(--list-item-hover-bg); /* USE VAR */
       }
       #testHandDisplay {
         list-style: none;
@@ -367,59 +497,70 @@
 
       /* Card on Battlefield */
       .battlefield-card {
-        position: absolute; /* Dragging uses absolute positioning */
+        position: absolute;
         width: 65px;
         height: auto;
         border-radius: 4px;
-        box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+        box-shadow: 1px 1px 3px var(--shadow-color-heavy); /* USE VAR */
         cursor: grab;
         user-select: none;
         transition: box-shadow 0.2s ease;
-        background-color: #fff;
+        background-color: var(--section-bg); /* Use section bg */
         z-index: 1;
       }
       .battlefield-card:active {
         cursor: grabbing;
-        box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.5);
+        box-shadow: 2px 2px 6px var(--shadow-color-heavy); /* USE VAR */
         z-index: 1000;
       }
-      /* Make battlefield image hoverable */
       .battlefield-card img {
         width: 100%;
         height: auto;
         display: block;
-        pointer-events: none; /* Allow drag events on parent */
-        cursor: help; /* Suggests hover interaction is available */
+        pointer-events: none;
+        cursor: help;
       }
       .battlefield-card img.dragging {
         opacity: 0.4;
       }
 
-      /* --- NEW: Image Popup Styles --- */
+      /* Image Popup Styles */
       #imagePopup {
-        position: fixed; /* Position relative to viewport */
-        display: none; /* Hidden by default */
+        position: fixed;
+        display: none;
         padding: 5px;
-        background-color: rgba(0, 0, 0, 0.8);
+        background-color: var(--popup-bg); /* USE VAR */
         border-radius: 6px;
-        z-index: 9999; /* High z-index */
-        pointer-events: none; /* Prevents popup from blocking mouse events */
-        transition: opacity 0.1s ease-in-out; /* Smooth fade (optional) */
-        width: 250px; /* Max width to prevent huge images */
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+        z-index: 9999;
+        pointer-events: none;
+        transition: opacity 0.1s ease-in-out;
+        width: 250px; /* Fixed width */
+        box-shadow: 0 4px 15px var(--shadow-color-heavy); /* USE VAR */
       }
       #imagePopup img {
         display: block;
-        width: 100%; /* Fill the container */
+        width: 100%;
         height: auto;
         border-radius: 4px;
-        border: 1px solid #555;
+        border: 1px solid var(--popup-border); /* USE VAR */
       }
-      /* --- END NEW Styles --- */
     </style>
   </head>
+  <!-- Body tag will get data-theme attribute -->
   <body>
-    <h1>Simple MTG Deck Builder</h1>
+    <!-- NEW: Header Container -->
+    <div class="header-container">
+      <h1>Simple MTG Deck Builder</h1>
+      <!-- NEW: Theme Toggle Switch -->
+      <div class="theme-switch-wrapper">
+        <label class="theme-switch" for="themeToggleCheckbox">
+          <input type="checkbox" id="themeToggleCheckbox" />
+          <span class="slider round"></span>
+        </label>
+      </div>
+      <!-- End Theme Toggle -->
+    </div>
+    <!-- End Header Container -->
 
     <!-- Grid Item: Search -->
     <div class="search-section">
@@ -480,11 +621,10 @@
       </div>
     </div>
 
-    <!-- NEW: Image Popup Element (Placed near end of body) -->
+    <!-- Image Popup Element -->
     <div id="imagePopup">
       <img id="popupImage" src="" alt="Card Preview" />
     </div>
-    <!-- END NEW Element -->
 
     <script>
       // --- DOM Element References ---
@@ -511,25 +651,26 @@
       const generalZone = document.getElementById("generalZone");
       const creatureZone = document.getElementById("creatureZone");
       const landZone = document.getElementById("landZone");
-      // NEW: Popup Element References
       const imagePopup = document.getElementById("imagePopup");
       const popupImage = document.getElementById("popupImage");
+      // NEW: Theme Toggle Reference
+      const themeToggle = document.getElementById("themeToggleCheckbox");
 
       const DECK_STORAGE_KEY = "mtgDeckBuilderSimpleDeckV3";
+      const THEME_STORAGE_KEY = "mtgThemePreference"; // NEW: Theme storage key
 
       // --- State Variables ---
-      let currentDeck = {}; // { "Card Name": { quantity: number, imageUrl: string, normalImageUrl?: string } } // Added optional normal URL
+      let currentDeck = {};
       let searchAbortController = null;
-      let currentHand = []; // Array of { handId: number, name: string, imageUrl: string, normalImageUrl?: string }
-      let currentBattlefield = {}; // { "bf-ID": { name: string, imageUrl: string, normalImageUrl?: string, zone: string, x: number, y: number } }
-      let currentLibrary = []; // Holds the shuffled deck cards remaining
+      let currentHand = [];
+      let currentBattlefield = {};
+      let currentLibrary = [];
       let handCardIdCounter = 0;
       let battlefieldCardIdCounter = 0;
       let dragInfo = { cardId: null, offsetX: 0, offsetY: 0 };
-      let popupVisible = false; // NEW: Track popup state
+      let popupVisible = false;
 
       // --- Utility Functions (Mostly Unchanged) ---
-      // Debounce implementation
       function debounce(func, wait) {
         let timeout;
         return function executedFunction(...args) {
@@ -541,14 +682,9 @@
           timeout = setTimeout(later, wait);
         };
       }
-      // Status update implementation
       function updateStatus(message, isLoading = false) {
         statusDiv.textContent = message;
-        if (isLoading) {
-          statusDiv.classList.add("loading");
-        } else {
-          statusDiv.classList.remove("loading");
-        }
+        statusDiv.classList.toggle("loading", isLoading);
       }
       function clearStatus() {
         updateStatus("");
@@ -556,27 +692,24 @@
       function removeLoadingIndicator() {
         statusDiv.classList.remove("loading");
       }
-      // Deck action status implementation
       function updateDeckActionStatus(message) {
         deckActionStatus.textContent = message;
         setTimeout(() => {
-          if (deckActionStatus.textContent === message) {
+          if (deckActionStatus.textContent === message)
             deckActionStatus.textContent = "";
-          }
         }, 4000);
       }
-      // HTML escaping implementation
       function escapeHtml(unsafe) {
         if (unsafe === null || unsafe === undefined) return "";
         return unsafe
-          .replace(/&/g, "&") // Corrected escaping
+          .replace(/&/g, "&")
           .replace(/</g, "<")
           .replace(/>/g, ">")
           .replace(/"/g, '"')
           .replace(/'/g, "'");
       }
 
-      // --- API Interaction (Modified slightly to potentially grab normal image) ---
+      // --- API Interaction (Unchanged from previous) ---
       async function performLiveSearch(query) {
         if (searchAbortController) {
           searchAbortController.abort();
@@ -592,7 +725,6 @@
         }
 
         updateStatus("Searching...", true);
-        // Requesting 'normal' size directly in query might not work, we process response
         const apiUrl = `https://api.scryfall.com/cards/search?q=${encodeURIComponent(
           query
         )}&unique=cards&order=name&include_extras=false&include_variations=false`;
@@ -610,9 +742,8 @@
             searchResults.style.display = "none";
             return;
           }
-
           const data = await response.json();
-          displaySearchResults(data.data.slice(0, 15)); // Display results uses the raw data
+          displaySearchResults(data.data.slice(0, 15));
         } catch (error) {
           if (error.name === "AbortError") {
             console.log("Search fetch aborted");
@@ -628,9 +759,7 @@
       }
       const debouncedLiveSearch = debounce(performLiveSearch, 350);
 
-      // --- Display Logic (Modified displaySearchResults, renderDeck, displayHand) ---
-
-      // displaySearchResults - Stores normal URL if available
+      // --- Display Logic (Unchanged from previous) ---
       function displaySearchResults(cards) {
         searchResults.innerHTML = "";
         if (!cards || cards.length === 0) {
@@ -641,12 +770,10 @@
         searchResults.style.display = "block";
         cards.forEach((card) => {
           const li = document.createElement("li");
-          // Prefer small for list view, store normal for popup/deck
           const smallImageUrl =
             card.image_uris?.small || card.image_uris?.normal || "";
-          const normalImageUrl = card.image_uris?.normal || smallImageUrl; // Fallback to small/other if normal missing
+          const normalImageUrl = card.image_uris?.normal || smallImageUrl;
           const cardName = card.name || "Unknown Card";
-
           li.innerHTML = `<img src="${escapeHtml(
             smallImageUrl
           )}" alt="${escapeHtml(
@@ -655,15 +782,11 @@
             cardName
           )}</span>`;
           li.dataset.cardname = cardName;
-          // Store both URLs. Keep small as default 'imageurl' for consistency? Let's store normal separately.
-          li.dataset.imageurl = smallImageUrl; // Keep this as the primary for adding to deck visually
-          li.dataset.normalimageurl = normalImageUrl; // Store the preferred larger URL
-
+          li.dataset.imageurl = smallImageUrl;
+          li.dataset.normalimageurl = normalImageUrl;
           searchResults.appendChild(li);
         });
       }
-
-      // renderDeck - Uses normalImageUrl for potential hover later (though not implemented here yet)
       function renderDeck() {
         deckList.innerHTML = "";
         let totalCards = 0;
@@ -676,38 +799,30 @@
           }
           totalCards += cardInfo.quantity;
           const li = document.createElement("li");
-          // Use the stored small image URL for the list view image
           const smallImageUrl = cardInfo.imageUrl || "";
-          const normalImageUrl = cardInfo.normalImageUrl || smallImageUrl; // Use normal for data/hover
-
+          const normalImageUrl = cardInfo.normalImageUrl || smallImageUrl;
           li.innerHTML = `<div class="card-info"><img src="${escapeHtml(
-            smallImageUrl // Display small image in list
+            smallImageUrl
           )}" alt="${escapeHtml(
             cardName
           )}" class="card-image" loading="lazy" data-normal-src="${escapeHtml(
             normalImageUrl
-          )}"> <!-- Add data-normal-src -->
-            <span class="card-name" title="${escapeHtml(
-              cardName
-            )}">${escapeHtml(cardName)}</span>
-          </div>
-          <div class="card-controls">
-            <span class="card-quantity"><input type="number" min="1" value="${
-              cardInfo.quantity
-            }" data-cardname="${escapeHtml(
+          )}"><span class="card-name" title="${escapeHtml(
             cardName
-          )}" class="quantity-input"></span>
-            <button class="delete-card-btn" data-cardname="${escapeHtml(
-              cardName
-            )}">X</button>
-          </div>`;
+          )}">${escapeHtml(
+            cardName
+          )}</span></div><div class="card-controls"><span class="card-quantity"><input type="number" min="1" value="${
+            cardInfo.quantity
+          }" data-cardname="${escapeHtml(
+            cardName
+          )}" class="quantity-input"></span><button class="delete-card-btn" data-cardname="${escapeHtml(
+            cardName
+          )}">X</button></div>`;
           deckList.appendChild(li);
         });
         deckTotalCountSpan.textContent = totalCards;
         deckTotalCountBottomSpan.textContent = totalCards;
       }
-
-      // displayHand - Adds normal image URL data attribute
       function displayHand() {
         const handList = document.getElementById("testHandDisplay");
         handList.innerHTML = "";
@@ -715,57 +830,46 @@
         currentHand.forEach((card) => {
           const li = document.createElement("li");
           li.dataset.handId = card.handId;
-          const smallImageUrl = card.imageUrl || ""; // The primary URL stored
-          const normalImageUrl = card.normalImageUrl || smallImageUrl; // The larger version
+          const smallImageUrl = card.imageUrl || "";
+          const normalImageUrl = card.normalImageUrl || smallImageUrl;
           const safeCardName = card.name || "Unknown Card";
-
-          li.innerHTML = `<div class="card-info">
-            <img src="${escapeHtml(smallImageUrl)}" alt="${escapeHtml(
+          li.innerHTML = `<div class="card-info"><img src="${escapeHtml(
+            smallImageUrl
+          )}" alt="${escapeHtml(
             safeCardName
           )}" class="card-image" loading="lazy" data-normal-src="${escapeHtml(
             normalImageUrl
-          )}"> <!-- Add data-normal-src -->
-            <span class="card-name" title="${escapeHtml(
-              safeCardName
-            )}">${escapeHtml(safeCardName)}</span>
-          </div>`;
+          )}"><span class="card-name" title="${escapeHtml(
+            safeCardName
+          )}">${escapeHtml(safeCardName)}</span></div>`;
           li.addEventListener("click", handlePlayCardFromHand);
           handList.appendChild(li);
         });
         handCardCountSpan.textContent = currentHand.length;
       }
-
-      // displayBattlefield - Adds normal image URL data attribute to inner image
       function displayBattlefield() {
         generalZone.innerHTML = "<h4>General Battlefield</h4>";
         creatureZone.innerHTML = "<h4>Creatures</h4>";
         landZone.innerHTML = "<h4>Lands</h4>";
-
         Object.entries(currentBattlefield).forEach(([id, card]) => {
           const cardDiv = document.createElement("div");
           cardDiv.classList.add("battlefield-card");
           cardDiv.dataset.battlefieldId = id;
           cardDiv.draggable = true;
-
           const posX = typeof card.x === "number" ? card.x : 10;
           const posY = typeof card.y === "number" ? card.y : 10;
           cardDiv.style.left = `${posX}px`;
           cardDiv.style.top = `${posY}px`;
-
           const smallImageUrl = card.imageUrl || "";
           const normalImageUrl = card.normalImageUrl || smallImageUrl;
           const safeCardName = card.name || "Unknown Card";
-
-          // Put the data-normal-src on the IMG tag itself
           cardDiv.innerHTML = `<img src="${escapeHtml(
             smallImageUrl
           )}" alt="${escapeHtml(safeCardName)}" title="${escapeHtml(
             safeCardName
           )}" data-normal-src="${escapeHtml(normalImageUrl)}">`;
-
           cardDiv.addEventListener("dragstart", handleDragStart);
           cardDiv.addEventListener("dragend", handleDragEnd);
-
           switch (card.zone) {
             case "land":
               landZone.appendChild(cardDiv);
@@ -781,9 +885,7 @@
         });
       }
 
-      // --- Deck Management Logic (Modified addCardToDeck) ---
-
-      // addCardToDeck - Stores both image URLs
+      // --- Deck Management Logic (Unchanged from previous) ---
       function addCardToDeck(cardName, smallImageUrl, normalImageUrl) {
         if (!cardName) {
           console.error("Attempted to add card with no name.");
@@ -801,14 +903,13 @@
           const safeSmallUrl =
             typeof smallImageUrl === "string" ? smallImageUrl : "";
           const safeNormalUrl =
-            typeof normalImageUrl === "string" ? normalImageUrl : safeSmallUrl; // Fallback
-          if (!safeSmallUrl) {
+            typeof normalImageUrl === "string" ? normalImageUrl : safeSmallUrl;
+          if (!safeSmallUrl)
             console.warn(`Missing image URL for card: ${safeCardName}.`);
-          }
           currentDeck[cardName] = {
             quantity: 1,
-            imageUrl: safeSmallUrl, // Primary visual URL (small)
-            normalImageUrl: safeNormalUrl, // Larger URL for popups etc.
+            imageUrl: safeSmallUrl,
+            normalImageUrl: safeNormalUrl,
           };
           updateDeckActionStatus(`Added "${safeCardName}" to deck.`);
         }
@@ -818,7 +919,6 @@
         searchResults.style.display = "none";
         clearStatus();
       }
-
       function updateCardQuantity(cardName, newQuantity) {
         const quantity = parseInt(newQuantity, 10);
         const cardInfo = currentDeck[cardName];
@@ -834,7 +934,7 @@
           updateDeckActionStatus(
             `Updated "${safeCardName}" quantity to ${quantity}.`
           );
-          renderDeck(); // Re-render to reflect potential changes if needed (though input updates visually)
+          renderDeck();
         }
       }
       function deleteCardFromDeck(cardName) {
@@ -854,14 +954,13 @@
           currentDeck = {};
           updateDeckActionStatus("Deck cleared.");
           renderDeck();
-          clearTestArea(); // Now correctly named
+          clearTestArea();
         }
       }
 
-      // --- Local Storage (Slight modification for new data structure) ---
+      // --- Local Storage (Deck - Unchanged from previous) ---
       function saveDeck() {
         try {
-          // No change needed here, JSON.stringify handles the structure
           localStorage.setItem(DECK_STORAGE_KEY, JSON.stringify(currentDeck));
           updateDeckActionStatus("Deck saved successfully!");
         } catch (error) {
@@ -874,8 +973,7 @@
       function loadDeck() {
         const savedDeck = localStorage.getItem(DECK_STORAGE_KEY);
         let deckLoaded = false;
-        let loadedData = {}; // Use temporary object for loading
-
+        let loadedData = {};
         if (savedDeck) {
           try {
             const parsedDeck = JSON.parse(savedDeck);
@@ -892,16 +990,15 @@
                   break;
                 }
                 const entry = parsedDeck[key];
-                // Validate basic structure + new optional field
                 if (
                   typeof entry !== "object" ||
                   entry === null ||
                   typeof entry.quantity !== "number" ||
                   !Number.isInteger(entry.quantity) ||
                   entry.quantity <= 0 ||
-                  typeof entry.imageUrl !== "string" || // Must have small/primary URL
+                  typeof entry.imageUrl !== "string" ||
                   (entry.hasOwnProperty("normalImageUrl") &&
-                    typeof entry.normalImageUrl !== "string") // normalImageUrl must be string if present
+                    typeof entry.normalImageUrl !== "string")
                 ) {
                   isValid = false;
                   break;
@@ -909,12 +1006,11 @@
                 validatedDeck[key] = {
                   quantity: entry.quantity,
                   imageUrl: entry.imageUrl,
-                  // Ensure normalImageUrl exists, defaulting to imageUrl if missing in old saves
                   normalImageUrl: entry.normalImageUrl || entry.imageUrl,
                 };
               }
               if (isValid) {
-                loadedData = validatedDeck; // Load into temp object first
+                loadedData = validatedDeck;
                 updateDeckActionStatus("Deck loaded successfully!");
                 deckLoaded = true;
               } else {
@@ -945,75 +1041,62 @@
             loadedData = {};
           }
         } else {
-          loadedData = {}; // Ensure it's empty if nothing found
+          loadedData = {};
         }
-
-        currentDeck = loadedData; // Assign the loaded or cleared data to the main state
+        currentDeck = loadedData;
         clearTestArea();
         renderDeck();
-
         if (!deckLoaded && Object.keys(currentDeck).length === 0) {
           setTimeout(() => {
             if (
               deckActionStatus.textContent === "" ||
               deckActionStatus.textContent === "No saved deck found."
-            ) {
+            )
               updateDeckActionStatus("Create a new deck or load a saved one.");
-            }
           }, 100);
         } else if (!deckLoaded && Object.keys(currentDeck).length > 0) {
           updateDeckActionStatus("No saved deck found. Using current deck.");
         }
       }
 
-      // --- Test Hand / Play Area Logic (Modified drawTestHand, handlePlayCardFromHand) ---
-
-      // drawTestHand - Passes normalImageUrl
+      // --- Test Hand / Play Area Logic (Unchanged from previous) ---
       function drawTestHand() {
         clearTestArea();
         const deckArray = [];
         for (const cardName in currentDeck) {
           const cardInfo = currentDeck[cardName];
           if (cardInfo && cardInfo.quantity > 0) {
-            for (let i = 0; i < cardInfo.quantity; i++) {
+            for (let i = 0; i < cardInfo.quantity; i++)
               deckArray.push({
                 name: cardName,
                 imageUrl: cardInfo.imageUrl,
-                normalImageUrl: cardInfo.normalImageUrl, // Pass along normal URL
+                normalImageUrl: cardInfo.normalImageUrl,
               });
-            }
           }
         }
-
         const deckSize = deckArray.length;
         if (deckSize < 7) {
           testHandStatus.textContent = `Cannot draw hand: Deck only has ${deckSize} cards (needs at least 7).`;
           disableDrawNextButton();
           return;
         }
-
         for (let i = deckArray.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
           [deckArray[i], deckArray[j]] = [deckArray[j], deckArray[i]];
         }
-
         const hand = deckArray.slice(0, 7);
         currentHand = hand.map((card) => ({
           handId: handCardIdCounter++,
           name: card.name,
           imageUrl: card.imageUrl,
-          normalImageUrl: card.normalImageUrl, // Store in hand state
+          normalImageUrl: card.normalImageUrl,
         }));
-
-        currentLibrary = deckArray.slice(7); // Library contains objects with both URLs too
-
+        currentLibrary = deckArray.slice(7);
         testHandStatus.textContent = `Drew 7 cards. ${currentLibrary.length} cards left in library.`;
         displayHand();
         displayBattlefield();
         enableDrawNextButton();
       }
-
-      // drawNextCard - Passes normalImageUrl
       function drawNextCard() {
         if (currentLibrary.length === 0) {
           testHandStatus.textContent = "Cannot draw: Library is empty.";
@@ -1025,7 +1108,7 @@
           handId: handCardIdCounter++,
           name: nextCard.name,
           imageUrl: nextCard.imageUrl,
-          normalImageUrl: nextCard.normalImageUrl, // Add to hand state
+          normalImageUrl: nextCard.normalImageUrl,
         });
         displayHand();
         testHandStatus.textContent = `Drew ${escapeHtml(nextCard.name)}. ${
@@ -1036,7 +1119,6 @@
           testHandStatus.textContent += " Library is now empty.";
         }
       }
-
       function enableDrawNextButton() {
         drawNextCardButton.disabled = false;
       }
@@ -1057,10 +1139,8 @@
         if (handCardCountSpan) handCardCountSpan.textContent = "0";
         if (testHandStatus) testHandStatus.textContent = "";
         disableDrawNextButton();
-        hideImagePopup(); // Hide popup if area is cleared
+        hideImagePopup();
       }
-
-      // handlePlayCardFromHand - Passes normalImageUrl to battlefield state
       function handlePlayCardFromHand(event) {
         const listItem = event.currentTarget;
         const handId = parseInt(listItem.dataset.handId, 10);
@@ -1074,8 +1154,8 @@
           const initialY = 10 + Math.floor(Math.random() * 10);
           currentBattlefield[battlefieldId] = {
             name: cardToPlay.name,
-            imageUrl: cardToPlay.imageUrl, // Small URL
-            normalImageUrl: cardToPlay.normalImageUrl, // Normal URL
+            imageUrl: cardToPlay.imageUrl,
+            normalImageUrl: cardToPlay.normalImageUrl,
             zone: "general",
             x: initialX,
             y: initialY,
@@ -1085,7 +1165,7 @@
         }
       }
 
-      // --- Drag and Drop Handlers (Unchanged) ---
+      // --- Drag and Drop Handlers (Unchanged from previous) ---
       function handleDragStart(event) {
         const cardElement = event.target.closest(".battlefield-card");
         if (!cardElement || !cardElement.dataset.battlefieldId) return;
@@ -1102,17 +1182,15 @@
         event.dataTransfer.setData("text/plain", cardId);
         event.dataTransfer.effectAllowed = "move";
         setTimeout(() => {
-          // Apply class to the inner image
           const img = cardElement.querySelector("img");
           if (img) img.classList.add("dragging");
         }, 0);
         event.stopPropagation();
-        hideImagePopup(); // Hide popup during drag
+        hideImagePopup();
       }
       function handleDragEnd(event) {
         const cardId = dragInfo.cardId;
         if (cardId) {
-          // Find the potentially moved element's image to remove styling
           const cardElement = battlefieldDisplayContainer.querySelector(
             `[data-battlefield-id="${cardId}"]`
           );
@@ -1142,12 +1220,9 @@
         if (targetZoneElement.id === "landZone") targetZoneId = "land";
         else if (targetZoneElement.id === "creatureZone")
           targetZoneId = "creature";
-
         const zoneRect = targetZoneElement.getBoundingClientRect();
         let newX = event.clientX - zoneRect.left - dragInfo.offsetX;
         let newY = event.clientY - zoneRect.top - dragInfo.offsetY;
-
-        // Use querySelector on the *entire* container to find the element, regardless of old zone
         const cardElement = battlefieldDisplayContainer.querySelector(
           `[data-battlefield-id="${draggedCardId}"]`
         );
@@ -1165,94 +1240,106 @@
         newY = Math.max(0, Math.min(newY, containerHeight - cardHeight));
         newX = Math.max(0, newX);
         newY = Math.max(0, newY);
-
         currentBattlefield[draggedCardId].zone = targetZoneId;
         currentBattlefield[draggedCardId].x = newX;
         currentBattlefield[draggedCardId].y = newY;
-        displayBattlefield(); // Re-render places it in the new zone's DOM
+        displayBattlefield();
       }
 
-      // --- NEW: Image Popup Logic ---
+      // --- Image Popup Logic (Unchanged from previous) ---
       function showImagePopup(event, targetImage) {
-        // Determine the correct larger image URL
         let largeImageUrl =
-          targetImage.dataset.normalSrc || targetImage.getAttribute("src"); // Use data-normal-src first
-
-        // If the URL still looks like a 'small' version, try replacing it just in case
-        if (largeImageUrl && largeImageUrl.includes("/small.")) {
+          targetImage.dataset.normalSrc || targetImage.getAttribute("src");
+        if (largeImageUrl && largeImageUrl.includes("/small."))
           largeImageUrl = largeImageUrl.replace("/small.", "/normal.");
-        } else if (largeImageUrl && largeImageUrl.includes("size=small")) {
+        else if (largeImageUrl && largeImageUrl.includes("size=small"))
           largeImageUrl = largeImageUrl.replace("size=small", "size=normal");
-        }
-
-        if (!largeImageUrl) return; // Don't show if no URL
-
-        popupImage.src = largeImageUrl; // Set the source
-        // Error handler to fallback if 'normal' fails (e.g., 404)
+        if (!largeImageUrl) return;
+        popupImage.src = largeImageUrl;
         popupImage.onerror = () => {
           console.warn(
             `Failed to load large image: ${largeImageUrl}, falling back.`
           );
-          popupImage.src = targetImage.getAttribute("src"); // Fallback to original src
-          popupImage.onerror = null; // Prevent infinite loop if small also fails
+          popupImage.src = targetImage.getAttribute("src");
+          popupImage.onerror = null;
         };
-
         imagePopup.style.display = "block";
         popupVisible = true;
-        moveImagePopup(event); // Position immediately
+        moveImagePopup(event);
       }
-
       function hideImagePopup() {
         imagePopup.style.display = "none";
-        popupImage.src = ""; // Clear src to prevent loading old image briefly
-        popupImage.onerror = null; // Clear error handler
+        popupImage.src = "";
+        popupImage.onerror = null;
         popupVisible = false;
       }
-
       function moveImagePopup(event) {
         if (!popupVisible) return;
-
-        const offset = 15; // Pixels away from cursor
+        const offset = 15;
         const popupWidth = imagePopup.offsetWidth;
         const popupHeight = imagePopup.offsetHeight;
         const viewportWidth = window.innerWidth;
         const viewportHeight = window.innerHeight;
-
         let top = event.clientY + offset;
         let left = event.clientX + offset;
-
-        // Boundary checks
-        if (left + popupWidth > viewportWidth) {
-          left = event.clientX - popupWidth - offset; // Move to left of cursor
-        }
-        if (top + popupHeight > viewportHeight) {
-          top = event.clientY - popupHeight - offset; // Move above cursor
-        }
-
-        // Ensure it doesn't go off the top/left either
+        if (left + popupWidth > viewportWidth)
+          left = event.clientX - popupWidth - offset;
+        if (top + popupHeight > viewportHeight)
+          top = event.clientY - popupHeight - offset;
         if (top < 0) top = offset;
         if (left < 0) left = offset;
-
         imagePopup.style.top = `${top}px`;
         imagePopup.style.left = `${left}px`;
       }
 
+      // --- NEW: Theme Management Logic ---
+      function setTheme(themeName) {
+        localStorage.setItem(THEME_STORAGE_KEY, themeName);
+        document.body.setAttribute("data-theme", themeName);
+        // Update toggle switch state visually
+        themeToggle.checked = themeName === "dark";
+      }
+
+      function toggleTheme() {
+        if (themeToggle.checked) {
+          setTheme("dark");
+        } else {
+          setTheme("light");
+        }
+      }
+
+      function loadTheme() {
+        const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+        const prefersDark =
+          window.matchMedia &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+        if (storedTheme) {
+          // Use stored preference
+          setTheme(storedTheme);
+        } else if (prefersDark) {
+          // Use system preference if no storage
+          setTheme("dark");
+        } else {
+          // Default to light
+          setTheme("light");
+        }
+      }
+
       // --- Event Listeners ---
 
-      // Search (Modified results click to pass normal URL)
+      // Search (Unchanged from previous)
       searchInput.addEventListener("input", (event) => {
         debouncedLiveSearch(event.target.value.trim());
       });
       searchResults.addEventListener("click", (event) => {
         const listItem = event.target.closest("li");
-        if (listItem && listItem.dataset.cardname) {
-          // Pass both URLs
+        if (listItem && listItem.dataset.cardname)
           addCardToDeck(
             listItem.dataset.cardname,
             listItem.dataset.imageurl,
-            listItem.dataset.normalimageurl // Pass the normal URL
+            listItem.dataset.normalimageurl
           );
-        }
       });
       document.addEventListener("click", (event) => {
         const searchSection = event.target.closest(".search-section");
@@ -1266,20 +1353,16 @@
         if (event.key === "Enter") {
           event.preventDefault();
           const firstResult = searchResults.querySelector("li");
-          if (firstResult && firstResult.dataset.cardname) {
+          if (firstResult && firstResult.dataset.cardname)
             addCardToDeck(
               firstResult.dataset.cardname,
               firstResult.dataset.imageurl,
-              firstResult.dataset.normalimageurl // Pass normal URL on enter too
+              firstResult.dataset.normalimageurl
             );
-          } else {
-            // Maybe trigger search again? Or do nothing if no results shown.
-            // performLiveSearch(searchInput.value.trim());
-          }
         }
       });
 
-      // Deck List (Unchanged behavior, hover handled by delegated listeners below)
+      // Deck List (Unchanged from previous)
       deckList.addEventListener("click", (event) => {
         if (event.target.classList.contains("delete-card-btn")) {
           const cardName = event.target.getAttribute("data-cardname");
@@ -1293,20 +1376,20 @@
         }
       });
 
-      // Action Buttons
+      // Action Buttons (Unchanged from previous)
       saveDeckButton.addEventListener("click", saveDeck);
       loadDeckButton.addEventListener("click", loadDeck);
       clearDeckButton.addEventListener("click", clearDeck);
       drawHandButton.addEventListener("click", drawTestHand);
       drawNextCardButton.addEventListener("click", drawNextCard);
 
-      // Drag Listeners for Battlefield Zones
+      // Drag Listeners for Battlefield Zones (Unchanged from previous)
       [generalZone, creatureZone, landZone].forEach((zone) => {
         zone.addEventListener("dragover", handleDragOver);
         zone.addEventListener("drop", handleDrop);
       });
 
-      // --- NEW: Delegated Event Listeners for Image Popup ---
+      // Image Popup Delegated Listeners (Unchanged from previous)
       function setupPopupListeners() {
         const containers = [
           searchResults,
@@ -1314,72 +1397,49 @@
           testHandDisplay,
           battlefieldDisplayContainer,
         ];
-
         containers.forEach((container) => {
-          if (!container) return; // Skip if a container doesn't exist
-
-          // Mouse Over/Enter
+          if (!container) return;
           container.addEventListener("mouseover", (event) => {
             let targetImg = null;
-            // Check if target is one of our images
-            if (event.target.matches(".search-result-image, .card-image")) {
+            if (event.target.matches(".search-result-image, .card-image"))
               targetImg = event.target;
-            } else if (event.target.matches(".battlefield-card")) {
-              // For battlefield, the target might be the div, get the img inside
+            else if (event.target.matches(".battlefield-card"))
               targetImg = event.target.querySelector("img");
-            } else if (
-              event.target.parentElement?.matches(".battlefield-card")
-            ) {
-              // Or if target is the image itself inside battlefield card
+            else if (event.target.parentElement?.matches(".battlefield-card"))
               targetImg = event.target;
-            }
-
-            if (targetImg) {
-              showImagePopup(event, targetImg);
-            }
+            if (targetImg) showImagePopup(event, targetImg);
           });
-
-          // Mouse Move
           container.addEventListener("mousemove", (event) => {
-            // Only move if the popup is visible (performance)
-            // We don't need to check the target again, just the visibility state
-            if (popupVisible) {
-              moveImagePopup(event);
-            }
+            if (popupVisible) moveImagePopup(event);
           });
-
-          // Mouse Out/Leave
           container.addEventListener("mouseout", (event) => {
             let relatedTargetIsPopup = imagePopup.contains(event.relatedTarget);
             let targetIsImageOrParent =
               event.target.matches(
                 ".search-result-image, .card-image, .battlefield-card"
               ) || event.target.parentElement?.matches(".battlefield-card");
-
-            // Hide if moving out of a relevant image *and* not moving into the popup itself
-            if (targetIsImageOrParent && !relatedTargetIsPopup) {
+            if (targetIsImageOrParent && !relatedTargetIsPopup)
               hideImagePopup();
-            }
           });
         });
-
-        // Add a listener to the popup itself in case the mouse moves onto it briefly
         imagePopup.addEventListener("mouseout", (event) => {
-          // Check if the mouse is moving to something *outside* the popup and its trigger elements
           const isMovingToTrigger = event.relatedTarget?.matches(
             ".search-result-image, .card-image, .battlefield-card img, .battlefield-card"
           );
-          if (!imagePopup.contains(event.relatedTarget) && !isMovingToTrigger) {
+          if (!imagePopup.contains(event.relatedTarget) && !isMovingToTrigger)
             hideImagePopup();
-          }
         });
       }
 
+      // NEW: Theme Toggle Listener
+      themeToggle.addEventListener("change", toggleTheme);
+
       // --- Initial Load ---
       document.addEventListener("DOMContentLoaded", () => {
-        loadDeck(); // Handles initial state, rendering, messages, and test area clearing
-        disableDrawNextButton(); // Ensure draw next is disabled initially
-        setupPopupListeners(); // NEW: Set up the delegated listeners for the popup
+        loadTheme(); // NEW: Load theme preference first
+        loadDeck();
+        disableDrawNextButton();
+        setupPopupListeners();
       });
     </script>
   </body>
