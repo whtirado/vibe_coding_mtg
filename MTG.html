@@ -101,9 +101,11 @@
         border-top: none;
         border-radius: 0 0 4px 4px;
         background-color: white;
-        width: calc(100% - 40px);
-        left: 20px;
-        top: 85px;
+        /* Removed positioning as it was likely for a dropdown */
+        /* position: absolute; */
+        width: calc(100% - 40px); /* Adjust width based on parent padding */
+        /* left: 20px; */
+        /* top: 85px; */
         z-index: 10;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       }
@@ -137,6 +139,7 @@
         border: none;
         box-shadow: none;
         max-height: 0;
+        /* No need to explicitly hide if empty and position: static */
       }
 
       /* --- Deck List Styles (Unchanged) --- */
@@ -166,12 +169,14 @@
         flex-grow: 1;
         min-width: 0;
       }
+      /* Make card image hoverable */
       .card-image {
-        width: 40px;
+        width: 60px;
         height: auto;
         border-radius: 3px;
         vertical-align: middle;
         flex-shrink: 0;
+        cursor: help; /* Indicate hover interaction */
       }
       .card-name {
         overflow: hidden;
@@ -360,7 +365,7 @@
         flex-grow: 1;
       }
 
-      /* Card on Battlefield (Unchanged basic style, positioning context handled by zones) */
+      /* Card on Battlefield */
       .battlefield-card {
         position: absolute; /* Dragging uses absolute positioning */
         width: 65px;
@@ -378,21 +383,45 @@
         box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.5);
         z-index: 1000;
       }
+      /* Make battlefield image hoverable */
       .battlefield-card img {
         width: 100%;
         height: auto;
         display: block;
-        pointer-events: none;
+        pointer-events: none; /* Allow drag events on parent */
+        cursor: help; /* Suggests hover interaction is available */
       }
       .battlefield-card img.dragging {
         opacity: 0.4;
       }
+
+      /* --- NEW: Image Popup Styles --- */
+      #imagePopup {
+        position: fixed; /* Position relative to viewport */
+        display: none; /* Hidden by default */
+        padding: 5px;
+        background-color: rgba(0, 0, 0, 0.8);
+        border-radius: 6px;
+        z-index: 9999; /* High z-index */
+        pointer-events: none; /* Prevents popup from blocking mouse events */
+        transition: opacity 0.1s ease-in-out; /* Smooth fade (optional) */
+        width: 250px; /* Max width to prevent huge images */
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+      }
+      #imagePopup img {
+        display: block;
+        width: 100%; /* Fill the container */
+        height: auto;
+        border-radius: 4px;
+        border: 1px solid #555;
+      }
+      /* --- END NEW Styles --- */
     </style>
   </head>
   <body>
     <h1>Simple MTG Deck Builder</h1>
 
-    <!-- Grid Item: Search (Unchanged) -->
+    <!-- Grid Item: Search -->
     <div class="search-section">
       <h2>Card Search</h2>
       <input
@@ -405,7 +434,7 @@
       <div id="status">Type at least 3 characters for suggestions.</div>
     </div>
 
-    <!-- Grid Item: Actions (Unchanged) -->
+    <!-- Grid Item: Actions -->
     <div class="actions-section">
       <h2>Deck Actions</h2>
       <button id="saveDeckButton" class="action-button">Save Deck</button>
@@ -416,17 +445,16 @@
       <div id="deckActionStatus"></div>
     </div>
 
-    <!-- Grid Item: Deck (Unchanged) -->
+    <!-- Grid Item: Deck -->
     <div class="deck-section">
       <h2>Current Deck (<span id="deckTotalCount">0</span> cards)</h2>
       <ul id="deckList"></ul>
       <div id="deckCount">Total: <span id="deckTotalCountBottom">0</span></div>
     </div>
 
-    <!-- Grid Item: Test Area (MODIFIED HTML) -->
+    <!-- Grid Item: Test Area -->
     <div class="test-hand-section">
       <h2>Test Area</h2>
-      <!-- Added Draw Next Card Button -->
       <button id="drawHandButton" class="action-button">Draw 7 Cards</button>
       <button id="drawNextCardButton" class="action-button" disabled>
         Draw Next Card
@@ -438,26 +466,25 @@
           <h3>Hand (<span id="handCardCount">0</span>)</h3>
           <ul id="testHandDisplay"></ul>
         </div>
-        <!-- MODIFIED Battlefield Structure -->
         <div class="battlefield-zone" id="battlefieldDisplayContainer">
-          <!-- Renamed parent -->
           <div class="bf-subzone" id="generalZone">
             <h4>General Battlefield</h4>
-            <!-- Cards not in specific zones land here -->
           </div>
           <div class="bf-subzone" id="creatureZone">
             <h4>Creatures</h4>
-            <!-- Creature cards land here -->
           </div>
           <div class="bf-subzone" id="landZone">
             <h4>Lands</h4>
-            <!-- Land cards land here -->
           </div>
         </div>
-        <!-- END MODIFIED Battlefield Structure -->
       </div>
     </div>
-    <!-- END Test Hand Section -->
+
+    <!-- NEW: Image Popup Element (Placed near end of body) -->
+    <div id="imagePopup">
+      <img id="popupImage" src="" alt="Card Preview" />
+    </div>
+    <!-- END NEW Element -->
 
     <script>
       // --- DOM Element References ---
@@ -474,51 +501,34 @@
       const clearDeckButton = document.getElementById("clearDeckButton");
       const deckActionStatus = document.getElementById("deckActionStatus");
       const drawHandButton = document.getElementById("drawHandButton");
-      const drawNextCardButton = document.getElementById("drawNextCardButton"); // New Button
+      const drawNextCardButton = document.getElementById("drawNextCardButton");
       const testHandDisplay = document.getElementById("testHandDisplay");
       const handCardCountSpan = document.getElementById("handCardCount");
       const testHandStatus = document.getElementById("testHandStatus");
-      // Battlefield Zone Containers
       const battlefieldDisplayContainer = document.getElementById(
         "battlefieldDisplayContainer"
-      ); // Outer container
+      );
       const generalZone = document.getElementById("generalZone");
       const creatureZone = document.getElementById("creatureZone");
       const landZone = document.getElementById("landZone");
+      // NEW: Popup Element References
+      const imagePopup = document.getElementById("imagePopup");
+      const popupImage = document.getElementById("popupImage");
 
       const DECK_STORAGE_KEY = "mtgDeckBuilderSimpleDeckV3";
 
       // --- State Variables ---
-      let currentDeck = {}; // { "Card Name": { quantity: number, imageUrl: string } }
+      let currentDeck = {}; // { "Card Name": { quantity: number, imageUrl: string, normalImageUrl?: string } } // Added optional normal URL
       let searchAbortController = null;
-      let currentHand = []; // Array of { handId: number, name: string, imageUrl: string }
-      // MODIFIED: Battlefield state now includes zone
-      let currentBattlefield = {}; // { "bf-ID": { name: string, imageUrl: string, zone: string, x: number, y: number } }
-      let currentLibrary = []; // Holds the shuffled deck cards remaining after initial draw
+      let currentHand = []; // Array of { handId: number, name: string, imageUrl: string, normalImageUrl?: string }
+      let currentBattlefield = {}; // { "bf-ID": { name: string, imageUrl: string, normalImageUrl?: string, zone: string, x: number, y: number } }
+      let currentLibrary = []; // Holds the shuffled deck cards remaining
       let handCardIdCounter = 0;
       let battlefieldCardIdCounter = 0;
-      // MODIFIED: Drag info now includes source zone if needed (optional for now)
       let dragInfo = { cardId: null, offsetX: 0, offsetY: 0 };
+      let popupVisible = false; // NEW: Track popup state
 
-      // --- Utility Functions (Unchanged) ---
-      function debounce(func, wait) {
-        /* ... */
-      }
-      function updateStatus(message, isLoading = false) {
-        /* ... */
-      }
-      function clearStatus() {
-        /* ... */
-      }
-      function removeLoadingIndicator() {
-        /* ... */
-      }
-      function updateDeckActionStatus(message) {
-        /* ... */
-      }
-      function escapeHtml(unsafe) {
-        /* ... */
-      }
+      // --- Utility Functions (Mostly Unchanged) ---
       // Debounce implementation
       function debounce(func, wait) {
         let timeout;
@@ -559,19 +569,14 @@
       function escapeHtml(unsafe) {
         if (unsafe === null || unsafe === undefined) return "";
         return unsafe
-          .replace(/&/g, "&")
+          .replace(/&/g, "&") // Corrected escaping
           .replace(/</g, "<")
           .replace(/>/g, ">")
           .replace(/"/g, '"')
           .replace(/'/g, "'");
       }
 
-      // --- API Interaction (Unchanged) ---
-      async function performLiveSearch(query) {
-        /* ... */
-      }
-      const debouncedLiveSearch = debounce(performLiveSearch, 350);
-      // performLiveSearch implementation
+      // --- API Interaction (Modified slightly to potentially grab normal image) ---
       async function performLiveSearch(query) {
         if (searchAbortController) {
           searchAbortController.abort();
@@ -587,6 +592,7 @@
         }
 
         updateStatus("Searching...", true);
+        // Requesting 'normal' size directly in query might not work, we process response
         const apiUrl = `https://api.scryfall.com/cards/search?q=${encodeURIComponent(
           query
         )}&unique=cards&order=name&include_extras=false&include_variations=false`;
@@ -606,7 +612,7 @@
           }
 
           const data = await response.json();
-          displaySearchResults(data.data.slice(0, 15));
+          displaySearchResults(data.data.slice(0, 15)); // Display results uses the raw data
         } catch (error) {
           if (error.name === "AbortError") {
             console.log("Search fetch aborted");
@@ -620,19 +626,11 @@
           searchAbortController = null;
         }
       }
+      const debouncedLiveSearch = debounce(performLiveSearch, 350);
 
-      // --- Display Logic ---
-      function displaySearchResults(cards) {
-        /* ... */
-      }
-      function renderDeck() {
-        /* ... */
-      }
-      function displayHand() {
-        /* ... */
-      }
+      // --- Display Logic (Modified displaySearchResults, renderDeck, displayHand) ---
 
-      // displaySearchResults implementation
+      // displaySearchResults - Stores normal URL if available
       function displaySearchResults(cards) {
         searchResults.innerHTML = "";
         if (!cards || cards.length === 0) {
@@ -643,20 +641,29 @@
         searchResults.style.display = "block";
         cards.forEach((card) => {
           const li = document.createElement("li");
-          const imageUrl =
+          // Prefer small for list view, store normal for popup/deck
+          const smallImageUrl =
             card.image_uris?.small || card.image_uris?.normal || "";
+          const normalImageUrl = card.image_uris?.normal || smallImageUrl; // Fallback to small/other if normal missing
           const cardName = card.name || "Unknown Card";
-          li.innerHTML = `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(
+
+          li.innerHTML = `<img src="${escapeHtml(
+            smallImageUrl
+          )}" alt="${escapeHtml(
             cardName
           )}" class="search-result-image" loading="lazy"><span class="search-result-name">${escapeHtml(
             cardName
           )}</span>`;
           li.dataset.cardname = cardName;
-          li.dataset.imageurl = imageUrl;
+          // Store both URLs. Keep small as default 'imageurl' for consistency? Let's store normal separately.
+          li.dataset.imageurl = smallImageUrl; // Keep this as the primary for adding to deck visually
+          li.dataset.normalimageurl = normalImageUrl; // Store the preferred larger URL
+
           searchResults.appendChild(li);
         });
       }
-      // renderDeck implementation
+
+      // renderDeck - Uses normalImageUrl for potential hover later (though not implemented here yet)
       function renderDeck() {
         deckList.innerHTML = "";
         let totalCards = 0;
@@ -669,28 +676,38 @@
           }
           totalCards += cardInfo.quantity;
           const li = document.createElement("li");
-          const safeImageUrl = cardInfo.imageUrl || "";
+          // Use the stored small image URL for the list view image
+          const smallImageUrl = cardInfo.imageUrl || "";
+          const normalImageUrl = cardInfo.normalImageUrl || smallImageUrl; // Use normal for data/hover
+
           li.innerHTML = `<div class="card-info"><img src="${escapeHtml(
-            safeImageUrl
+            smallImageUrl // Display small image in list
           )}" alt="${escapeHtml(
             cardName
-          )}" class="card-image" loading="lazy"><span class="card-name" title="${escapeHtml(
+          )}" class="card-image" loading="lazy" data-normal-src="${escapeHtml(
+            normalImageUrl
+          )}"> <!-- Add data-normal-src -->
+            <span class="card-name" title="${escapeHtml(
+              cardName
+            )}">${escapeHtml(cardName)}</span>
+          </div>
+          <div class="card-controls">
+            <span class="card-quantity"><input type="number" min="1" value="${
+              cardInfo.quantity
+            }" data-cardname="${escapeHtml(
             cardName
-          )}">${escapeHtml(
-            cardName
-          )}</span></div><div class="card-controls"><span class="card-quantity"><input type="number" min="1" value="${
-            cardInfo.quantity
-          }" data-cardname="${escapeHtml(
-            cardName
-          )}" class="quantity-input"></span><button class="delete-card-btn" data-cardname="${escapeHtml(
-            cardName
-          )}">X</button></div>`;
+          )}" class="quantity-input"></span>
+            <button class="delete-card-btn" data-cardname="${escapeHtml(
+              cardName
+            )}">X</button>
+          </div>`;
           deckList.appendChild(li);
         });
         deckTotalCountSpan.textContent = totalCards;
         deckTotalCountBottomSpan.textContent = totalCards;
       }
-      // displayHand implementation
+
+      // displayHand - Adds normal image URL data attribute
       function displayHand() {
         const handList = document.getElementById("testHandDisplay");
         handList.innerHTML = "";
@@ -698,25 +715,29 @@
         currentHand.forEach((card) => {
           const li = document.createElement("li");
           li.dataset.handId = card.handId;
-          const safeImageUrl = card.imageUrl || "";
+          const smallImageUrl = card.imageUrl || ""; // The primary URL stored
+          const normalImageUrl = card.normalImageUrl || smallImageUrl; // The larger version
           const safeCardName = card.name || "Unknown Card";
-          li.innerHTML = `<div class="card-info"><img src="${escapeHtml(
-            safeImageUrl
-          )}" alt="${escapeHtml(
+
+          li.innerHTML = `<div class="card-info">
+            <img src="${escapeHtml(smallImageUrl)}" alt="${escapeHtml(
             safeCardName
-          )}" class="card-image" loading="lazy"><span class="card-name" title="${escapeHtml(
-            safeCardName
-          )}">${escapeHtml(safeCardName)}</span></div>`;
+          )}" class="card-image" loading="lazy" data-normal-src="${escapeHtml(
+            normalImageUrl
+          )}"> <!-- Add data-normal-src -->
+            <span class="card-name" title="${escapeHtml(
+              safeCardName
+            )}">${escapeHtml(safeCardName)}</span>
+          </div>`;
           li.addEventListener("click", handlePlayCardFromHand);
           handList.appendChild(li);
         });
         handCardCountSpan.textContent = currentHand.length;
       }
 
-      // MODIFIED: Renders cards into appropriate battlefield zones
+      // displayBattlefield - Adds normal image URL data attribute to inner image
       function displayBattlefield() {
-        // Clear all potential zones first
-        generalZone.innerHTML = "<h4>General Battlefield</h4>"; // Keep headers
+        generalZone.innerHTML = "<h4>General Battlefield</h4>";
         creatureZone.innerHTML = "<h4>Creatures</h4>";
         landZone.innerHTML = "<h4>Lands</h4>";
 
@@ -731,18 +752,20 @@
           cardDiv.style.left = `${posX}px`;
           cardDiv.style.top = `${posY}px`;
 
-          const safeImageUrl = card.imageUrl || "";
+          const smallImageUrl = card.imageUrl || "";
+          const normalImageUrl = card.normalImageUrl || smallImageUrl;
           const safeCardName = card.name || "Unknown Card";
+
+          // Put the data-normal-src on the IMG tag itself
           cardDiv.innerHTML = `<img src="${escapeHtml(
-            safeImageUrl
+            smallImageUrl
           )}" alt="${escapeHtml(safeCardName)}" title="${escapeHtml(
             safeCardName
-          )}">`;
+          )}" data-normal-src="${escapeHtml(normalImageUrl)}">`;
 
           cardDiv.addEventListener("dragstart", handleDragStart);
           cardDiv.addEventListener("dragend", handleDragEnd);
 
-          // Append to the correct zone based on state
           switch (card.zone) {
             case "land":
               landZone.appendChild(cardDiv);
@@ -751,28 +774,17 @@
               creatureZone.appendChild(cardDiv);
               break;
             case "general":
-            default: // Default to general if zone is missing or invalid
+            default:
               generalZone.appendChild(cardDiv);
               break;
           }
         });
       }
 
-      // --- Deck Management Logic (Unchanged) ---
-      function addCardToDeck(cardName, imageUrl) {
-        /* ... */
-      }
-      function updateCardQuantity(cardName, newQuantity) {
-        /* ... */
-      }
-      function deleteCardFromDeck(cardName) {
-        /* ... */
-      }
-      function clearDeck() {
-        /* ... */
-      }
-      // addCardToDeck implementation
-      function addCardToDeck(cardName, imageUrl) {
+      // --- Deck Management Logic (Modified addCardToDeck) ---
+
+      // addCardToDeck - Stores both image URLs
+      function addCardToDeck(cardName, smallImageUrl, normalImageUrl) {
         if (!cardName) {
           console.error("Attempted to add card with no name.");
           updateDeckActionStatus("Error: Cannot add card without a name.");
@@ -786,11 +798,18 @@
             `Incremented "${safeCardName}" to ${existingCard.quantity}.`
           );
         } else {
-          const safeImageUrl = typeof imageUrl === "string" ? imageUrl : "";
-          if (!imageUrl) {
+          const safeSmallUrl =
+            typeof smallImageUrl === "string" ? smallImageUrl : "";
+          const safeNormalUrl =
+            typeof normalImageUrl === "string" ? normalImageUrl : safeSmallUrl; // Fallback
+          if (!safeSmallUrl) {
             console.warn(`Missing image URL for card: ${safeCardName}.`);
           }
-          currentDeck[cardName] = { quantity: 1, imageUrl: safeImageUrl };
+          currentDeck[cardName] = {
+            quantity: 1,
+            imageUrl: safeSmallUrl, // Primary visual URL (small)
+            normalImageUrl: safeNormalUrl, // Larger URL for popups etc.
+          };
           updateDeckActionStatus(`Added "${safeCardName}" to deck.`);
         }
         renderDeck();
@@ -799,7 +818,7 @@
         searchResults.style.display = "none";
         clearStatus();
       }
-      // updateCardQuantity implementation
+
       function updateCardQuantity(cardName, newQuantity) {
         const quantity = parseInt(newQuantity, 10);
         const cardInfo = currentDeck[cardName];
@@ -815,10 +834,9 @@
           updateDeckActionStatus(
             `Updated "${safeCardName}" quantity to ${quantity}.`
           );
-          renderDeck();
+          renderDeck(); // Re-render to reflect potential changes if needed (though input updates visually)
         }
       }
-      // deleteCardFromDeck implementation
       function deleteCardFromDeck(cardName) {
         if (currentDeck[cardName]) {
           const safeCardName = escapeHtml(cardName);
@@ -827,7 +845,6 @@
           renderDeck();
         }
       }
-      // clearDeck implementation
       function clearDeck() {
         if (
           confirm(
@@ -841,16 +858,10 @@
         }
       }
 
-      // --- Local Storage (Validation improved slightly) ---
-      function saveDeck() {
-        /* ... */
-      }
-      function loadDeck() {
-        /* ... */
-      }
-      // saveDeck implementation
+      // --- Local Storage (Slight modification for new data structure) ---
       function saveDeck() {
         try {
+          // No change needed here, JSON.stringify handles the structure
           localStorage.setItem(DECK_STORAGE_KEY, JSON.stringify(currentDeck));
           updateDeckActionStatus("Deck saved successfully!");
         } catch (error) {
@@ -860,10 +871,11 @@
           );
         }
       }
-      // loadDeck implementation
       function loadDeck() {
         const savedDeck = localStorage.getItem(DECK_STORAGE_KEY);
         let deckLoaded = false;
+        let loadedData = {}; // Use temporary object for loading
+
         if (savedDeck) {
           try {
             const parsedDeck = JSON.parse(savedDeck);
@@ -880,13 +892,16 @@
                   break;
                 }
                 const entry = parsedDeck[key];
+                // Validate basic structure + new optional field
                 if (
                   typeof entry !== "object" ||
                   entry === null ||
                   typeof entry.quantity !== "number" ||
                   !Number.isInteger(entry.quantity) ||
                   entry.quantity <= 0 ||
-                  typeof entry.imageUrl !== "string"
+                  typeof entry.imageUrl !== "string" || // Must have small/primary URL
+                  (entry.hasOwnProperty("normalImageUrl") &&
+                    typeof entry.normalImageUrl !== "string") // normalImageUrl must be string if present
                 ) {
                   isValid = false;
                   break;
@@ -894,10 +909,12 @@
                 validatedDeck[key] = {
                   quantity: entry.quantity,
                   imageUrl: entry.imageUrl,
+                  // Ensure normalImageUrl exists, defaulting to imageUrl if missing in old saves
+                  normalImageUrl: entry.normalImageUrl || entry.imageUrl,
                 };
               }
               if (isValid) {
-                currentDeck = validatedDeck;
+                loadedData = validatedDeck; // Load into temp object first
                 updateDeckActionStatus("Deck loaded successfully!");
                 deckLoaded = true;
               } else {
@@ -908,7 +925,7 @@
                   "Invalid deck structure found in localStorage, deck reset.",
                   parsedDeck
                 );
-                currentDeck = {};
+                loadedData = {};
               }
             } else {
               updateDeckActionStatus(
@@ -918,52 +935,52 @@
                 "Invalid data type found in localStorage:",
                 parsedDeck
               );
-              currentDeck = {};
+              loadedData = {};
             }
           } catch (error) {
             console.error("Error parsing saved deck:", error);
             updateDeckActionStatus(
               "Error loading deck: Could not parse saved data. Deck cleared."
             );
-            currentDeck = {};
+            loadedData = {};
           }
         } else {
-          // Keep "No saved deck found" message, but ensure deck is empty
-          currentDeck = {};
+          loadedData = {}; // Ensure it's empty if nothing found
         }
 
-        clearTestArea(); // Clear test area regardless of load success/failure
-        renderDeck(); // Render the loaded (or empty) deck
+        currentDeck = loadedData; // Assign the loaded or cleared data to the main state
+        clearTestArea();
+        renderDeck();
 
-        // Add message if no deck was loaded AND current deck is empty
         if (!deckLoaded && Object.keys(currentDeck).length === 0) {
           setTimeout(() => {
-            // Only show if no other message is active or it was the 'not found' message
             if (
               deckActionStatus.textContent === "" ||
               deckActionStatus.textContent === "No saved deck found."
             ) {
               updateDeckActionStatus("Create a new deck or load a saved one.");
             }
-          }, 100); // Delay slightly
+          }, 100);
         } else if (!deckLoaded && Object.keys(currentDeck).length > 0) {
-          // This case shouldn't happen with current logic, but as a safeguard
           updateDeckActionStatus("No saved deck found. Using current deck.");
         }
       }
 
-      // --- Test Hand / Play Area Logic ---
+      // --- Test Hand / Play Area Logic (Modified drawTestHand, handlePlayCardFromHand) ---
 
-      // MODIFIED: Populates currentLibrary and enables Draw Next button
+      // drawTestHand - Passes normalImageUrl
       function drawTestHand() {
-        clearTestArea(); // Clears hand, battlefield, library, counters, status
-
+        clearTestArea();
         const deckArray = [];
         for (const cardName in currentDeck) {
           const cardInfo = currentDeck[cardName];
           if (cardInfo && cardInfo.quantity > 0) {
             for (let i = 0; i < cardInfo.quantity; i++) {
-              deckArray.push({ name: cardName, imageUrl: cardInfo.imageUrl });
+              deckArray.push({
+                name: cardName,
+                imageUrl: cardInfo.imageUrl,
+                normalImageUrl: cardInfo.normalImageUrl, // Pass along normal URL
+              });
             }
           }
         }
@@ -975,270 +992,268 @@
           return;
         }
 
-        // Shuffle
         for (let i = deckArray.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
           [deckArray[i], deckArray[j]] = [deckArray[j], deckArray[i]];
         }
 
-        // Draw hand
         const hand = deckArray.slice(0, 7);
         currentHand = hand.map((card) => ({
           handId: handCardIdCounter++,
           name: card.name,
           imageUrl: card.imageUrl,
+          normalImageUrl: card.normalImageUrl, // Store in hand state
         }));
 
-        // Populate library with remaining cards
-        currentLibrary = deckArray.slice(7);
+        currentLibrary = deckArray.slice(7); // Library contains objects with both URLs too
 
         testHandStatus.textContent = `Drew 7 cards. ${currentLibrary.length} cards left in library.`;
         displayHand();
-        displayBattlefield(); // Render empty battlefield zones
-        enableDrawNextButton(); // Enable draw next
+        displayBattlefield();
+        enableDrawNextButton();
       }
 
-      // NEW: Draws the next card from the library
+      // drawNextCard - Passes normalImageUrl
       function drawNextCard() {
         if (currentLibrary.length === 0) {
           testHandStatus.textContent = "Cannot draw: Library is empty.";
           disableDrawNextButton();
           return;
         }
-
-        const nextCard = currentLibrary.shift(); // Take from the top (like drawing)
-
-        // Add to hand state
+        const nextCard = currentLibrary.shift();
         currentHand.push({
           handId: handCardIdCounter++,
           name: nextCard.name,
           imageUrl: nextCard.imageUrl,
+          normalImageUrl: nextCard.normalImageUrl, // Add to hand state
         });
-
-        displayHand(); // Re-render hand
+        displayHand();
         testHandStatus.textContent = `Drew ${escapeHtml(nextCard.name)}. ${
           currentLibrary.length
         } cards left in library.`;
-
         if (currentLibrary.length === 0) {
-          disableDrawNextButton(); // Disable if library now empty
+          disableDrawNextButton();
           testHandStatus.textContent += " Library is now empty.";
         }
       }
 
-      // Utility to enable/disable draw next button
       function enableDrawNextButton() {
         drawNextCardButton.disabled = false;
       }
       function disableDrawNextButton() {
         drawNextCardButton.disabled = true;
       }
-
-      // MODIFIED: Clears library and disables draw next button
       function clearTestArea() {
         currentHand = [];
         currentBattlefield = {};
-        currentLibrary = []; // Clear the library
+        currentLibrary = [];
         handCardIdCounter = 0;
         battlefieldCardIdCounter = 0;
         dragInfo = { cardId: null, offsetX: 0, offsetY: 0 };
-
         if (testHandDisplay) testHandDisplay.innerHTML = "";
-        // Clear battlefield zones
         if (generalZone) generalZone.innerHTML = "<h4>General Battlefield</h4>";
         if (creatureZone) creatureZone.innerHTML = "<h4>Creatures</h4>";
         if (landZone) landZone.innerHTML = "<h4>Lands</h4>";
-
         if (handCardCountSpan) handCardCountSpan.textContent = "0";
         if (testHandStatus) testHandStatus.textContent = "";
-        disableDrawNextButton(); // Disable draw next button
+        disableDrawNextButton();
+        hideImagePopup(); // Hide popup if area is cleared
       }
 
-      // MODIFIED: Adds card to 'general' zone initially
+      // handlePlayCardFromHand - Passes normalImageUrl to battlefield state
       function handlePlayCardFromHand(event) {
         const listItem = event.currentTarget;
         const handId = parseInt(listItem.dataset.handId, 10);
-
         const cardIndex = currentHand.findIndex(
           (card) => card.handId === handId
         );
         if (cardIndex > -1) {
           const [cardToPlay] = currentHand.splice(cardIndex, 1);
-
           const battlefieldId = `bf-${battlefieldCardIdCounter++}`;
-          const initialX = 10 + Math.floor(Math.random() * 10); // Smaller random offset
+          const initialX = 10 + Math.floor(Math.random() * 10);
           const initialY = 10 + Math.floor(Math.random() * 10);
-
           currentBattlefield[battlefieldId] = {
             name: cardToPlay.name,
-            imageUrl: cardToPlay.imageUrl,
-            zone: "general", // <<< Default to general zone
+            imageUrl: cardToPlay.imageUrl, // Small URL
+            normalImageUrl: cardToPlay.normalImageUrl, // Normal URL
+            zone: "general",
             x: initialX,
             y: initialY,
           };
-
           displayHand();
           displayBattlefield();
         }
       }
 
-      // --- Drag and Drop Handlers ---
-
-      // handleDragStart remains the same
+      // --- Drag and Drop Handlers (Unchanged) ---
       function handleDragStart(event) {
         const cardElement = event.target.closest(".battlefield-card");
         if (!cardElement || !cardElement.dataset.battlefieldId) return;
-
         const cardId = cardElement.dataset.battlefieldId;
-        // Ensure card exists in state before proceeding
         if (!currentBattlefield[cardId]) {
           console.warn("DragStart failed: Card ID not found in state:", cardId);
-          event.preventDefault(); // Prevent drag if state is inconsistent
+          event.preventDefault();
           return;
         }
-
         dragInfo.cardId = cardId;
-
         const rect = cardElement.getBoundingClientRect();
         dragInfo.offsetX = event.clientX - rect.left;
         dragInfo.offsetY = event.clientY - rect.top;
-
         event.dataTransfer.setData("text/plain", cardId);
         event.dataTransfer.effectAllowed = "move";
-
-        // Add dragging class for visual feedback (slight delay)
         setTimeout(() => {
+          // Apply class to the inner image
           const img = cardElement.querySelector("img");
           if (img) img.classList.add("dragging");
         }, 0);
-        event.stopPropagation(); // Prevent parent elements from handling dragstart
+        event.stopPropagation();
+        hideImagePopup(); // Hide popup during drag
       }
-
-      // handleDragEnd remains the same
       function handleDragEnd(event) {
-        const cardId = dragInfo.cardId; // Get ID from reliable dragInfo
-
+        const cardId = dragInfo.cardId;
         if (cardId) {
-          // Find the potentially moved element to remove styling
-          // Check all possible parent zones
-          const cardElement =
-            generalZone.querySelector(`[data-battlefield-id="${cardId}"]`) ||
-            creatureZone.querySelector(`[data-battlefield-id="${cardId}"]`) ||
-            landZone.querySelector(`[data-battlefield-id="${cardId}"]`);
-
+          // Find the potentially moved element's image to remove styling
+          const cardElement = battlefieldDisplayContainer.querySelector(
+            `[data-battlefield-id="${cardId}"]`
+          );
           const img = cardElement?.querySelector("img");
           if (img) img.classList.remove("dragging");
         }
-
-        // Reset drag info regardless of drop success
         dragInfo.cardId = null;
         dragInfo.offsetX = 0;
         dragInfo.offsetY = 0;
-        // No stopPropagation usually needed here
       }
-
-      // handleDragOver remains the same, but listener added to sub-zones
       function handleDragOver(event) {
-        event.preventDefault(); // Necessary to allow dropping
+        event.preventDefault();
         event.dataTransfer.dropEffect = "move";
       }
-
-      // MODIFIED: Handles drop into different zones
       function handleDrop(event) {
         event.preventDefault();
-        event.stopPropagation(); // Prevent drop event from bubbling up
-
-        const targetZoneElement = event.currentTarget; // This will be generalZone, creatureZone, or landZone
+        event.stopPropagation();
+        const targetZoneElement = event.currentTarget;
         const draggedCardId = dragInfo.cardId;
-
         if (!draggedCardId || !currentBattlefield[draggedCardId]) {
           console.warn(
             "Drop failed: Invalid dragged card ID or card not in state."
           );
-          // dragInfo is reset in dragend
           return;
         }
-
-        // Determine the target zone identifier
-        let targetZoneId = "general"; // Default
-        if (targetZoneElement.id === "landZone") {
-          targetZoneId = "land";
-        } else if (targetZoneElement.id === "creatureZone") {
+        let targetZoneId = "general";
+        if (targetZoneElement.id === "landZone") targetZoneId = "land";
+        else if (targetZoneElement.id === "creatureZone")
           targetZoneId = "creature";
-        }
-        // console.log(`Dropping card ${draggedCardId} into zone: ${targetZoneId}`);
 
-        // --- Calculate new position relative to the target zone ---
         const zoneRect = targetZoneElement.getBoundingClientRect();
         let newX = event.clientX - zoneRect.left - dragInfo.offsetX;
         let newY = event.clientY - zoneRect.top - dragInfo.offsetY;
 
-        // --- Boundary Checks (within the target zone) ---
-        // We need the card's dimensions. Get the element (it might still be in old zone DOM)
-        const cardElement =
-          generalZone.querySelector(
-            `[data-battlefield-id="${draggedCardId}"]`
-          ) ||
-          creatureZone.querySelector(
-            `[data-battlefield-id="${draggedCardId}"]`
-          ) ||
-          landZone.querySelector(`[data-battlefield-id="${draggedCardId}"]`);
-
+        // Use querySelector on the *entire* container to find the element, regardless of old zone
+        const cardElement = battlefieldDisplayContainer.querySelector(
+          `[data-battlefield-id="${draggedCardId}"]`
+        );
         if (!cardElement) {
           console.warn(
-            "Drop failed: Could not find card element to measure boundaries."
+            "Drop failed: Could not find card element for boundary check."
           );
-          // dragInfo is reset in dragend
           return;
         }
         const cardWidth = cardElement.offsetWidth;
         const cardHeight = cardElement.offsetHeight;
         const containerWidth = targetZoneElement.clientWidth;
         const containerHeight = targetZoneElement.clientHeight;
-
-        // Apply boundary constraints
         newX = Math.max(0, Math.min(newX, containerWidth - cardWidth));
         newY = Math.max(0, Math.min(newY, containerHeight - cardHeight));
-        // Final safety check for non-negative coords
         newX = Math.max(0, newX);
         newY = Math.max(0, newY);
-        // --- End Boundary Checks ---
 
-        // --- Update State ---
         currentBattlefield[draggedCardId].zone = targetZoneId;
         currentBattlefield[draggedCardId].x = newX;
         currentBattlefield[draggedCardId].y = newY;
+        displayBattlefield(); // Re-render places it in the new zone's DOM
+      }
 
-        // --- Re-render the entire battlefield ---
-        // The rendering function will now place the card in the correct zone's DOM
-        displayBattlefield();
+      // --- NEW: Image Popup Logic ---
+      function showImagePopup(event, targetImage) {
+        // Determine the correct larger image URL
+        let largeImageUrl =
+          targetImage.dataset.normalSrc || targetImage.getAttribute("src"); // Use data-normal-src first
 
-        // dragInfo reset is handled by dragend
+        // If the URL still looks like a 'small' version, try replacing it just in case
+        if (largeImageUrl && largeImageUrl.includes("/small.")) {
+          largeImageUrl = largeImageUrl.replace("/small.", "/normal.");
+        } else if (largeImageUrl && largeImageUrl.includes("size=small")) {
+          largeImageUrl = largeImageUrl.replace("size=small", "size=normal");
+        }
+
+        if (!largeImageUrl) return; // Don't show if no URL
+
+        popupImage.src = largeImageUrl; // Set the source
+        // Error handler to fallback if 'normal' fails (e.g., 404)
+        popupImage.onerror = () => {
+          console.warn(
+            `Failed to load large image: ${largeImageUrl}, falling back.`
+          );
+          popupImage.src = targetImage.getAttribute("src"); // Fallback to original src
+          popupImage.onerror = null; // Prevent infinite loop if small also fails
+        };
+
+        imagePopup.style.display = "block";
+        popupVisible = true;
+        moveImagePopup(event); // Position immediately
+      }
+
+      function hideImagePopup() {
+        imagePopup.style.display = "none";
+        popupImage.src = ""; // Clear src to prevent loading old image briefly
+        popupImage.onerror = null; // Clear error handler
+        popupVisible = false;
+      }
+
+      function moveImagePopup(event) {
+        if (!popupVisible) return;
+
+        const offset = 15; // Pixels away from cursor
+        const popupWidth = imagePopup.offsetWidth;
+        const popupHeight = imagePopup.offsetHeight;
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+
+        let top = event.clientY + offset;
+        let left = event.clientX + offset;
+
+        // Boundary checks
+        if (left + popupWidth > viewportWidth) {
+          left = event.clientX - popupWidth - offset; // Move to left of cursor
+        }
+        if (top + popupHeight > viewportHeight) {
+          top = event.clientY - popupHeight - offset; // Move above cursor
+        }
+
+        // Ensure it doesn't go off the top/left either
+        if (top < 0) top = offset;
+        if (left < 0) left = offset;
+
+        imagePopup.style.top = `${top}px`;
+        imagePopup.style.left = `${left}px`;
       }
 
       // --- Event Listeners ---
 
-      // Search (Unchanged)
+      // Search (Modified results click to pass normal URL)
       searchInput.addEventListener("input", (event) => {
         debouncedLiveSearch(event.target.value.trim());
       });
       searchResults.addEventListener("click", (event) => {
-        /* ... */
-      });
-      document.addEventListener("click", (event) => {
-        /* ... */
-      });
-      searchInput.addEventListener("keypress", (event) => {
-        /* ... */
-      });
-      // searchResults click implementation
-      searchResults.addEventListener("click", (event) => {
         const listItem = event.target.closest("li");
         if (listItem && listItem.dataset.cardname) {
-          addCardToDeck(listItem.dataset.cardname, listItem.dataset.imageurl);
+          // Pass both URLs
+          addCardToDeck(
+            listItem.dataset.cardname,
+            listItem.dataset.imageurl,
+            listItem.dataset.normalimageurl // Pass the normal URL
+          );
         }
       });
-      // document click implementation (hide search results)
       document.addEventListener("click", (event) => {
         const searchSection = event.target.closest(".search-section");
         const resultsList = event.target.closest("#searchResults");
@@ -1247,7 +1262,6 @@
           searchResults.style.display = "none";
         }
       });
-      // searchInput keypress implementation (Enter key)
       searchInput.addEventListener("keypress", (event) => {
         if (event.key === "Enter") {
           event.preventDefault();
@@ -1255,29 +1269,23 @@
           if (firstResult && firstResult.dataset.cardname) {
             addCardToDeck(
               firstResult.dataset.cardname,
-              firstResult.dataset.imageurl
+              firstResult.dataset.imageurl,
+              firstResult.dataset.normalimageurl // Pass normal URL on enter too
             );
           } else {
-            performLiveSearch(searchInput.value.trim());
+            // Maybe trigger search again? Or do nothing if no results shown.
+            // performLiveSearch(searchInput.value.trim());
           }
         }
       });
 
-      // Deck List (Unchanged)
-      deckList.addEventListener("click", (event) => {
-        /* ... */
-      });
-      deckList.addEventListener("change", (event) => {
-        /* ... */
-      });
-      // deckList click implementation (delete)
+      // Deck List (Unchanged behavior, hover handled by delegated listeners below)
       deckList.addEventListener("click", (event) => {
         if (event.target.classList.contains("delete-card-btn")) {
           const cardName = event.target.getAttribute("data-cardname");
           if (cardName) deleteCardFromDeck(cardName);
         }
       });
-      // deckList change implementation (quantity)
       deckList.addEventListener("change", (event) => {
         if (event.target.classList.contains("quantity-input")) {
           const cardName = event.target.getAttribute("data-cardname");
@@ -1290,7 +1298,7 @@
       loadDeckButton.addEventListener("click", loadDeck);
       clearDeckButton.addEventListener("click", clearDeck);
       drawHandButton.addEventListener("click", drawTestHand);
-      drawNextCardButton.addEventListener("click", drawNextCard); // Listener for new button
+      drawNextCardButton.addEventListener("click", drawNextCard);
 
       // Drag Listeners for Battlefield Zones
       [generalZone, creatureZone, landZone].forEach((zone) => {
@@ -1298,10 +1306,80 @@
         zone.addEventListener("drop", handleDrop);
       });
 
+      // --- NEW: Delegated Event Listeners for Image Popup ---
+      function setupPopupListeners() {
+        const containers = [
+          searchResults,
+          deckList,
+          testHandDisplay,
+          battlefieldDisplayContainer,
+        ];
+
+        containers.forEach((container) => {
+          if (!container) return; // Skip if a container doesn't exist
+
+          // Mouse Over/Enter
+          container.addEventListener("mouseover", (event) => {
+            let targetImg = null;
+            // Check if target is one of our images
+            if (event.target.matches(".search-result-image, .card-image")) {
+              targetImg = event.target;
+            } else if (event.target.matches(".battlefield-card")) {
+              // For battlefield, the target might be the div, get the img inside
+              targetImg = event.target.querySelector("img");
+            } else if (
+              event.target.parentElement?.matches(".battlefield-card")
+            ) {
+              // Or if target is the image itself inside battlefield card
+              targetImg = event.target;
+            }
+
+            if (targetImg) {
+              showImagePopup(event, targetImg);
+            }
+          });
+
+          // Mouse Move
+          container.addEventListener("mousemove", (event) => {
+            // Only move if the popup is visible (performance)
+            // We don't need to check the target again, just the visibility state
+            if (popupVisible) {
+              moveImagePopup(event);
+            }
+          });
+
+          // Mouse Out/Leave
+          container.addEventListener("mouseout", (event) => {
+            let relatedTargetIsPopup = imagePopup.contains(event.relatedTarget);
+            let targetIsImageOrParent =
+              event.target.matches(
+                ".search-result-image, .card-image, .battlefield-card"
+              ) || event.target.parentElement?.matches(".battlefield-card");
+
+            // Hide if moving out of a relevant image *and* not moving into the popup itself
+            if (targetIsImageOrParent && !relatedTargetIsPopup) {
+              hideImagePopup();
+            }
+          });
+        });
+
+        // Add a listener to the popup itself in case the mouse moves onto it briefly
+        imagePopup.addEventListener("mouseout", (event) => {
+          // Check if the mouse is moving to something *outside* the popup and its trigger elements
+          const isMovingToTrigger = event.relatedTarget?.matches(
+            ".search-result-image, .card-image, .battlefield-card img, .battlefield-card"
+          );
+          if (!imagePopup.contains(event.relatedTarget) && !isMovingToTrigger) {
+            hideImagePopup();
+          }
+        });
+      }
+
       // --- Initial Load ---
       document.addEventListener("DOMContentLoaded", () => {
         loadDeck(); // Handles initial state, rendering, messages, and test area clearing
         disableDrawNextButton(); // Ensure draw next is disabled initially
+        setupPopupListeners(); // NEW: Set up the delegated listeners for the popup
       });
     </script>
   </body>
