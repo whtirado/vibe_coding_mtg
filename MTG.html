@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Simple MTG Deck Builder (w/ Play Area)</title>
     <style>
-      /* --- NEW: CSS Variables for Theming --- */
+      /* --- CSS Variables for Theming --- */
       :root {
         /* Default Light Theme */
         --body-bg: #f0f2f5;
@@ -28,7 +28,7 @@
         --input-bg: #ffffff;
         --input-border: #cccccc;
         --input-text: #333333;
-        --list-item-hover-bg: #f0f8ff;
+        --list-item-hover-bg: #f0f8ff; /* Kept for deck list */
         --search-result-hover-bg: #f0f0f0;
         --popup-bg: rgba(0, 0, 0, 0.8);
         --popup-border: #555555;
@@ -40,6 +40,10 @@
         --zone-creature-border: #cc9c9c;
         --zone-land-bg: #e9e9f5;
         --zone-land-border: #9c9ccc;
+        --hand-container-bg: #f9f9f9; /* NEW: Hand area background */
+        --hand-card-bg: #ffffff;
+        --hand-card-border: #dddddd;
+        --hand-card-hover-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
         --shadow-color: rgba(0, 0, 0, 0.1);
         --shadow-color-heavy: rgba(0, 0, 0, 0.3);
         --slider-bg: #ccc;
@@ -57,18 +61,18 @@
         --border-color-light: #444444;
         --border-color-medium: #666666;
         --border-color-dark: #888888;
-        --button-bg: #0056b3; /* Slightly different blue */
+        --button-bg: #0056b3;
         --button-text: #ffffff;
         --button-bg-hover: #003d80;
         --button-disabled-bg: #555555;
         --button-disabled-text: #aaaaaa;
-        --button-delete-bg: #a02c38; /* Darker red */
+        --button-delete-bg: #a02c38;
         --button-delete-text: #ffffff;
         --button-delete-bg-hover: #80232e;
         --input-bg: #3a3a3a;
         --input-border: #666666;
         --input-text: #e0e0e0;
-        --list-item-hover-bg: #3a4a5a;
+        --list-item-hover-bg: #3a4a5a; /* Kept for deck list */
         --search-result-hover-bg: #444444;
         --popup-bg: rgba(20, 20, 20, 0.9);
         --popup-border: #aaaaaa;
@@ -80,6 +84,10 @@
         --zone-creature-border: #8c5c5c;
         --zone-land-bg: #2a2a4a;
         --zone-land-border: #5c5c8c;
+        --hand-container-bg: #252525; /* NEW: Dark hand area */
+        --hand-card-bg: #383838;
+        --hand-card-border: #505050;
+        --hand-card-hover-shadow: 0 2px 8px rgba(255, 255, 255, 0.15);
         --shadow-color: rgba(255, 255, 255, 0.05);
         --shadow-color-heavy: rgba(255, 255, 255, 0.15);
         --slider-bg: #555;
@@ -92,47 +100,45 @@
         font-family: sans-serif;
         display: grid;
         grid-template-columns: 1fr 2fr;
-        grid-template-rows: auto auto auto 1fr; /* Row for test area */
+        grid-template-rows: auto auto auto 1fr;
         gap: 20px;
         max-width: 1300px;
         margin: 20px auto;
         padding: 15px;
-        background-color: var(--body-bg); /* USE VAR */
-        color: var(--text-color-primary); /* USE VAR */
+        background-color: var(--body-bg);
+        color: var(--text-color-primary);
         transition: background-color 0.3s ease, color 0.3s ease;
       }
 
       .header-container {
-        /* NEW container for H1 and Toggle */
         grid-column: 1 / -1;
         grid-row: 1 / 2;
         display: flex;
         justify-content: center;
         align-items: center;
-        position: relative; /* For positioning the toggle */
+        position: relative;
         margin-bottom: 15px;
       }
-
       h1 {
         text-align: center;
-        color: var(--text-color-primary); /* USE VAR */
-        margin: 0; /* Reset margin as it's in flex container */
+        color: var(--text-color-primary);
+        margin: 0;
       }
 
-      /* --- NEW: Theme Toggle Switch Styles --- */
+      /* Theme Toggle Switch Styles (Unchanged) */
       .theme-switch-wrapper {
         display: flex;
         align-items: center;
-        position: absolute; /* Position relative to header-container */
-        right: 15px; /* Adjust as needed */
+        position: absolute;
+        right: 15px;
         top: 50%;
         transform: translateY(-50%);
       }
       .theme-switch {
         display: inline-block;
-        height: 24px; /* Adjusted size */
+        height: 24px;
         position: relative;
-        width: 44px; /* Adjusted size */
+        width: 44px;
       }
       .theme-switch input {
         display: none;
@@ -146,48 +152,47 @@
         right: 0;
         top: 0;
         transition: 0.4s;
-        border-radius: 24px; /* Keep it rounded */
+        border-radius: 24px;
       }
       .slider:before {
         background-color: var(--slider-knob-bg);
-        bottom: 3px; /* Adjusted position */
+        bottom: 3px;
         content: "";
-        height: 18px; /* Adjusted size */
-        left: 3px; /* Adjusted position */
+        height: 18px;
+        left: 3px;
         position: absolute;
         transition: 0.4s;
-        width: 18px; /* Adjusted size */
+        width: 18px;
         border-radius: 50%;
       }
       input:checked + .slider {
         background-color: var(--slider-checked-bg);
       }
       input:checked + .slider:before {
-        transform: translateX(20px); /* Adjusted travel distance */
+        transform: translateX(20px);
       }
-      /* --- End Theme Toggle Styles --- */
 
       .search-section h2,
       .deck-section h2,
       .actions-section h2,
       .test-hand-section h2 {
         text-align: center;
-        color: var(--text-color-primary); /* USE VAR */
+        color: var(--text-color-primary);
         margin-bottom: 15px;
       }
       h3 {
         margin-top: 0;
         margin-bottom: 10px;
-        color: var(--text-color-secondary); /* USE VAR */
+        color: var(--text-color-secondary);
         font-size: 1em;
         padding: 0 5px;
       }
       h4 {
         margin: 5px 0;
         font-size: 0.9em;
-        color: var(--text-color-muted); /* USE VAR */
+        color: var(--text-color-muted);
         text-align: center;
-        border-bottom: 1px solid var(--border-color-light); /* USE VAR */
+        border-bottom: 1px solid var(--border-color-light);
         padding-bottom: 3px;
       }
 
@@ -195,10 +200,10 @@
       .deck-section,
       .actions-section,
       .test-hand-section {
-        background-color: var(--section-bg); /* USE VAR */
+        background-color: var(--section-bg);
         padding: 20px;
         border-radius: 8px;
-        box-shadow: 0 2px 5px var(--shadow-color); /* USE VAR */
+        box-shadow: 0 2px 5px var(--shadow-color);
         display: flex;
         flex-direction: column;
         transition: background-color 0.3s ease, box-shadow 0.3s ease;
@@ -221,19 +226,19 @@
       .test-hand-section {
         grid-column: 1 / -1;
         grid-row: 4 / 5;
-        min-height: 550px;
+        min-height: 650px; /* Increased min-height for hand below */
       }
 
-      /* Search Styles */
+      /* Search Styles (Unchanged) */
       #searchInput {
         width: 100%;
         padding: 10px;
         margin-bottom: 10px;
-        border: 1px solid var(--input-border); /* USE VAR */
+        border: 1px solid var(--input-border);
         border-radius: 4px;
         box-sizing: border-box;
-        background-color: var(--input-bg); /* USE VAR */
-        color: var(--input-text); /* USE VAR */
+        background-color: var(--input-bg);
+        color: var(--input-text);
       }
       #searchResults {
         list-style: none;
@@ -241,18 +246,18 @@
         margin: 0;
         max-height: 300px;
         overflow-y: auto;
-        border: 1px solid var(--border-color-light); /* USE VAR */
+        border: 1px solid var(--border-color-light);
         border-top: none;
         border-radius: 0 0 4px 4px;
-        background-color: var(--section-bg); /* USE VAR */
+        background-color: var(--section-bg);
         width: calc(100% - 40px);
         z-index: 10;
-        box-shadow: 0 4px 6px var(--shadow-color); /* USE VAR */
+        box-shadow: 0 4px 6px var(--shadow-color);
       }
       #searchResults li {
         padding: 5px 10px;
         cursor: pointer;
-        border-bottom: 1px solid var(--border-color-light); /* USE VAR */
+        border-bottom: 1px solid var(--border-color-light);
         display: flex;
         align-items: center;
         gap: 8px;
@@ -261,7 +266,7 @@
         border-bottom: none;
       }
       #searchResults li:hover {
-        background-color: var(--search-result-hover-bg); /* USE VAR */
+        background-color: var(--search-result-hover-bg);
       }
       .search-result-image {
         width: 30px;
@@ -281,7 +286,7 @@
         max-height: 0;
       }
 
-      /* Deck List Styles */
+      /* Deck List Styles (Unchanged) */
       #deckList {
         list-style: none;
         padding: 0;
@@ -292,7 +297,7 @@
       }
       #deckList li {
         padding: 8px 5px;
-        border-bottom: 1px solid var(--border-color-light); /* USE VAR */
+        border-bottom: 1px solid var(--border-color-light);
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -331,20 +336,20 @@
         width: 40px;
         text-align: center;
         padding: 4px;
-        border: 1px solid var(--input-border); /* USE VAR */
+        border: 1px solid var(--input-border);
         border-radius: 3px;
-        background-color: var(--input-bg); /* USE VAR */
-        color: var(--input-text); /* USE VAR */
+        background-color: var(--input-bg);
+        color: var(--input-text);
       }
 
-      /* Buttons and Status */
+      /* Buttons and Status (Unchanged) */
       .action-button,
       .delete-card-btn,
       #drawHandButton,
       #drawNextCardButton {
         padding: 9px 15px;
-        background-color: var(--button-bg); /* USE VAR */
-        color: var(--button-text); /* USE VAR */
+        background-color: var(--button-bg);
+        color: var(--button-text);
         border: none;
         border-radius: 4px;
         cursor: pointer;
@@ -352,44 +357,59 @@
         font-size: 0.9em;
         margin-bottom: 10px;
       }
-      .test-hand-section .action-button {
+      .test-controls {
+        /* Container for buttons + status */
+        margin-bottom: 10px; /* Space below controls */
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap; /* Allow status to wrap below buttons on small screens */
+      }
+      .test-controls .action-button {
         display: inline-block;
         width: auto;
         margin-right: 10px;
+        margin-bottom: 5px; /* Reduce bottom margin slightly */
+      }
+      #testHandStatus {
+        /* Status takes remaining space */
+        flex-grow: 1;
+        margin-left: 10px; /* Space from buttons */
+        margin-top: 0; /* Reset margin-top */
+        min-height: initial; /* Reset min-height */
+        margin-bottom: 5px;
       }
       .action-button:hover,
       .delete-card-btn:hover,
       #drawHandButton:hover,
       #drawNextCardButton:hover {
-        background-color: var(--button-bg-hover); /* USE VAR */
+        background-color: var(--button-bg-hover);
       }
       .action-button:disabled,
       #drawNextCardButton:disabled {
-        background-color: var(--button-disabled-bg); /* USE VAR */
-        color: var(--button-disabled-text); /* USE VAR */
+        background-color: var(--button-disabled-bg);
+        color: var(--button-disabled-text);
         cursor: not-allowed;
       }
       .delete-card-btn {
-        background-color: var(--button-delete-bg); /* USE VAR */
-        color: var(--button-delete-text); /* USE VAR */
+        background-color: var(--button-delete-bg);
+        color: var(--button-delete-text);
         padding: 4px 8px;
         font-size: 0.8em;
         line-height: 1;
       }
       .delete-card-btn:hover {
-        background-color: var(--button-delete-bg-hover); /* USE VAR */
+        background-color: var(--button-delete-bg-hover);
       }
       .actions-section .action-button {
         display: block;
         width: 100%;
       }
-
       #status,
-      #deckActionStatus,
-      #testHandStatus {
+      #deckActionStatus {
+        /* Status outside test area */
         margin-top: 10px;
         font-style: italic;
-        color: var(--text-color-muted); /* USE VAR */
+        color: var(--text-color-muted);
         min-height: 1.2em;
         font-size: 0.9em;
       }
@@ -398,119 +418,123 @@
         font-weight: bold;
         margin-top: 15px;
         padding-top: 10px;
-        border-top: 1px solid var(--border-color-light); /* USE VAR */
+        border-top: 1px solid var(--border-color-light);
       }
       .loading::after {
         content: " Loading...";
         display: inline-block;
         margin-left: 5px;
         font-style: italic;
-        color: var(--text-color-muted); /* USE VAR */
+        color: var(--text-color-muted);
         font-size: 0.9em;
       }
 
-      /* Test Area Enhancements */
+      /* --- Test Area Layout Changes --- */
       .play-area {
-        display: flex;
+        display: flex; /* Changed to flex column */
+        flex-direction: column; /* Stack battlefield above hand */
         gap: 15px;
-        margin-top: 15px;
-        border-top: 1px solid var(--border-color-light); /* USE VAR */
+        margin-top: 0; /* Removed top margin, handled by test-controls */
+        border-top: 1px solid var(--border-color-light);
         padding-top: 15px;
         flex-grow: 1;
-        min-height: 400px;
-        overflow: hidden;
-      }
-      .hand-zone {
-        flex-basis: 250px;
-        flex-shrink: 0;
-        display: flex;
-        flex-direction: column;
-      }
-      .hand-zone h3 {
-        text-align: left;
-        margin-bottom: 5px;
-        padding-left: 5px;
+        overflow: hidden; /* Prevent content spill */
       }
 
       .battlefield-zone {
-        flex-grow: 1;
+        /* Keep battlefield styling */
+        flex-grow: 1; /* Allow battlefield to take up available space */
         display: flex;
         flex-direction: column;
         gap: 10px;
-        background-color: var(--battlefield-bg); /* USE VAR */
-        border: 1px solid var(--battlefield-border); /* USE VAR */
+        background-color: var(--battlefield-bg);
+        border: 1px solid var(--battlefield-border);
         border-radius: 5px;
         padding: 10px;
+        min-height: 350px; /* Ensure battlefield has decent minimum space */
         overflow: hidden;
       }
       .bf-subzone {
+        /* Keep subzone styling */
         flex-grow: 1;
         border-radius: 4px;
         padding: 10px 5px 5px 5px;
         position: relative;
-        min-height: 150px;
+        min-height: 100px; /* Adjusted min-height */
         overflow: hidden;
         display: flex;
         flex-wrap: wrap;
         align-content: flex-start;
         gap: 5px;
-        transition: background-color 0.3s ease, border-color 0.3s ease; /* Smooth zone transition */
+        transition: background-color 0.3s ease, border-color 0.3s ease;
       }
       #generalZone {
         background-color: var(--zone-general-bg);
         border: 1px dashed var(--zone-general-border);
-      } /* USE VARS */
+      }
       #creatureZone {
         background-color: var(--zone-creature-bg);
         border: 1px dashed var(--zone-creature-border);
-      } /* USE VARS */
+      }
       #landZone {
         background-color: var(--zone-land-bg);
         border: 1px dashed var(--zone-land-border);
-      } /* USE VARS */
+      }
 
-      /* Hand card display */
-      #testHandDisplay li {
-        padding: 5px;
-        border: 1px solid var(--border-color-light); /* USE VAR */
-        margin-bottom: 4px;
-        border-radius: 3px;
-        background-color: var(--section-bg); /* Use section bg for cards */
-        cursor: pointer;
-        transition: background-color 0.2s ease;
+      /* NEW: Hand Container Styles */
+      #testHandContainer {
+        flex-shrink: 0; /* Prevent shrinking */
         display: flex;
-        justify-content: flex-start;
-        align-items: center;
-        gap: 8px;
-      }
-      #testHandDisplay li:hover {
-        background-color: var(--list-item-hover-bg); /* USE VAR */
-      }
-      #testHandDisplay {
-        list-style: none;
-        padding: 0 5px 0 0;
-        margin: 0;
-        max-height: 400px;
-        overflow-y: auto;
-        flex-grow: 1;
+        flex-wrap: wrap; /* Allow cards to wrap */
+        gap: 10px; /* Space between cards */
+        padding: 15px 10px;
+        background-color: var(--hand-container-bg); /* Distinct background */
+        border: 1px solid var(--border-color-medium);
+        border-radius: 5px;
+        min-height: 120px; /* Enough height for one row of cards */
+        overflow-y: auto; /* Scroll if many cards wrap */
+        transition: background-color 0.3s ease, border-color 0.3s ease;
       }
 
-      /* Card on Battlefield */
+      /* NEW: Individual Hand Card Styles */
+      .hand-card {
+        width: 75px; /* Slightly larger than battlefield cards */
+        height: auto; /* Maintain aspect ratio */
+        border-radius: 4px;
+        background-color: var(--hand-card-bg);
+        border: 1px solid var(--hand-card-border);
+        box-shadow: 1px 1px 3px var(--shadow-color);
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        overflow: hidden; /* Ensure image stays within rounded borders */
+      }
+      .hand-card:hover {
+        transform: translateY(-3px) scale(1.03); /* Slight lift and scale */
+        box-shadow: var(--hand-card-hover-shadow);
+      }
+      .hand-card img {
+        display: block; /* Remove extra space below image */
+        width: 100%;
+        height: auto;
+        /* No pointer events needed here, click is on parent div */
+      }
+
+      /* Card on Battlefield (Unchanged) */
       .battlefield-card {
         position: absolute;
         width: 65px;
         height: auto;
         border-radius: 4px;
-        box-shadow: 1px 1px 3px var(--shadow-color-heavy); /* USE VAR */
+        box-shadow: 1px 1px 3px var(--shadow-color-heavy);
         cursor: grab;
         user-select: none;
         transition: box-shadow 0.2s ease;
-        background-color: var(--section-bg); /* Use section bg */
+        background-color: var(--section-bg);
         z-index: 1;
       }
       .battlefield-card:active {
         cursor: grabbing;
-        box-shadow: 2px 2px 6px var(--shadow-color-heavy); /* USE VAR */
+        box-shadow: 2px 2px 6px var(--shadow-color-heavy);
         z-index: 1000;
       }
       .battlefield-card img {
@@ -524,45 +548,41 @@
         opacity: 0.4;
       }
 
-      /* Image Popup Styles */
+      /* Image Popup Styles (Unchanged) */
       #imagePopup {
         position: fixed;
         display: none;
         padding: 5px;
-        background-color: var(--popup-bg); /* USE VAR */
+        background-color: var(--popup-bg);
         border-radius: 6px;
         z-index: 9999;
         pointer-events: none;
         transition: opacity 0.1s ease-in-out;
-        width: 250px; /* Fixed width */
-        box-shadow: 0 4px 15px var(--shadow-color-heavy); /* USE VAR */
+        width: 250px;
+        box-shadow: 0 4px 15px var(--shadow-color-heavy);
       }
       #imagePopup img {
         display: block;
         width: 100%;
         height: auto;
         border-radius: 4px;
-        border: 1px solid var(--popup-border); /* USE VAR */
+        border: 1px solid var(--popup-border);
       }
     </style>
   </head>
-  <!-- Body tag will get data-theme attribute -->
-  <body>
-    <!-- NEW: Header Container -->
+  <body data-theme="light">
+    <!-- Default theme attribute -->
     <div class="header-container">
       <h1>Simple MTG Deck Builder</h1>
-      <!-- NEW: Theme Toggle Switch -->
       <div class="theme-switch-wrapper">
         <label class="theme-switch" for="themeToggleCheckbox">
           <input type="checkbox" id="themeToggleCheckbox" />
           <span class="slider round"></span>
         </label>
       </div>
-      <!-- End Theme Toggle -->
     </div>
-    <!-- End Header Container -->
 
-    <!-- Grid Item: Search -->
+    <!-- Search -->
     <div class="search-section">
       <h2>Card Search</h2>
       <input
@@ -575,7 +595,7 @@
       <div id="status">Type at least 3 characters for suggestions.</div>
     </div>
 
-    <!-- Grid Item: Actions -->
+    <!-- Actions -->
     <div class="actions-section">
       <h2>Deck Actions</h2>
       <button id="saveDeckButton" class="action-button">Save Deck</button>
@@ -586,42 +606,43 @@
       <div id="deckActionStatus"></div>
     </div>
 
-    <!-- Grid Item: Deck -->
+    <!-- Deck -->
     <div class="deck-section">
       <h2>Current Deck (<span id="deckTotalCount">0</span> cards)</h2>
       <ul id="deckList"></ul>
       <div id="deckCount">Total: <span id="deckTotalCountBottom">0</span></div>
     </div>
 
-    <!-- Grid Item: Test Area -->
+    <!-- Test Area -->
     <div class="test-hand-section">
       <h2>Test Area</h2>
-      <button id="drawHandButton" class="action-button">Draw 7 Cards</button>
-      <button id="drawNextCardButton" class="action-button" disabled>
-        Draw Next Card
-      </button>
-      <div id="testHandStatus"></div>
+      <div class="test-controls">
+        <!-- Wrap buttons and status -->
+        <button id="drawHandButton" class="action-button">Draw 7 Cards</button>
+        <button id="drawNextCardButton" class="action-button" disabled>
+          Draw Next Card
+        </button>
+        <span id="testHandStatus"></span>
+        <!-- Status now includes hand count -->
+      </div>
 
       <div class="play-area">
-        <div class="hand-zone">
-          <h3>Hand (<span id="handCardCount">0</span>)</h3>
-          <ul id="testHandDisplay"></ul>
-        </div>
+        <!-- Battlefield remains first -->
         <div class="battlefield-zone" id="battlefieldDisplayContainer">
           <div class="bf-subzone" id="generalZone">
             <h4>General Battlefield</h4>
           </div>
-          <div class="bf-subzone" id="creatureZone">
-            <h4>Creatures</h4>
-          </div>
-          <div class="bf-subzone" id="landZone">
-            <h4>Lands</h4>
-          </div>
+          <div class="bf-subzone" id="creatureZone"><h4>Creatures</h4></div>
+          <div class="bf-subzone" id="landZone"><h4>Lands</h4></div>
+        </div>
+        <!-- NEW Hand Container below battlefield -->
+        <div id="testHandContainer">
+          <!-- Hand cards will be dynamically added here -->
         </div>
       </div>
     </div>
 
-    <!-- Image Popup Element -->
+    <!-- Image Popup -->
     <div id="imagePopup">
       <img id="popupImage" src="" alt="Card Preview" />
     </div>
@@ -642,9 +663,7 @@
       const deckActionStatus = document.getElementById("deckActionStatus");
       const drawHandButton = document.getElementById("drawHandButton");
       const drawNextCardButton = document.getElementById("drawNextCardButton");
-      const testHandDisplay = document.getElementById("testHandDisplay");
-      const handCardCountSpan = document.getElementById("handCardCount");
-      const testHandStatus = document.getElementById("testHandStatus");
+      const testHandStatus = document.getElementById("testHandStatus"); // Now used for hand count too
       const battlefieldDisplayContainer = document.getElementById(
         "battlefieldDisplayContainer"
       );
@@ -653,11 +672,11 @@
       const landZone = document.getElementById("landZone");
       const imagePopup = document.getElementById("imagePopup");
       const popupImage = document.getElementById("popupImage");
-      // NEW: Theme Toggle Reference
       const themeToggle = document.getElementById("themeToggleCheckbox");
+      const testHandContainer = document.getElementById("testHandContainer"); // NEW Ref
 
       const DECK_STORAGE_KEY = "mtgDeckBuilderSimpleDeckV3";
-      const THEME_STORAGE_KEY = "mtgThemePreference"; // NEW: Theme storage key
+      const THEME_STORAGE_KEY = "mtgThemePreference";
 
       // --- State Variables ---
       let currentDeck = {};
@@ -670,7 +689,7 @@
       let dragInfo = { cardId: null, offsetX: 0, offsetY: 0 };
       let popupVisible = false;
 
-      // --- Utility Functions (Mostly Unchanged) ---
+      // --- Utility Functions (Unchanged) ---
       function debounce(func, wait) {
         let timeout;
         return function executedFunction(...args) {
@@ -709,26 +728,23 @@
           .replace(/'/g, "'");
       }
 
-      // --- API Interaction (Unchanged from previous) ---
+      // --- API Interaction (Unchanged) ---
       async function performLiveSearch(query) {
         if (searchAbortController) {
           searchAbortController.abort();
         }
         searchAbortController = new AbortController();
         const signal = searchAbortController.signal;
-
         searchResults.innerHTML = "";
         if (!query || query.length < 3) {
           searchResults.style.display = "none";
           updateStatus("Type at least 3 characters for suggestions.");
           return;
         }
-
         updateStatus("Searching...", true);
         const apiUrl = `https://api.scryfall.com/cards/search?q=${encodeURIComponent(
           query
         )}&unique=cards&order=name&include_extras=false&include_variations=false`;
-
         try {
           const response = await fetch(apiUrl, { signal });
           if (!response.ok) {
@@ -759,7 +775,7 @@
       }
       const debouncedLiveSearch = debounce(performLiveSearch, 350);
 
-      // --- Display Logic (Unchanged from previous) ---
+      // --- Display Logic (displayHand Modified) ---
       function displaySearchResults(cards) {
         searchResults.innerHTML = "";
         if (!cards || cards.length === 0) {
@@ -823,30 +839,6 @@
         deckTotalCountSpan.textContent = totalCards;
         deckTotalCountBottomSpan.textContent = totalCards;
       }
-      function displayHand() {
-        const handList = document.getElementById("testHandDisplay");
-        handList.innerHTML = "";
-        currentHand.sort((a, b) => a.name.localeCompare(b.name));
-        currentHand.forEach((card) => {
-          const li = document.createElement("li");
-          li.dataset.handId = card.handId;
-          const smallImageUrl = card.imageUrl || "";
-          const normalImageUrl = card.normalImageUrl || smallImageUrl;
-          const safeCardName = card.name || "Unknown Card";
-          li.innerHTML = `<div class="card-info"><img src="${escapeHtml(
-            smallImageUrl
-          )}" alt="${escapeHtml(
-            safeCardName
-          )}" class="card-image" loading="lazy" data-normal-src="${escapeHtml(
-            normalImageUrl
-          )}"><span class="card-name" title="${escapeHtml(
-            safeCardName
-          )}">${escapeHtml(safeCardName)}</span></div>`;
-          li.addEventListener("click", handlePlayCardFromHand);
-          handList.appendChild(li);
-        });
-        handCardCountSpan.textContent = currentHand.length;
-      }
       function displayBattlefield() {
         generalZone.innerHTML = "<h4>General Battlefield</h4>";
         creatureZone.innerHTML = "<h4>Creatures</h4>";
@@ -885,7 +877,37 @@
         });
       }
 
-      // --- Deck Management Logic (Unchanged from previous) ---
+      // MODIFIED: displayHand - Renders cards horizontally into testHandContainer
+      function displayHand() {
+        testHandContainer.innerHTML = ""; // Clear the container
+
+        currentHand.forEach((card) => {
+          const cardDiv = document.createElement("div");
+          cardDiv.classList.add("hand-card"); // Add the new class for styling
+          cardDiv.dataset.handId = card.handId;
+
+          // Use normal image if available, otherwise small
+          const displayImageUrl = card.normalImageUrl || card.imageUrl || "";
+          const safeCardName = card.name || "Unknown Card";
+
+          // Use data-normal-src to ensure popup always gets the best available image URL
+          const normalSrc = card.normalImageUrl || displayImageUrl;
+
+          cardDiv.innerHTML = `<img src="${escapeHtml(
+            displayImageUrl // Use smaller image for display if available? For now, using best available.
+          )}" alt="${escapeHtml(safeCardName)}" title="${escapeHtml(
+            safeCardName
+          )}" loading="lazy" data-normal-src="${escapeHtml(
+            normalSrc // Explicitly set data-normal-src for popup
+          )}">`;
+
+          cardDiv.addEventListener("click", handlePlayCardFromHand);
+          testHandContainer.appendChild(cardDiv);
+        });
+        // Hand count is updated in the status message by calling functions
+      }
+
+      // --- Deck Management Logic (Unchanged) ---
       function addCardToDeck(cardName, smallImageUrl, normalImageUrl) {
         if (!cardName) {
           console.error("Attempted to add card with no name.");
@@ -958,7 +980,7 @@
         }
       }
 
-      // --- Local Storage (Deck - Unchanged from previous) ---
+      // --- Local Storage (Deck - Unchanged) ---
       function saveDeck() {
         try {
           localStorage.setItem(DECK_STORAGE_KEY, JSON.stringify(currentDeck));
@@ -1059,9 +1081,9 @@
         }
       }
 
-      // --- Test Hand / Play Area Logic (Unchanged from previous) ---
+      // --- Test Hand / Play Area Logic (drawTestHand, drawNextCard, clearTestArea, handlePlayCardFromHand Modified) ---
       function drawTestHand() {
-        clearTestArea();
+        clearTestArea(); // Resets hand, battlefield, library, status
         const deckArray = [];
         for (const cardName in currentDeck) {
           const cardInfo = currentDeck[cardName];
@@ -1076,14 +1098,18 @@
         }
         const deckSize = deckArray.length;
         if (deckSize < 7) {
-          testHandStatus.textContent = `Cannot draw hand: Deck only has ${deckSize} cards (needs at least 7).`;
+          testHandStatus.textContent = `Cannot draw hand: Deck only has ${deckSize} cards (needs at least 7). Hand: 0.`;
           disableDrawNextButton();
+          displayHand(); // Display empty hand container
+          displayBattlefield(); // Display empty battlefield
           return;
         }
+        // Shuffle
         for (let i = deckArray.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
           [deckArray[i], deckArray[j]] = [deckArray[j], deckArray[i]];
         }
+        // Draw
         const hand = deckArray.slice(0, 7);
         currentHand = hand.map((card) => ({
           handId: handCardIdCounter++,
@@ -1092,14 +1118,16 @@
           normalImageUrl: card.normalImageUrl,
         }));
         currentLibrary = deckArray.slice(7);
-        testHandStatus.textContent = `Drew 7 cards. ${currentLibrary.length} cards left in library.`;
+        // Update status and display
+        testHandStatus.textContent = `Drew 7 cards. Hand: ${currentHand.length}. Library: ${currentLibrary.length}.`;
         displayHand();
-        displayBattlefield();
+        displayBattlefield(); // Render empty battlefield initially
         enableDrawNextButton();
       }
+
       function drawNextCard() {
         if (currentLibrary.length === 0) {
-          testHandStatus.textContent = "Cannot draw: Library is empty.";
+          testHandStatus.textContent = `Cannot draw: Library is empty. Hand: ${currentHand.length}.`;
           disableDrawNextButton();
           return;
         }
@@ -1110,21 +1138,25 @@
           imageUrl: nextCard.imageUrl,
           normalImageUrl: nextCard.normalImageUrl,
         });
-        displayHand();
-        testHandStatus.textContent = `Drew ${escapeHtml(nextCard.name)}. ${
-          currentLibrary.length
-        } cards left in library.`;
+        displayHand(); // Update hand display
+
+        // Update status
+        testHandStatus.textContent = `Drew ${escapeHtml(
+          nextCard.name
+        )}. Hand: ${currentHand.length}. Library: ${currentLibrary.length}.`;
         if (currentLibrary.length === 0) {
           disableDrawNextButton();
           testHandStatus.textContent += " Library is now empty.";
         }
       }
+
       function enableDrawNextButton() {
         drawNextCardButton.disabled = false;
       }
       function disableDrawNextButton() {
         drawNextCardButton.disabled = true;
       }
+
       function clearTestArea() {
         currentHand = [];
         currentBattlefield = {};
@@ -1132,18 +1164,21 @@
         handCardIdCounter = 0;
         battlefieldCardIdCounter = 0;
         dragInfo = { cardId: null, offsetX: 0, offsetY: 0 };
-        if (testHandDisplay) testHandDisplay.innerHTML = "";
+
+        if (testHandContainer) testHandContainer.innerHTML = ""; // Clear hand container
         if (generalZone) generalZone.innerHTML = "<h4>General Battlefield</h4>";
         if (creatureZone) creatureZone.innerHTML = "<h4>Creatures</h4>";
         if (landZone) landZone.innerHTML = "<h4>Lands</h4>";
-        if (handCardCountSpan) handCardCountSpan.textContent = "0";
-        if (testHandStatus) testHandStatus.textContent = "";
+        if (testHandStatus) testHandStatus.textContent = ""; // Clear status text
+
         disableDrawNextButton();
         hideImagePopup();
       }
+
       function handlePlayCardFromHand(event) {
-        const listItem = event.currentTarget;
-        const handId = parseInt(listItem.dataset.handId, 10);
+        const cardDiv = event.currentTarget; // Target is the div.hand-card
+        const handId = parseInt(cardDiv.dataset.handId, 10);
+
         const cardIndex = currentHand.findIndex(
           (card) => card.handId === handId
         );
@@ -1160,12 +1195,21 @@
             x: initialX,
             y: initialY,
           };
+
           displayHand();
           displayBattlefield();
+
+          // Update status
+          testHandStatus.textContent = `Played ${escapeHtml(
+            cardToPlay.name
+          )}. Hand: ${currentHand.length}. Library: ${currentLibrary.length}.`;
+          if (currentLibrary.length === 0 && drawNextCardButton.disabled) {
+            testHandStatus.textContent += " Library is empty.";
+          }
         }
       }
 
-      // --- Drag and Drop Handlers (Unchanged from previous) ---
+      // --- Drag and Drop Handlers (Unchanged) ---
       function handleDragStart(event) {
         const cardElement = event.target.closest(".battlefield-card");
         if (!cardElement || !cardElement.dataset.battlefieldId) return;
@@ -1246,7 +1290,7 @@
         displayBattlefield();
       }
 
-      // --- Image Popup Logic (Unchanged from previous) ---
+      // --- Image Popup Logic (Unchanged) ---
       function showImagePopup(event, targetImage) {
         let largeImageUrl =
           targetImage.dataset.normalSrc || targetImage.getAttribute("src");
@@ -1292,43 +1336,28 @@
         imagePopup.style.left = `${left}px`;
       }
 
-      // --- NEW: Theme Management Logic ---
+      // --- Theme Management Logic (Unchanged) ---
       function setTheme(themeName) {
         localStorage.setItem(THEME_STORAGE_KEY, themeName);
         document.body.setAttribute("data-theme", themeName);
-        // Update toggle switch state visually
         themeToggle.checked = themeName === "dark";
       }
-
       function toggleTheme() {
-        if (themeToggle.checked) {
-          setTheme("dark");
-        } else {
-          setTheme("light");
-        }
+        if (themeToggle.checked) setTheme("dark");
+        else setTheme("light");
       }
-
       function loadTheme() {
         const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
         const prefersDark =
           window.matchMedia &&
           window.matchMedia("(prefers-color-scheme: dark)").matches;
-
-        if (storedTheme) {
-          // Use stored preference
-          setTheme(storedTheme);
-        } else if (prefersDark) {
-          // Use system preference if no storage
-          setTheme("dark");
-        } else {
-          // Default to light
-          setTheme("light");
-        }
+        if (storedTheme) setTheme(storedTheme);
+        else if (prefersDark) setTheme("dark");
+        else setTheme("light");
       }
 
       // --- Event Listeners ---
-
-      // Search (Unchanged from previous)
+      // Search (Unchanged)
       searchInput.addEventListener("input", (event) => {
         debouncedLiveSearch(event.target.value.trim());
       });
@@ -1362,7 +1391,7 @@
         }
       });
 
-      // Deck List (Unchanged from previous)
+      // Deck List (Unchanged)
       deckList.addEventListener("click", (event) => {
         if (event.target.classList.contains("delete-card-btn")) {
           const cardName = event.target.getAttribute("data-cardname");
@@ -1376,37 +1405,44 @@
         }
       });
 
-      // Action Buttons (Unchanged from previous)
+      // Action Buttons (Unchanged)
       saveDeckButton.addEventListener("click", saveDeck);
       loadDeckButton.addEventListener("click", loadDeck);
       clearDeckButton.addEventListener("click", clearDeck);
       drawHandButton.addEventListener("click", drawTestHand);
       drawNextCardButton.addEventListener("click", drawNextCard);
 
-      // Drag Listeners for Battlefield Zones (Unchanged from previous)
+      // Drag Listeners for Battlefield Zones (Unchanged)
       [generalZone, creatureZone, landZone].forEach((zone) => {
         zone.addEventListener("dragover", handleDragOver);
         zone.addEventListener("drop", handleDrop);
       });
 
-      // Image Popup Delegated Listeners (Unchanged from previous)
+      // Image Popup Delegated Listeners (setupPopupListeners Modified)
       function setupPopupListeners() {
         const containers = [
           searchResults,
           deckList,
-          testHandDisplay,
+          testHandContainer,
           battlefieldDisplayContainer,
-        ];
+        ]; // Added testHandContainer
         containers.forEach((container) => {
           if (!container) return;
           container.addEventListener("mouseover", (event) => {
             let targetImg = null;
+            // Check various card image locations
             if (event.target.matches(".search-result-image, .card-image"))
               targetImg = event.target;
             else if (event.target.matches(".battlefield-card"))
               targetImg = event.target.querySelector("img");
             else if (event.target.parentElement?.matches(".battlefield-card"))
               targetImg = event.target;
+            else if (event.target.matches(".hand-card"))
+              targetImg = event.target.querySelector("img");
+            // Check hand card div
+            else if (event.target.parentElement?.matches(".hand-card"))
+              targetImg = event.target; // Check hand card img
+
             if (targetImg) showImagePopup(event, targetImg);
           });
           container.addEventListener("mousemove", (event) => {
@@ -1416,30 +1452,36 @@
             let relatedTargetIsPopup = imagePopup.contains(event.relatedTarget);
             let targetIsImageOrParent =
               event.target.matches(
-                ".search-result-image, .card-image, .battlefield-card"
-              ) || event.target.parentElement?.matches(".battlefield-card");
+                ".search-result-image, .card-image, .battlefield-card, .hand-card"
+              ) || // Updated selector
+              event.target.parentElement?.matches(
+                ".battlefield-card, .hand-card"
+              );
             if (targetIsImageOrParent && !relatedTargetIsPopup)
               hideImagePopup();
           });
         });
         imagePopup.addEventListener("mouseout", (event) => {
           const isMovingToTrigger = event.relatedTarget?.matches(
-            ".search-result-image, .card-image, .battlefield-card img, .battlefield-card"
-          );
+            ".search-result-image, .card-image, .battlefield-card img, .battlefield-card, .hand-card img, .hand-card"
+          ); // Updated selector
           if (!imagePopup.contains(event.relatedTarget) && !isMovingToTrigger)
             hideImagePopup();
         });
       }
 
-      // NEW: Theme Toggle Listener
+      // Theme Toggle Listener (Unchanged)
       themeToggle.addEventListener("change", toggleTheme);
 
       // --- Initial Load ---
       document.addEventListener("DOMContentLoaded", () => {
-        loadTheme(); // NEW: Load theme preference first
+        loadTheme();
         loadDeck();
         disableDrawNextButton();
         setupPopupListeners();
+        // Initial render of empty areas in case loadDeck doesn't populate them
+        displayHand();
+        displayBattlefield();
       });
     </script>
   </body>
