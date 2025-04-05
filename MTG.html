@@ -356,6 +356,7 @@
         color: var(--input-text);
       }
       .action-button,
+      .delete-card-btn,
       #drawHandButton,
       #drawNextCardButton,
       #shuffleDeckButton,
@@ -371,16 +372,6 @@
         font-size: 0.9em;
         margin-bottom: 10px;
       }
-      .delete-card-btn {
-        padding: 9px 15px;
-        background-color: var(--button-bg);
-        color: var(--button-text);
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        transition: background-color 0.2s ease;
-        font-size: 0.9em;
-      }
       .test-controls {
         margin-bottom: 10px;
         display: flex;
@@ -392,6 +383,7 @@
         display: inline-block;
         width: auto;
         margin-right: 10px;
+        margin-bottom: 5px;
       }
       .scry-control {
         display: inline-flex;
@@ -564,11 +556,9 @@
         transition: background-color 0.3s ease, border-color 0.3s ease;
       }
       .hand-card {
-        width: 75px;
+        width: 100px;
         height: auto;
         border-radius: 4px;
-        background-color: var(--hand-card-bg);
-        border: 1px solid var(--hand-card-border);
         box-shadow: 1px 1px 3px var(--shadow-color);
         cursor: pointer;
         transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -585,7 +575,7 @@
       }
       .battlefield-card {
         position: absolute;
-        width: 65px;
+        width: 80px;
         height: auto;
         border-radius: 4px;
         box-shadow: 1px 1px 3px var(--shadow-color-heavy);
@@ -810,7 +800,6 @@
         color: var(--button-disabled-text);
         cursor: not-allowed;
       }
-      /* Removed selected class styles as buttons get disabled */
     </style>
   </head>
   <body data-theme="light">
@@ -917,7 +906,6 @@
       <div id="scryModal">
         <h3 id="scryModalTitle">Scry X</h3>
         <div id="scryCardContainer"></div>
-        <!-- Confirm Button Removed -->
       </div>
     </div>
 
@@ -980,6 +968,7 @@
       let exileCardIdCounter = 0;
       let dragInfo = { cardId: null, offsetX: 0, offsetY: 0 };
       let popupVisible = false;
+      let popupTriggerElement = null;
       let contextMenuVisible = false;
       let contextMenuTarget = {
         cardId: null,
@@ -989,8 +978,8 @@
       let scryingState = {
         active: false,
         cards: [],
-        choices: {}, // We still need this temporarily to track which cards remain
         expectedCount: 0,
+        resolvedCount: 0,
       };
 
       function debounce(func, wait) {
@@ -1252,7 +1241,6 @@
           else scryCountInput.max = 1;
         }
         if (!libraryAvailable && !scryingState.active) {
-          // Only add "Library is empty" if not currently scrying
           statusText += " Library is empty.";
         }
         testHandStatus.textContent = statusText;
@@ -1847,7 +1835,7 @@
       }
 
       function showImagePopup(event, targetImage) {
-        if (scryingState.active) return;
+        if (scryingState.active || contextMenuVisible) return; // Also check context menu
         let largeImageUrl =
           targetImage.dataset.normalSrc || targetImage.getAttribute("src");
         if (largeImageUrl && largeImageUrl.includes("/small."))
@@ -1868,15 +1856,17 @@
             hideImagePopup();
           }
         };
+        popupTriggerElement = targetImage;
         imagePopup.style.display = "block";
         popupVisible = true;
-        moveImagePopup(event);
+        moveImagePopup(event); // Position based on initial mouse event
       }
       function hideImagePopup() {
         imagePopup.style.display = "none";
         popupImage.src = "";
         popupImage.onerror = null;
         popupVisible = false;
+        popupTriggerElement = null;
       }
       function moveImagePopup(event) {
         if (!popupVisible) return;
@@ -2134,14 +2124,16 @@
         }
         scryingState.active = true;
         scryingState.cards = [];
-        scryingState.choices = {};
+        scryingState.choices = {}; // Reset choices
         scryingState.expectedCount = actualCount;
+        scryingState.resolvedCount = 0;
+
         for (let i = 0; i < actualCount; i++) {
           const card = currentLibrary.shift();
           if (card) {
             const scryCard = { ...card, originalIndex: i };
             scryingState.cards.push(scryCard);
-            scryingState.choices[i] = null;
+            // No need to initialize choices here now
           }
         }
         disableDrawNextButton();
@@ -2161,7 +2153,10 @@
         scryingState.cards.forEach((card) => {
           const cardDiv = document.createElement("div");
           cardDiv.classList.add("scry-card-item");
-          cardDiv.dataset.originalIndex = card.originalIndex;
+          // Store the card data directly for easier retrieval
+          cardDiv.dataset.cardName = card.name;
+          cardDiv.dataset.imageUrl = card.imageUrl;
+          cardDiv.dataset.normalImageUrl = card.normalImageUrl;
 
           const img = document.createElement("img");
           img.src = escapeHtml(card.imageUrl || "");
@@ -2201,62 +2196,49 @@
         const button = event.target;
         const choice = button.dataset.choice;
         const cardItem = button.closest(".scry-card-item");
-        const originalIndex = parseInt(cardItem.dataset.originalIndex, 10);
 
-        const cardIndexInState = scryingState.cards.findIndex(
-          (c) => c.originalIndex === originalIndex
-        );
-        if (cardIndexInState === -1) {
-          console.error(
-            "Scry choice error: Card not found in scrying state for original index",
-            originalIndex
-          );
-          return;
-        }
-
-        const [cardToMove] = scryingState.cards.splice(cardIndexInState, 1);
-        const cleanCardData = {
-          name: cardToMove.name,
-          imageUrl: cardToMove.imageUrl,
-          normalImageUrl: cardToMove.normalImageUrl,
+        // Retrieve card data directly from the element's dataset
+        const cardData = {
+          name: cardItem.dataset.cardName,
+          imageUrl: cardItem.dataset.imageUrl,
+          normalImageUrl: cardItem.dataset.normalImageUrl,
         };
 
+        // Action based on choice
         let actionMsg = "";
         if (choice === "top") {
-          currentLibrary.unshift(cleanCardData);
-          actionMsg = `Moved ${escapeHtml(
-            cleanCardData.name
-          )} to top of library.`;
+          currentLibrary.unshift(cardData); // Add to top
+          actionMsg = `Moved ${escapeHtml(cardData.name)} to top of library.`;
         } else {
-          currentLibrary.push(cleanCardData);
+          currentLibrary.push(cardData); // Add to bottom
           actionMsg = `Moved ${escapeHtml(
-            cleanCardData.name
+            cardData.name
           )} to bottom of library.`;
         }
 
-        cardItem.remove();
+        cardItem.remove(); // Remove the visual element
         updateTestStatus(actionMsg);
 
+        scryingState.resolvedCount++;
+
         // Check if all cards originally scryed have been processed
-        scryingState.expectedCount--; // Decrement expected count as a choice is made
-        if (scryingState.expectedCount === 0) {
-          endScrySession(); // Call the function that cleans up and closes modal
+        if (scryingState.resolvedCount === scryingState.expectedCount) {
+          endScrySession();
         }
       }
 
       function endScrySession() {
-        const finalStatus = testHandStatus.textContent; // Preserve last action message
+        const finalStatus = testHandStatus.textContent;
         scryingState.active = false;
         scryingState.cards = [];
-        scryingState.choices = {};
         scryingState.expectedCount = 0;
+        scryingState.resolvedCount = 0;
         scryOverlay.style.display = "none";
         scryCardContainer.innerHTML = "";
         enableDrawNextButton();
         enableShuffleButton();
         enableSearchButton();
         enableScryButton();
-        // Use the preserved status or add a generic "Scry finished" message
         updateTestStatus(
           finalStatus +
             (finalStatus.endsWith(".") ? " Scry finished." : ". Scry finished.")
@@ -2264,9 +2246,11 @@
       }
 
       function cancelScry() {
-        if (scryingState.active) {
-          // If cancelled mid-scry, put remaining cards back on top in original order
-          scryingState.cards.sort((a, b) => b.originalIndex - a.originalIndex); // sort highest index first
+        // If cancelled mid-scry (e.g., via Clear Deck), put remaining cards back
+        // This logic might be less relevant now since choices are instant,
+        // but keep it for safety (like if Clear Deck is pressed)
+        if (scryingState.active && scryingState.cards.length > 0) {
+          scryingState.cards.sort((a, b) => b.originalIndex - a.originalIndex);
           scryingState.cards.forEach((card) => {
             const cleanCardData = {
               name: card.name,
@@ -2312,7 +2296,6 @@
           hideDeckSearchArea();
         }
         if (scryingState.active && event.target === scryOverlay) {
-          /* Don't close by clicking overlay */
         }
       });
       searchInput.addEventListener("keypress", (event) => {
@@ -2353,6 +2336,7 @@
         zone.addEventListener("dragover", handleDragOver);
         zone.addEventListener("drop", handleDrop);
       });
+
       function setupPopupListeners() {
         const containers = [
           searchResults,
@@ -2365,58 +2349,83 @@
         ];
         containers.forEach((container) => {
           if (!container) return;
-          container.addEventListener("mouseover", (event) => {
-            if (contextMenuVisible || scryingState.active) return;
-            let targetImg = null;
-            let targetElement = event.target;
-            const closestLi = targetElement.closest("li");
-            const closestDiv = targetElement.closest(
-              ".battlefield-card, .hand-card, .side-zone-card"
-            );
-            if (targetElement.tagName === "IMG") {
-              targetImg = targetElement;
-            } else if (closestLi && container.id === "searchResults") {
-              targetImg = closestLi.querySelector(".search-result-image");
-            } else if (closestLi && container.id === "deckList") {
-              targetImg = closestLi.querySelector(".card-image");
-            } else if (closestLi && container.id === "deckSearchResults") {
-              targetImg = closestLi.querySelector("img");
-            } else if (closestDiv) {
-              targetImg = closestDiv.querySelector("img");
-            }
-            if (targetImg && (targetImg.src || targetImg.dataset.normalSrc)) {
-              showImagePopup(event, targetImg);
-            }
-          });
+
+          // Use mouseenter on the container to detect hovering over potential targets
+          container.addEventListener(
+            "mouseenter",
+            (event) => {
+              // Check if the direct target or its parent has a popup trigger
+              const targetElement = event.target;
+              const triggerElement = targetElement.closest(
+                "[data-normal-src], .card-image, .search-result-image"
+              ); // Combine relevant selectors
+
+              if (
+                triggerElement &&
+                (triggerElement.src || triggerElement.dataset.normalSrc)
+              ) {
+                // If a valid trigger is found, show the popup
+                if (
+                  !popupVisible &&
+                  !contextMenuVisible &&
+                  !scryingState.active
+                ) {
+                  let imageToShow =
+                    triggerElement.tagName === "IMG"
+                      ? triggerElement
+                      : triggerElement.querySelector("img");
+                  if (imageToShow) {
+                    showImagePopup(event, imageToShow);
+                  }
+                }
+              }
+            },
+            true
+          ); // Use capture phase to potentially catch earlier
+
+          // Use mouseleave on the container to hide the popup
+          container.addEventListener(
+            "mouseleave",
+            (event) => {
+              // If the mouse leaves the container and isn't going to the popup itself, hide it
+              if (popupVisible && !imagePopup.contains(event.relatedTarget)) {
+                hideImagePopup();
+              }
+            },
+            true
+          );
+
+          // Still need mousemove for positioning *while* visible
           container.addEventListener("mousemove", (event) => {
             if (popupVisible) {
               moveImagePopup(event);
             }
           });
-          container.addEventListener("mouseout", (event) => {
-            if (
-              !container.contains(event.relatedTarget) &&
-              !imagePopup.contains(event.relatedTarget)
-            ) {
-              hideImagePopup();
-            }
-          });
         });
-        imagePopup.addEventListener("mouseout", (event) => {
-          const isMovingToTrigger =
-            event.relatedTarget &&
-            (event.relatedTarget.closest(
-              ".search-result-image, .card-image, .battlefield-card, .hand-card, .side-zone-card"
-            ) ||
-              event.relatedTarget.closest(
-                "#searchResults li, #deckList li, #deckSearchResults li"
-              ));
-          if (!isMovingToTrigger && event.relatedTarget !== imagePopup) {
+
+        // Add mouseleave to the popup itself
+        imagePopup.addEventListener("mouseleave", (event) => {
+          // Hide if the mouse leaves the popup and isn't going back to the trigger element
+          const triggerElement = popupTriggerElement; // Use the stored trigger
+          if (
+            !imagePopup.contains(event.relatedTarget) &&
+            event.relatedTarget !== triggerElement
+          ) {
             hideImagePopup();
           }
         });
       }
+
       themeToggle.addEventListener("change", toggleTheme);
+      document.addEventListener("contextmenu", (event) => {
+        // Prevent default only if the target is within the test area zones
+        const targetCard = event.target.closest(
+          ".battlefield-card, .side-zone-card"
+        );
+        if (targetCard) {
+          event.preventDefault();
+        }
+      });
       battlefieldDisplayContainer.addEventListener("contextmenu", (event) => {
         const cardElement = event.target.closest(".battlefield-card");
         if (cardElement) {
