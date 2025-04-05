@@ -1093,7 +1093,7 @@
       }
       const debouncedLiveSearch = debounce(performLiveSearch, 350);
 
-      // --- Display Logic (Unchanged from previous step) ---
+      // --- Display Logic ---
       function displaySearchResults(cards) {
         searchResults.innerHTML = "";
         if (!cards || cards.length === 0) {
@@ -1265,7 +1265,9 @@
           searchDeckButton.disabled = !libraryAvailable;
           scryButton.disabled = !libraryAvailable;
           scryCountInput.disabled = !libraryAvailable;
-          scryCountInput.max = libraryCount; // Update max scry based on library size
+          if (libraryAvailable)
+            scryCountInput.max = libraryCount; // Update max scry
+          else scryCountInput.max = 1; // Default max if library empty
         }
         if (!libraryAvailable) {
           statusText += " Library is empty.";
@@ -1454,7 +1456,7 @@
         hideDeckSearchArea();
       }
 
-      // --- Test Hand / Play Area Logic (drawTestHand, drawNextCard, shuffleLibrary unchanged) ---
+      // --- Test Hand / Play Area Logic ---
       function drawTestHand() {
         clearTestArea();
         const deckArray = [];
@@ -1523,6 +1525,7 @@
         if (deckSearchArea.style.display === "block") {
           displayLibraryForSearch();
         }
+        updateTestStatus(); /* Update counts and button states */
       }
       function shuffleLibrary() {
         if (currentLibrary.length > 1) {
@@ -1544,21 +1547,21 @@
       function enableDrawNextButton() {
         drawNextCardButton.disabled =
           currentLibrary.length === 0 || scryingState.active;
-      } // Disable if scrying
+      }
       function disableDrawNextButton() {
         drawNextCardButton.disabled = true;
       }
       function enableShuffleButton() {
         shuffleDeckButton.disabled =
           currentLibrary.length <= 1 || scryingState.active;
-      } // Disable if scrying
+      }
       function disableShuffleButton() {
         shuffleDeckButton.disabled = true;
       }
       function enableSearchButton() {
         searchDeckButton.disabled =
           currentLibrary.length === 0 || scryingState.active;
-      } // Disable if scrying
+      }
       function disableSearchButton() {
         searchDeckButton.disabled = true;
       }
@@ -1569,7 +1572,8 @@
           currentLibrary.length === 0 || scryingState.active;
         if (currentLibrary.length > 0)
           scryCountInput.max = currentLibrary.length;
-      } // Disable if scrying
+        else scryCountInput.max = 1;
+      }
       function disableScryButton() {
         scryButton.disabled = true;
         scryCountInput.disabled = true;
@@ -1749,7 +1753,7 @@
         }
       }
 
-      // --- Deck Search Logic (Unchanged from previous step) ---
+      // --- Deck Search Logic (Unchanged) ---
       function toggleDeckSearchArea() {
         if (scryingState.active) return;
         if (
@@ -2141,53 +2145,49 @@
         hideContextMenu();
       }
 
-      // --- NEW: Scry Logic ---
+      // --- Scry Logic ---
       function handleScry() {
-        if (scryingState.active) return; // Prevent starting if already scrying
+        if (scryingState.active) return;
 
         const count = parseInt(scryCountInput.value, 10);
         if (isNaN(count) || count <= 0) {
           updateTestStatus("Invalid scry amount.");
           return;
         }
-        if (count > currentLibrary.length) {
-          updateTestStatus(
-            `Cannot scry ${count}: only ${currentLibrary.length} cards in library.`
-          );
+        const actualCount = Math.min(count, currentLibrary.length); // Can't scry more than library size
+        if (actualCount === 0) {
+          updateTestStatus("Library is empty, cannot scry.");
           return;
         }
 
-        // Enter scrying state
         scryingState.active = true;
         scryingState.cards = [];
         scryingState.choices = {};
 
         // Take cards from library
-        for (let i = 0; i < count; i++) {
+        for (let i = 0; i < actualCount; i++) {
           const card = currentLibrary.shift(); // Take from top
           if (card) {
-            const scryCard = { ...card, originalIndex: i }; // Store original relative index
+            const scryCard = { ...card, originalIndex: i }; // Store original relative index (0 = top card revealed)
             scryingState.cards.push(scryCard);
-            scryingState.choices[i] = null; // Initialize choice as null
+            scryingState.choices[i] = null; // Initialize choice
           }
         }
 
-        // Disable other actions
+        // Disable other actions while scrying
         disableDrawNextButton();
         disableShuffleButton();
         disableSearchButton();
         disableScryButton();
-        // Could also disable context menus if desired
 
-        // Display scry modal
-        displayScryModal();
-        updateTestStatus(`Scrying ${count} cards...`);
+        displayScryModal(actualCount);
+        updateTestStatus(`Scrying ${actualCount} cards... Make selections.`);
       }
 
-      function displayScryModal() {
-        scryModalTitle.textContent = `Scry ${scryingState.cards.length}`;
-        scryCardContainer.innerHTML = ""; // Clear previous cards
-        scryConfirmButton.disabled = true; // Disable initially
+      function displayScryModal(count) {
+        scryModalTitle.textContent = `Scry ${count}`;
+        scryCardContainer.innerHTML = "";
+        scryConfirmButton.disabled = true; // Disable until all choices made
 
         scryingState.cards.forEach((card) => {
           const cardDiv = document.createElement("div");
@@ -2201,7 +2201,6 @@
           img.dataset.normalSrc = escapeHtml(
             card.normalImageUrl || card.imageUrl || ""
           );
-          // Add popup listener directly here if needed, or rely on global one
           cardDiv.appendChild(img);
 
           const buttonDiv = document.createElement("div");
@@ -2229,14 +2228,12 @@
 
       function handleScryChoice(event) {
         const button = event.target;
-        const choice = button.dataset.choice; // 'top' or 'bottom'
+        const choice = button.dataset.choice;
         const cardItem = button.closest(".scry-card-item");
         const originalIndex = parseInt(cardItem.dataset.originalIndex, 10);
 
-        // Update state
         scryingState.choices[originalIndex] = choice;
 
-        // Update button visuals
         const buttons = cardItem.querySelectorAll(
           ".scry-choice-buttons button"
         );
@@ -2266,58 +2263,50 @@
         const toTop = [];
         const toBottom = [];
 
-        // Sort cards based on choice and original order
-        // Cards keep their relative order within the 'top' and 'bottom' groups
+        // Iterate through the cards *in the order they were revealed* (originalIndex 0, 1, 2...)
+        // This ensures their relative order is maintained within the top/bottom groups.
+        scryingState.cards.sort((a, b) => a.originalIndex - b.originalIndex); // Ensure sorted by original reveal order
         scryingState.cards.forEach((card) => {
           const choice = scryingState.choices[card.originalIndex];
+          const cleanCardData = {
+            name: card.name,
+            imageUrl: card.imageUrl,
+            normalImageUrl: card.normalImageUrl,
+          };
           if (choice === "top") {
-            toTop.push(card);
+            toTop.push(cleanCardData);
           } else if (choice === "bottom") {
-            toBottom.push(card);
+            toBottom.push(cleanCardData);
           }
         });
 
         // Return cards to library
-        // Add 'bottom' cards first (they go below the existing library)
-        currentLibrary.push(
-          ...toBottom.map((c) => ({
-            name: c.name,
-            imageUrl: c.imageUrl,
-            normalImageUrl: c.normalImageUrl,
-          }))
-        ); // Add clean data
-        // Add 'top' cards last (they go on top of the existing library)
-        currentLibrary.unshift(
-          ...toTop.map((c) => ({
-            name: c.name,
-            imageUrl: c.imageUrl,
-            normalImageUrl: c.normalImageUrl,
-          }))
-        ); // Add clean data
+        // Add 'bottom' cards to the end first, preserving their relative order.
+        currentLibrary.push(...toBottom);
+        // Add 'top' cards to the beginning, preserving their relative order.
+        // `unshift(...items)` prepends items such that items[0] becomes the new element at index 0.
+        currentLibrary.unshift(...toTop);
 
-        // Exit scrying state
-        cancelScry(); // Use cancel function to reset state and UI
-        updateTestStatus("Scry complete.");
+        cancelScry(); // Reset state and UI
+        updateTestStatus(
+          `Scry complete. ${toTop.length} to top, ${toBottom.length} to bottom.`
+        );
       }
 
       function cancelScry() {
-        // Also used by clearTestArea
         scryingState.active = false;
         scryingState.cards = [];
         scryingState.choices = {};
         scryOverlay.style.display = "none";
         scryCardContainer.innerHTML = "";
-        // Re-enable buttons only if library has cards
         enableDrawNextButton();
         enableShuffleButton();
         enableSearchButton();
         enableScryButton();
-        // Update status in case counts changed (though they shouldn't during scry)
-        updateTestStatus();
+        updateTestStatus(); // Update counts and button states
       }
 
       // --- Event Listeners ---
-      // Search (Unchanged)
       searchInput.addEventListener("input", (event) => {
         debouncedLiveSearch(event.target.value.trim());
       });
@@ -2349,11 +2338,8 @@
         ) {
           hideDeckSearchArea();
         }
-        // Hide scry modal if clicking overlay outside the modal itself
         if (scryingState.active && event.target === scryOverlay) {
-          // Optionally, you could cancel the scry here, or just prevent closing.
-          // For now, let's not close it by clicking outside, force confirm/cancel.
-          // cancelScry();
+          /* Don't close by clicking overlay */
         }
       });
       searchInput.addEventListener("keypress", (event) => {
@@ -2368,8 +2354,6 @@
             );
         }
       });
-
-      // Deck List (Unchanged)
       deckList.addEventListener("click", (event) => {
         if (event.target.classList.contains("delete-card-btn")) {
           const cardName = event.target.getAttribute("data-cardname");
@@ -2382,31 +2366,21 @@
           if (cardName) updateCardQuantity(cardName, event.target.value);
         }
       });
-
-      // Action Buttons (Deck Actions Unchanged)
       saveDeckButton.addEventListener("click", saveDeck);
       loadDeckButton.addEventListener("click", loadDeck);
       clearDeckButton.addEventListener("click", clearDeck);
-
-      // Test Area Buttons (Scry added)
       drawHandButton.addEventListener("click", drawTestHand);
       drawNextCardButton.addEventListener("click", drawNextCard);
       shuffleDeckButton.addEventListener("click", shuffleLibrary);
       searchDeckButton.addEventListener("click", toggleDeckSearchArea);
       closeSearchAreaButton.addEventListener("click", hideDeckSearchArea);
-      scryButton.addEventListener("click", handleScry); // New Scry listener
-      scryConfirmButton.addEventListener("click", handleScryConfirm); // New Scry confirm listener
-
-      // Deck Search Results Click Listener (Unchanged)
+      scryButton.addEventListener("click", handleScry);
+      scryConfirmButton.addEventListener("click", handleScryConfirm);
       deckSearchResults.addEventListener("click", handleDeckSearchResultClick);
-
-      // Drag Listeners for Drop Zones (Unchanged)
       [generalZone, graveyardZone, exileZone].forEach((zone) => {
         zone.addEventListener("dragover", handleDragOver);
         zone.addEventListener("drop", handleDrop);
       });
-
-      // Image Popup Delegated Listeners (Unchanged)
       function setupPopupListeners() {
         const containers = [
           searchResults,
@@ -2470,11 +2444,7 @@
           }
         });
       }
-
-      // Theme Toggle Listener (Unchanged)
       themeToggle.addEventListener("change", toggleTheme);
-
-      // Context Menu Listeners (Unchanged)
       battlefieldDisplayContainer.addEventListener("contextmenu", (event) => {
         const cardElement = event.target.closest(".battlefield-card");
         if (cardElement) {
@@ -2494,7 +2464,7 @@
         }
       });
       cardContextMenu.addEventListener("click", handleContextMenuAction);
-      window.addEventListener("scroll", hideContextMenu, true); // Use capture phase
+      window.addEventListener("scroll", hideContextMenu, true);
 
       // --- Initial Load ---
       document.addEventListener("DOMContentLoaded", () => {
