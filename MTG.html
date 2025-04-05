@@ -2256,12 +2256,12 @@
         const normalImageUrl = imageUrl.includes("?")
           ? imageUrl.split("?")[0]
           : imageUrl;
-        cardViewImage.src = normalImageUrl.replace(/\/small\//, "/normal/");
-        cardViewImage.onerror = () => {
-          console.error("Failed to load image in card view popup:", imageUrl);
-          cardViewImage.alt = "Image failed to load";
-          cardViewImage.src = imageUrl;
-        };
+        cardViewImage.src = normalImageUrl.replace("small", "normal");
+        // cardViewImage.onerror = () => {
+        //   console.error("Failed to load image in card view popup:", imageUrl);
+        //   cardViewImage.alt = "Image failed to load";
+        //   cardViewImage.src = imageUrl;
+        // };
         cardViewImage.alt = "Card Image";
         cardViewPopupOverlay.style.display = "flex";
       }
