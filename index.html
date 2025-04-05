@@ -68,6 +68,9 @@
         --saved-deck-item-text: #0056b3;
         --fullscreen-button-bg: #6c757d;
         --fullscreen-button-hover-bg: #5a6268;
+        --counter-plus-bg: rgba(30, 120, 30, 0.8);
+        --counter-minus-bg: rgba(120, 30, 30, 0.8);
+        --counter-text: #ffffff;
       }
 
       body[data-theme="dark"] {
@@ -133,6 +136,9 @@
         --saved-deck-item-text: #4dabf7;
         --fullscreen-button-bg: #5a6268;
         --fullscreen-button-hover-bg: #495057;
+        --counter-plus-bg: rgba(50, 150, 50, 0.8);
+        --counter-minus-bg: rgba(150, 50, 50, 0.8);
+        --counter-text: #ffffff;
       }
 
       body {
@@ -435,7 +441,9 @@
       #shuffleDeckButton,
       #searchDeckButton,
       #scryButton,
-      #untapAllButton {
+      #untapAllButton,
+      #flipCoinButton,
+      #rollDieButton {
         padding: 9px 15px;
         background-color: var(--button-bg);
         color: var(--button-text);
@@ -492,7 +500,9 @@
       #shuffleDeckButton:hover,
       #searchDeckButton:hover,
       #scryButton:hover,
-      #untapAllButton:hover {
+      #untapAllButton:hover,
+      #flipCoinButton:hover,
+      #rollDieButton:hover {
         background-color: var(--button-bg-hover);
       }
       .action-button:disabled,
@@ -689,6 +699,33 @@
         pointer-events: none;
         border-radius: 4px;
       }
+      .battlefield-card .card-counters {
+        position: absolute;
+        bottom: 2px;
+        right: 2px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 1px;
+        pointer-events: none;
+      }
+      .counter-display {
+        color: var(--counter-text);
+        font-size: 0.7em;
+        font-weight: bold;
+        padding: 1px 3px;
+        border-radius: 3px;
+        line-height: 1;
+        min-width: 15px;
+        text-align: center;
+      }
+      .counter-display.plus-one {
+        background-color: var(--counter-plus-bg);
+      }
+      .counter-display.minus-one {
+        background-color: var(--counter-minus-bg);
+      }
+
       .dragging {
         opacity: 0.4;
       }
@@ -1059,6 +1096,8 @@
         <button id="untapAllButton" class="action-button" style="display: none">
           Untap All
         </button>
+        <button id="flipCoinButton" class="action-button">Flip Coin</button>
+        <button id="rollDieButton" class="action-button">Roll d6</button>
         <span id="testHandStatus"></span>
       </div>
 
@@ -1092,6 +1131,10 @@
       <ul>
         <li data-action="toggleTap">Tap/Untap</li>
         <li data-action="viewCard">View Card</li>
+        <li data-action="addPlusOneCounter">Add +1/+1 Counter</li>
+        <li data-action="removePlusOneCounter">Remove +1/+1 Counter</li>
+        <li data-action="addMinusOneCounter">Add -1/-1 Counter</li>
+        <li data-action="removeMinusOneCounter">Remove -1/-1 Counter</li>
         <li data-action="toHand">Move to Hand</li>
         <li data-action="toBattlefield">Move to Battlefield</li>
         <li data-action="toGraveyard">Move to Graveyard</li>
@@ -1141,6 +1184,8 @@
       const scryButton = document.getElementById("scryButton");
       const scryCountInput = document.getElementById("scryCountInput");
       const untapAllButton = document.getElementById("untapAllButton");
+      const flipCoinButton = document.getElementById("flipCoinButton");
+      const rollDieButton = document.getElementById("rollDieButton");
       const testHandStatus = document.getElementById("testHandStatus");
       const testAreaSection = document.getElementById("testAreaSection");
       const fullscreenTestAreaButton = document.getElementById(
@@ -1375,6 +1420,26 @@
         deckTotalCountBottomSpan.textContent = totalCards;
         drawHandButton.disabled = totalCards < 7;
       }
+
+      function updateCardCountersDisplay(cardElement, counters) {
+        const countersDiv = cardElement.querySelector(".card-counters");
+        if (!countersDiv) return;
+        countersDiv.innerHTML = "";
+
+        if (counters && counters.plusOne > 0) {
+          const plusOneSpan = document.createElement("span");
+          plusOneSpan.classList.add("counter-display", "plus-one");
+          plusOneSpan.textContent = `+${counters.plusOne}/+${counters.plusOne}`;
+          countersDiv.appendChild(plusOneSpan);
+        }
+        if (counters && counters.minusOne > 0) {
+          const minusOneSpan = document.createElement("span");
+          minusOneSpan.classList.add("counter-display", "minus-one");
+          minusOneSpan.textContent = `-${counters.minusOne}/-${counters.minusOne}`;
+          countersDiv.appendChild(minusOneSpan);
+        }
+      }
+
       function displayBattlefield() {
         while (generalZone.children.length > 1) {
           generalZone.removeChild(generalZone.lastChild);
@@ -1399,6 +1464,12 @@
             )}" alt="${escapeHtml(safeCardName)}" title="${escapeHtml(
               safeCardName
             )}" data-normal-src="${escapeHtml(normalImageUrl)}">`;
+
+            const cardCountersDiv = document.createElement("div");
+            cardCountersDiv.classList.add("card-counters");
+            cardDiv.appendChild(cardCountersDiv);
+            updateCardCountersDisplay(cardDiv, card.counters);
+
             cardDiv.addEventListener("dragstart", handleBattlefieldDragStart);
             cardDiv.addEventListener("dragend", handleDragEnd);
             generalZone.appendChild(cardDiv);
@@ -2003,6 +2074,7 @@
             isTapped: false,
             x: initialX,
             y: initialY,
+            counters: { plusOne: 0, minusOne: 0 },
           };
           displayHand();
           displayBattlefield();
@@ -2152,6 +2224,7 @@
             delete cardData.y;
             delete cardData.zone;
             delete cardData.isTapped;
+            delete cardData.counters;
 
             if (dropZoneId === "graveyardZone") {
               cardData.gyId = `gy-${graveyardCardIdCounter++}`;
@@ -2203,6 +2276,7 @@
                 isTapped: false,
                 x: newX,
                 y: newY,
+                counters: { plusOne: 0, minusOne: 0 },
               };
               delete currentBattlefield[battlefieldId].handId;
 
@@ -2554,6 +2628,23 @@
             ) {
               item.classList.add("disabled");
             }
+
+            if (action.includes("Counter")) {
+              if (sourceZone !== "battlefield") {
+                item.classList.add("hidden");
+              } else {
+                if (action === "removePlusOneCounter") {
+                  if (!cardData.counters || cardData.counters.plusOne <= 0) {
+                    item.classList.add("disabled");
+                  }
+                }
+                if (action === "removeMinusOneCounter") {
+                  if (!cardData.counters || cardData.counters.minusOne <= 0) {
+                    item.classList.add("disabled");
+                  }
+                }
+              }
+            }
           }
         });
       }
@@ -2614,6 +2705,7 @@
         let cardRemoved = false;
         let performVisualUpdate = true;
         let cardToMove = null;
+        let statusMsg = "";
 
         if (action === "toggleTap") {
           if (sourceZone === "battlefield" && currentBattlefield[cardId]) {
@@ -2659,6 +2751,66 @@
             console.error(
               "Cannot toggle tap: Card not found on battlefield or invalid zone."
             );
+            performVisualUpdate = false;
+          }
+          hideContextMenu();
+          return;
+        }
+
+        if (action.includes("Counter")) {
+          if (sourceZone === "battlefield" && currentBattlefield[cardId]) {
+            const card = currentBattlefield[cardId];
+            if (!card.counters) card.counters = { plusOne: 0, minusOne: 0 };
+
+            switch (action) {
+              case "addPlusOneCounter":
+                card.counters.plusOne++;
+                statusMsg = `Added +1/+1 counter to ${escapeHtml(
+                  cardData.name
+                )}.`;
+                break;
+              case "removePlusOneCounter":
+                if (card.counters.plusOne > 0) {
+                  card.counters.plusOne--;
+                  statusMsg = `Removed +1/+1 counter from ${escapeHtml(
+                    cardData.name
+                  )}.`;
+                } else {
+                  statusMsg = `No +1/+1 counters to remove from ${escapeHtml(
+                    cardData.name
+                  )}.`;
+                }
+                break;
+              case "addMinusOneCounter":
+                card.counters.minusOne++;
+                statusMsg = `Added -1/-1 counter to ${escapeHtml(
+                  cardData.name
+                )}.`;
+                break;
+              case "removeMinusOneCounter":
+                if (card.counters.minusOne > 0) {
+                  card.counters.minusOne--;
+                  statusMsg = `Removed -1/-1 counter from ${escapeHtml(
+                    cardData.name
+                  )}.`;
+                } else {
+                  statusMsg = `No -1/-1 counters to remove from ${escapeHtml(
+                    cardData.name
+                  )}.`;
+                }
+                break;
+            }
+
+            const cardElement = generalZone.querySelector(
+              `.battlefield-card[data-battlefield-id="${cardId}"]`
+            );
+            if (cardElement) {
+              updateCardCountersDisplay(cardElement, card.counters);
+            }
+            performVisualUpdate = false;
+            updateTestStatus(statusMsg);
+          } else {
+            console.error("Cannot modify counters: Card not on battlefield.");
             performVisualUpdate = false;
           }
           hideContextMenu();
@@ -2726,7 +2878,7 @@
           imageUrl: cardToMove.imageUrl,
           normalImageUrl: cardToMove.normalImageUrl,
         };
-        let statusMsg = `Moved ${escapeHtml(cleanCardData.name)}`;
+        statusMsg = `Moved ${escapeHtml(cleanCardData.name)}`;
         let libraryAction = false;
 
         switch (action) {
@@ -2741,6 +2893,7 @@
             cleanCardData.y = 10 + Math.floor(Math.random() * 10);
             cleanCardData.zone = "general";
             cleanCardData.isTapped = false;
+            cleanCardData.counters = { plusOne: 0, minusOne: 0 };
             currentBattlefield[bfId] = cleanCardData;
             statusMsg += " to Battlefield.";
             break;
@@ -3014,6 +3167,16 @@
         }
       }
 
+      function flipCoin() {
+        const result = Math.random() < 0.5 ? "Heads" : "Tails";
+        updateTestStatus(`Coin flip: ${result}.`);
+      }
+
+      function rollDie() {
+        const result = Math.floor(Math.random() * 6) + 1;
+        updateTestStatus(`Rolled a d6: ${result}.`);
+      }
+
       function toggleFullscreen() {
         isFullscreen = !isFullscreen;
         testAreaSection.classList.toggle("fullscreen-mode", isFullscreen);
@@ -3163,6 +3326,8 @@
       searchDeckButton.addEventListener("click", toggleDeckSearchArea);
       closeSearchAreaButton.addEventListener("click", hideDeckSearchArea);
       scryButton.addEventListener("click", handleScry);
+      flipCoinButton.addEventListener("click", flipCoin);
+      rollDieButton.addEventListener("click", rollDie);
 
       [generalZone, graveyardZone, exileZone].forEach((zone) => {
         zone.addEventListener("dragover", handleDragOver);
