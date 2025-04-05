@@ -1036,7 +1036,7 @@
       <div id="deckCount">Total: <span id="deckTotalCountBottom">0</span></div>
     </div>
 
-    <div class="test-hand-section" id="testAreaSection">
+    <div class="test-hand-section" id="testAreaSection" style="display: none">
       <div class="section-header">
         <h2>Test Area</h2>
         <button id="fullscreenTestAreaButton">Fullscreen</button>
@@ -1585,6 +1585,7 @@
           updateCurrentDeckNameStatus(null);
           renderDeck();
           clearTestArea();
+          testAreaSection.style.display = "none";
         }
       }
 
@@ -1734,6 +1735,7 @@
             disableSearchButton();
             disableScryButton();
             hideDeckSearchArea();
+            testAreaSection.style.display = "block";
           } else {
             updateDeckActionStatus(
               `Failed to load deck "${escapeHtml(
@@ -1830,8 +1832,11 @@
           displayHand();
           displayBattlefield();
           displaySideZones();
+          testAreaSection.style.display = "none";
           return;
         }
+
+        testAreaSection.style.display = "block";
         shuffleArray(deckArray);
         const hand = deckArray.slice(0, 7);
         currentHand = hand.map((card) => ({
@@ -3018,14 +3023,12 @@
 
         if (isFullscreen) {
           document.body.style.overflow = "hidden";
-          // Hide elements outside the test area
           document
             .querySelectorAll(
               "body > :not(.test-hand-section):not(#cardContextMenu):not(#scryOverlay):not(#cardViewPopupOverlay)"
             )
             .forEach((el) => (el.style.display = "none"));
-          document.querySelector(".header-container").style.display = "none"; // Ensure header is hidden too
-          // Adjust body styles for fixed positioning
+          document.querySelector(".header-container").style.display = "none";
           document.body.style.position = "fixed";
           document.body.style.width = "100%";
           document.body.style.height = "100%";
@@ -3036,14 +3039,12 @@
           document.body.style.overflow = "hidden";
         } else {
           document.body.style.overflow = "";
-          // Restore display of other elements
           document
             .querySelectorAll(
               "body > :not(.test-hand-section):not(#cardContextMenu):not(#scryOverlay):not(#cardViewPopupOverlay)"
             )
             .forEach((el) => (el.style.display = ""));
-          document.querySelector(".header-container").style.display = "flex"; // Restore header
-          // Restore body styles
+          document.querySelector(".header-container").style.display = "flex";
           document.body.style.position = "";
           document.body.style.width = "";
           document.body.style.height = "";
@@ -3051,7 +3052,7 @@
           document.body.style.left = "";
           document.body.style.margin = "20px auto";
           document.body.style.padding = "15px";
-          document.body.style.overflow = ""; // Re-enable scrolling if needed
+          document.body.style.overflow = "";
         }
         hideContextMenu();
         hideCardViewPopup();
@@ -3098,7 +3099,6 @@
           !searchButton &&
           !closeSearchButton &&
           !cardContextMenu.contains(event.target)
-          // Don't auto-close if fullscreen might obscure click target (no change here)
         ) {
           hideDeckSearchArea();
         }
