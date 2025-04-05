@@ -1,487 +1,786 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple MTG Deck Builder</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simple MTG Deck Builder (w/ Images)</title>
     <style>
-        body {
-            font-family: sans-serif;
-            display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 20px;
-            max-width: 1200px;
-            margin: 20px auto;
-            padding: 15px;
-            background-color: #f4f4f4;
-        }
+      body {
+        font-family: sans-serif;
+        display: grid;
+        grid-template-columns: 1fr 2fr; /* Search/Actions on left, Deck on right */
+        gap: 20px;
+        max-width: 1300px; /* Increased width slightly */
+        margin: 20px auto;
+        padding: 15px;
+        background-color: #f0f2f5; /* Slightly different background */
+      }
 
-        h1, h2 {
-            text-align: center;
-            color: #333;
-            grid-column: 1 / -1; /* Span across both columns */
-        }
+      h1,
+      h2 {
+        text-align: center;
+        color: #333;
+        grid-column: 1 / -1; /* Span across both columns */
+        margin-bottom: 15px;
+      }
 
-        .search-section, .deck-section, .actions-section, .test-hand-section {
-            background-color: #fff;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
+      .search-section,
+      .deck-section,
+      .actions-section,
+      .test-hand-section {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        display: flex; /* Use flexbox for internal layout */
+        flex-direction: column;
+      }
 
-        .search-section {
-             grid-column: 1 / 2; /* First column */
-             grid-row: 2 / 3;
-        }
-        .deck-section {
-            grid-column: 2 / 3; /* Second column */
-            grid-row: 2 / 4; /* Span two rows */
-        }
-        .actions-section {
-            grid-column: 1 / 2; /* First column */
-            grid-row: 3 / 4;
-        }
-         .test-hand-section {
-            grid-column: 1 / 2; /* First column */
-            grid-row: 4 / 5;
-         }
+      .search-section {
+        grid-column: 1 / 2;
+        grid-row: 2 / 3;
+        position: relative; /* For positioning autocomplete results */
+      }
+      .deck-section {
+        grid-column: 2 / 3;
+        grid-row: 2 / 5; /* Span more rows */
+      }
+      .actions-section {
+        grid-column: 1 / 2;
+        grid-row: 3 / 4;
+      }
+      .test-hand-section {
+        grid-column: 1 / 2;
+        grid-row: 4 / 5;
+      }
 
-        #searchInput {
-            width: calc(100% - 80px);
-            padding: 8px;
-            margin-right: 5px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
+      #searchInput {
+        width: 100%; /* Take full width */
+        padding: 10px;
+        margin-bottom: 10px; /* Space below input */
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box; /* Include padding in width */
+      }
 
-        #searchButton, .action-button, .add-card-btn, .delete-card-btn, #drawHandButton {
-            padding: 8px 12px;
-            background-color: #5c67f2;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.2s ease;
-        }
+      /* Autocomplete styling */
+      #searchResults {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        max-height: 250px;
+        overflow-y: auto;
+        border: 1px solid #eee;
+        border-top: none; /* Attach visually to input */
+        border-radius: 0 0 4px 4px;
+        background-color: white;
+        /* Position absolute if needed, but simpler if kept in flow */
+      }
 
-        #searchButton:hover, .action-button:hover, .add-card-btn:hover, .delete-card-btn:hover, #drawHandButton:hover {
-            background-color: #4a54e1;
-        }
+      #searchResults li {
+        padding: 8px 12px;
+        cursor: pointer;
+        border-bottom: 1px solid #eee;
+      }
 
-        #searchResults, #deckList, #testHandDisplay {
-            list-style: none;
-            padding: 0;
-            margin-top: 10px;
-            max-height: 300px;
-            overflow-y: auto;
-        }
+      #searchResults li:last-child {
+        border-bottom: none;
+      }
 
-        #searchResults li, #deckList li, #testHandDisplay li {
-            padding: 8px;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+      #searchResults li:hover {
+        background-color: #f0f0f0;
+      }
 
-        #searchResults li:last-child, #deckList li:last-child, #testHandDisplay li:last-child {
-            border-bottom: none;
-        }
+      /* Deck list styling */
+      #deckList,
+      #testHandDisplay {
+        list-style: none;
+        padding: 0;
+        margin-top: 10px;
+        max-height: 500px; /* Allow more vertical space */
+        overflow-y: auto;
+        flex-grow: 1; /* Allow list to take available space */
+      }
 
-        .card-name {
-            flex-grow: 1;
-            margin-right: 10px;
-        }
+      #deckList li,
+      #testHandDisplay li {
+        padding: 8px 5px;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px; /* Space between elements */
+      }
 
-        .card-quantity input {
-            width: 40px;
-            text-align: center;
-            margin-right: 5px;
-            padding: 4px;
-            border: 1px solid #ccc;
-            border-radius: 3px;
-        }
-        .delete-card-btn {
-             background-color: #e53e3e;
-        }
-         .delete-card-btn:hover {
-             background-color: #c53030;
-         }
+      #deckList li:last-child,
+      #testHandDisplay li:last-child {
+        border-bottom: none;
+      }
 
-        .action-button {
-            display: block;
-            width: 100%;
-            margin-bottom: 10px;
-        }
-        #status {
-            margin-top: 10px;
-            font-style: italic;
-            color: #555;
-            min-height: 1.2em; /* Prevent layout shifts */
-        }
-         #deckCount {
-            text-align: right;
-            font-weight: bold;
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid #eee;
-         }
+      .card-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-grow: 1; /* Take available space */
+      }
 
-        /* Simple loading indicator */
-        .loading::after {
-            content: ' Loading...';
-            font-style: italic;
-            color: #888;
-        }
+      .card-image {
+        width: 40px; /* Small thumbnail */
+        height: auto;
+        border-radius: 3px;
+        vertical-align: middle;
+        flex-shrink: 0; /* Prevent image shrinking */
+      }
+
+      .card-name {
+        /* flex-grow: 1; Allow name to take space */
+        /* Removed flex-grow to prevent pushing controls too far */
+        overflow: hidden; /* Hide overflow */
+        text-overflow: ellipsis; /* Add ellipsis (...) */
+        white-space: nowrap; /* Prevent wrapping */
+      }
+
+      .card-controls {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        flex-shrink: 0; /* Prevent controls shrinking */
+      }
+
+      .card-quantity input {
+        width: 40px;
+        text-align: center;
+        padding: 4px;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+      }
+
+      .action-button,
+      .delete-card-btn,
+      #drawHandButton {
+        padding: 9px 15px;
+        background-color: #007bff; /* Updated button color */
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+        font-size: 0.9em;
+      }
+
+      .action-button:hover,
+      .delete-card-btn:hover,
+      #drawHandButton:hover {
+        background-color: #0056b3;
+      }
+
+      .delete-card-btn {
+        background-color: #dc3545;
+        padding: 4px 8px; /* Make delete smaller */
+        font-size: 0.8em;
+        line-height: 1; /* Adjust line height for small button */
+      }
+      .delete-card-btn:hover {
+        background-color: #c82333;
+      }
+
+      .action-button {
+        display: block;
+        width: 100%;
+        margin-bottom: 10px;
+      }
+
+      #status,
+      #deckActionStatus,
+      #testHandStatus {
+        margin-top: 10px;
+        font-style: italic;
+        color: #555;
+        min-height: 1.2em;
+        font-size: 0.9em;
+      }
+
+      #deckCount {
+        text-align: right;
+        font-weight: bold;
+        margin-top: 15px;
+        padding-top: 10px;
+        border-top: 1px solid #eee;
+      }
+
+      /* Simple loading indicator */
+      .loading::after {
+        content: " Loading...";
+        display: inline-block; /* Ensure it flows correctly */
+        margin-left: 5px;
+        font-style: italic;
+        color: #888;
+        font-size: 0.9em;
+      }
+
+      /* Hide search results initially or when empty */
+      #searchResults:empty {
+        border: none;
+      }
     </style>
-</head>
-<body>
-
+  </head>
+  <body>
     <h1>Simple MTG Deck Builder</h1>
 
     <div class="search-section">
-        <h2>Card Search</h2>
-        <input type="text" id="searchInput" placeholder="Enter card name...">
-        <button id="searchButton">Search</button>
-        <div id="status">Enter a card name and click Search.</div>
-        <ul id="searchResults"></ul>
+      <h2>Card Search</h2>
+      <input
+        type="text"
+        id="searchInput"
+        placeholder="Start typing card name..."
+      />
+      <ul id="searchResults"></ul>
+      <div id="status">Type at least 3 characters for suggestions.</div>
     </div>
 
     <div class="actions-section">
-        <h2>Deck Actions</h2>
-        <button id="saveDeckButton" class="action-button">Save Deck</button>
-        <button id="loadDeckButton" class="action-button">Load Deck</button>
-        <button id="clearDeckButton" class="action-button">Clear Current Deck</button>
-        <div id="deckActionStatus"></div>
+      <h2>Deck Actions</h2>
+      <button id="saveDeckButton" class="action-button">Save Deck</button>
+      <button id="loadDeckButton" class="action-button">Load Deck</button>
+      <button id="clearDeckButton" class="action-button">
+        Clear Current Deck
+      </button>
+      <div id="deckActionStatus"></div>
     </div>
 
-     <div class="test-hand-section">
-        <h2>Test Hand</h2>
-        <button id="drawHandButton" class="action-button">Draw 7 Cards</button>
-        <div id="testHandStatus"></div>
-        <ul id="testHandDisplay"></ul>
+    <div class="test-hand-section">
+      <h2>Test Hand</h2>
+      <button id="drawHandButton" class="action-button">Draw 7 Cards</button>
+      <div id="testHandStatus"></div>
+      <ul id="testHandDisplay"></ul>
     </div>
-
 
     <div class="deck-section">
-        <h2>Current Deck (<span id="deckTotalCount">0</span> cards)</h2>
-        <ul id="deckList">
-            <!-- Deck items will be populated here -->
-        </ul>
+      <h2>Current Deck (<span id="deckTotalCount">0</span> cards)</h2>
+      <ul id="deckList">
+        <!-- Deck items will be populated here -->
+      </ul>
+      <div id="deckCount">Total: <span id="deckTotalCountBottom">0</span></div>
+      <!-- Duplicate count at bottom for convenience -->
     </div>
 
     <script>
-        const searchInput = document.getElementById('searchInput');
-        const searchButton = document.getElementById('searchButton');
-        const searchResults = document.getElementById('searchResults');
-        const statusDiv = document.getElementById('status');
+      const searchInput = document.getElementById("searchInput");
+      const searchResults = document.getElementById("searchResults");
+      const statusDiv = document.getElementById("status");
 
-        const deckList = document.getElementById('deckList');
-        const deckTotalCountSpan = document.getElementById('deckTotalCount');
+      const deckList = document.getElementById("deckList");
+      const deckTotalCountSpan = document.getElementById("deckTotalCount");
+      const deckTotalCountBottomSpan = document.getElementById(
+        "deckTotalCountBottom"
+      );
 
-        const saveDeckButton = document.getElementById('saveDeckButton');
-        const loadDeckButton = document.getElementById('loadDeckButton');
-        const clearDeckButton = document.getElementById('clearDeckButton');
-        const deckActionStatus = document.getElementById('deckActionStatus');
+      const saveDeckButton = document.getElementById("saveDeckButton");
+      const loadDeckButton = document.getElementById("loadDeckButton");
+      const clearDeckButton = document.getElementById("clearDeckButton");
+      const deckActionStatus = document.getElementById("deckActionStatus");
 
-        const drawHandButton = document.getElementById('drawHandButton');
-        const testHandDisplay = document.getElementById('testHandDisplay');
-        const testHandStatus = document.getElementById('testHandStatus');
+      const drawHandButton = document.getElementById("drawHandButton");
+      const testHandDisplay = document.getElementById("testHandDisplay");
+      const testHandStatus = document.getElementById("testHandStatus");
 
-        const DECK_STORAGE_KEY = 'mtgDeckBuilderSimpleDeck';
+      const DECK_STORAGE_KEY = "mtgDeckBuilderSimpleDeckV2"; // Use new key for new format
 
-        // Represents the current deck: { "Card Name": quantity }
-        let currentDeck = {};
+      // Represents the current deck: { "Card Name": { quantity: number, imageUrl: string } }
+      let currentDeck = {};
+      let autocompleteAbortController = null; // To cancel pending requests
 
-        // --- API Interaction ---
-        async function searchScryfall(query) {
-            clearStatus();
-            searchResults.innerHTML = ''; // Clear previous results
-            if (!query) {
-                updateStatus("Please enter a search term.");
-                return;
-            }
+      // --- Utility Functions ---
 
-            updateStatus("Searching...", true); // Add loading indicator
-            const apiUrl = `https://api.scryfall.com/cards/search?q=${encodeURIComponent(query)}&unique=cards&order=name`;
+      // Debounce function: Limits the rate at which a function can fire.
+      function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+          const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+          };
+          clearTimeout(timeout);
+          timeout = setTimeout(later, wait);
+        };
+      }
 
-            try {
-                const response = await fetch(apiUrl);
-                if (!response.ok) {
-                    if (response.status === 404) {
-                         updateStatus(`No cards found matching "${query}".`);
-                    } else {
-                        throw new Error(`API Error: ${response.status} ${response.statusText}`);
-                    }
-                    return;
-                }
-                const data = await response.json();
-                displaySearchResults(data.data); // Scryfall returns results in data.data
-            } catch (error) {
-                console.error("Search Error:", error);
-                updateStatus(`Error searching for cards: ${error.message}`);
-            } finally {
-                removeLoadingIndicator(); // Ensure loading indicator is removed
-            }
+      function updateStatus(message, isLoading = false) {
+        statusDiv.textContent = message;
+        if (isLoading) {
+          statusDiv.classList.add("loading");
+        } else {
+          statusDiv.classList.remove("loading");
+        }
+      }
+      function clearStatus() {
+        updateStatus("");
+      }
+      function removeLoadingIndicator() {
+        statusDiv.classList.remove("loading");
+      }
+
+      function updateDeckActionStatus(message) {
+        deckActionStatus.textContent = message;
+        setTimeout(() => {
+          if (deckActionStatus.textContent === message) {
+            deckActionStatus.textContent = "";
+          }
+        }, 4000);
+      }
+
+      function escapeHtml(unsafe) {
+        if (!unsafe) return "";
+        return unsafe
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      // --- API Interaction ---
+
+      // Autocomplete search function
+      async function searchScryfallAutocomplete(query) {
+        // Cancel previous pending request if any
+        if (autocompleteAbortController) {
+          autocompleteAbortController.abort();
+        }
+        autocompleteAbortController = new AbortController();
+        const signal = autocompleteAbortController.signal;
+
+        searchResults.innerHTML = ""; // Clear previous results
+        if (!query || query.length < 3) {
+          updateStatus("Type at least 3 characters for suggestions.");
+          return;
         }
 
-        // --- Display Logic ---
-        function displaySearchResults(cards) {
-            searchResults.innerHTML = ''; // Clear again just in case
-            if (!cards || cards.length === 0) {
-                updateStatus("No cards found.");
-                return;
+        updateStatus("Searching...", true);
+        const apiUrl = `https://api.scryfall.com/cards/autocomplete?q=${encodeURIComponent(
+          query
+        )}`;
+
+        try {
+          const response = await fetch(apiUrl, { signal }); // Pass the signal
+          if (!response.ok) {
+            // Don't throw error for 404 on autocomplete, just show no results
+            if (response.status !== 404) {
+              throw new Error(`API Error: ${response.status}`);
             }
+            updateStatus(`No suggestions found for "${query}".`);
+            return;
+          }
+          const data = await response.json();
+          displayAutocompleteResults(data.data); // Scryfall returns results in data.data (array of strings)
+        } catch (error) {
+          if (error.name === "AbortError") {
+            console.log("Autocomplete fetch aborted");
+            // Don't show error message if fetch was aborted by user typing again
+            return;
+          }
+          console.error("Autocomplete Error:", error);
+          updateStatus(`Error fetching suggestions: ${error.message}`);
+        } finally {
+          removeLoadingIndicator();
+          autocompleteAbortController = null; // Clear controller once done or aborted
+        }
+      }
 
-            updateStatus(`Found ${cards.length} card(s). Click to add.`);
-            cards.forEach(card => {
-                const li = document.createElement('li');
-                li.innerHTML = `
-                    <span class="card-name">${card.name}</span>
-                    <button class="add-card-btn" data-cardname="${escapeHtml(card.name)}">Add</button>
-                `;
-                searchResults.appendChild(li);
-            });
+      // Function to fetch full card data by exact name
+      async function getCardDataByName(cardName) {
+        // Use Scryfall's 'named' endpoint with 'exact' parameter for precision
+        const apiUrl = `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(
+          cardName
+        )}`;
+        updateStatus(`Fetching details for "${cardName}"...`, true);
+        try {
+          const response = await fetch(apiUrl);
+          if (!response.ok) {
+            throw new Error(
+              `Could not fetch card "${cardName}". Status: ${response.status}`
+            );
+          }
+          const cardData = await response.json();
+          clearStatus(); // Clear loading message
+          return cardData;
+        } catch (error) {
+          console.error("Fetch Card Data Error:", error);
+          updateStatus(`Error fetching card data: ${error.message}`);
+          removeLoadingIndicator();
+          return null; // Indicate failure
+        }
+      }
+
+      // Debounced version of the autocomplete search
+      const debouncedAutocompleteSearch = debounce(
+        searchScryfallAutocomplete,
+        300
+      );
+
+      // --- Display Logic ---
+
+      function displayAutocompleteResults(suggestions) {
+        searchResults.innerHTML = ""; // Clear again
+        if (!suggestions || suggestions.length === 0) {
+          updateStatus("No suggestions found.");
+          return;
         }
 
-        function renderDeck() {
-            deckList.innerHTML = ''; // Clear current view
-            let totalCards = 0;
-            const sortedCardNames = Object.keys(currentDeck).sort(); // Sort alphabetically
+        updateStatus(`Suggestions found. Click to add.`); // Update status
+        suggestions.forEach((name) => {
+          const li = document.createElement("li");
+          li.textContent = name;
+          li.dataset.cardname = name; // Store name for easy access on click
+          searchResults.appendChild(li);
+        });
+      }
 
-            sortedCardNames.forEach(cardName => {
-                const quantity = currentDeck[cardName];
-                totalCards += quantity;
+      function renderDeck() {
+        deckList.innerHTML = ""; // Clear current view
+        let totalCards = 0;
+        const sortedCardNames = Object.keys(currentDeck).sort();
 
-                const li = document.createElement('li');
-                li.innerHTML = `
-                    <span class="card-name">${escapeHtml(cardName)}</span>
-                    <span class="card-quantity">
-                        <input type="number" min="1" value="${quantity}" data-cardname="${escapeHtml(cardName)}" class="quantity-input">
-                    </span>
-                    <button class="delete-card-btn" data-cardname="${escapeHtml(cardName)}">X</button>
-                `;
-                deckList.appendChild(li);
-            });
-            deckTotalCountSpan.textContent = totalCards;
-        }
+        sortedCardNames.forEach((cardName) => {
+          const cardInfo = currentDeck[cardName];
+          if (!cardInfo) return; // Skip if somehow null/undefined
 
-        function displayTestHand(hand) {
-            testHandDisplay.innerHTML = '';
-             testHandStatus.textContent = `Drew ${hand.length} cards:`;
-            hand.forEach(cardName => {
-                const li = document.createElement('li');
-                li.textContent = escapeHtml(cardName);
-                testHandDisplay.appendChild(li);
-            });
-        }
+          totalCards += cardInfo.quantity;
 
+          const li = document.createElement("li");
+          li.innerHTML = `
+                  <div class="card-info">
+                      <img src="${escapeHtml(
+                        cardInfo.imageUrl || ""
+                      )}" alt="${escapeHtml(
+            cardName
+          )}" class="card-image" loading="lazy">
+                      <span class="card-name" title="${escapeHtml(
+                        cardName
+                      )}">${escapeHtml(cardName)}</span>
+                  </div>
+                  <div class="card-controls">
+                      <span class="card-quantity">
+                          <input type="number" min="1" value="${
+                            cardInfo.quantity
+                          }" data-cardname="${escapeHtml(
+            cardName
+          )}" class="quantity-input">
+                      </span>
+                      <button class="delete-card-btn" data-cardname="${escapeHtml(
+                        cardName
+                      )}">X</button>
+                  </div>
+              `;
+          deckList.appendChild(li);
+        });
+        deckTotalCountSpan.textContent = totalCards;
+        deckTotalCountBottomSpan.textContent = totalCards; // Update bottom count too
+      }
 
-        // --- Deck Management Logic ---
-        function addCardToDeck(cardName) {
-            if (currentDeck[cardName]) {
-                currentDeck[cardName]++;
-            } else {
-                currentDeck[cardName] = 1;
-            }
+      function displayTestHand(hand) {
+        testHandDisplay.innerHTML = "";
+        testHandStatus.textContent = `Drew ${hand.length} cards:`;
+        // Create a frequency map for efficient display
+        const handMap = hand.reduce((acc, cardName) => {
+          if (!acc[cardName]) {
+            // Find the card in the main deck to get its image URL
+            const cardData = currentDeck[cardName];
+            acc[cardName] = {
+              count: 0,
+              imageUrl: cardData ? cardData.imageUrl : "",
+            };
+          }
+          acc[cardName].count++;
+          return acc;
+        }, {});
+
+        // Display grouped by card name
+        Object.entries(handMap)
+          .sort(([nameA], [nameB]) => nameA.localeCompare(nameB))
+          .forEach(([cardName, data]) => {
+            const li = document.createElement("li");
+            li.innerHTML = `
+                  <div class="card-info">
+                       <img src="${escapeHtml(
+                         data.imageUrl || ""
+                       )}" alt="${escapeHtml(
+              cardName
+            )}" class="card-image" loading="lazy">
+                       <span class="card-name" title="${escapeHtml(
+                         cardName
+                       )}">${escapeHtml(cardName)} ${
+              data.count > 1 ? `(x${data.count})` : ""
+            }</span>
+                  </div>
+                  `;
+            testHandDisplay.appendChild(li);
+          });
+      }
+
+      // --- Deck Management Logic ---
+
+      // Modified to accept card data object
+      async function addCardToDeck(cardName) {
+        const existingCard = currentDeck[cardName];
+
+        if (existingCard) {
+          existingCard.quantity++;
+          updateDeckActionStatus(
+            `Incremented "${cardName}" to ${existingCard.quantity}.`
+          );
+          renderDeck(); // Only need to re-render if quantity changes visible element
+        } else {
+          // Card not in deck, fetch its data first
+          const cardData = await getCardDataByName(cardName);
+          if (cardData && cardData.image_uris) {
+            currentDeck[cardName] = {
+              quantity: 1,
+              // Use 'small' image size for lists, provide fallback
+              imageUrl:
+                cardData.image_uris.small || cardData.image_uris.normal || "",
+            };
             updateDeckActionStatus(`Added "${cardName}" to deck.`);
-            renderDeck();
+            renderDeck(); // Re-render fully for new card
+          } else {
+            // Handle case where card data or image couldn't be fetched
+            updateDeckActionStatus(
+              `Could not add "${cardName}". Failed to fetch details or image.`
+            );
+          }
         }
+        // Clear search input and results after adding
+        searchInput.value = "";
+        searchResults.innerHTML = "";
+        clearStatus();
+      }
 
-        function updateCardQuantity(cardName, newQuantity) {
-            const quantity = parseInt(newQuantity, 10);
-            if (isNaN(quantity) || quantity <= 0) {
-                // Treat invalid or zero/negative quantity as delete
-                deleteCardFromDeck(cardName);
-                 updateDeckActionStatus(`Removed "${cardName}" (invalid quantity).`);
-            } else {
-                currentDeck[cardName] = quantity;
-                 updateDeckActionStatus(`Updated "${cardName}" quantity to ${quantity}.`);
-                renderDeck(); // Re-render to reflect change (especially if deleted)
-            }
+      function updateCardQuantity(cardName, newQuantity) {
+        const quantity = parseInt(newQuantity, 10);
+        const cardInfo = currentDeck[cardName];
+
+        if (!cardInfo) return; // Should not happen if UI is correct
+
+        if (isNaN(quantity) || quantity <= 0) {
+          deleteCardFromDeck(cardName); // Reuse delete logic
+          updateDeckActionStatus(`Removed "${cardName}" (invalid quantity).`);
+        } else {
+          cardInfo.quantity = quantity;
+          updateDeckActionStatus(
+            `Updated "${cardName}" quantity to ${quantity}.`
+          );
+          // Only need to re-render counts, not the whole list unless quantity was 0
+          renderDeck(); // Simplest to just re-render for now
         }
+      }
 
-        function deleteCardFromDeck(cardName) {
-            if (currentDeck[cardName]) {
-                delete currentDeck[cardName];
-                updateDeckActionStatus(`Removed "${cardName}" from deck.`);
-                renderDeck();
-            }
+      function deleteCardFromDeck(cardName) {
+        if (currentDeck[cardName]) {
+          delete currentDeck[cardName];
+          updateDeckActionStatus(`Removed "${cardName}" from deck.`);
+          renderDeck();
         }
+      }
 
-        function clearDeck() {
-            if (confirm("Are you sure you want to clear the current deck? This cannot be undone unless saved.")) {
-                currentDeck = {};
-                updateDeckActionStatus("Deck cleared.");
+      function clearDeck() {
+        if (
+          confirm(
+            "Are you sure you want to clear the current deck? This cannot be undone unless saved."
+          )
+        ) {
+          currentDeck = {};
+          updateDeckActionStatus("Deck cleared.");
+          renderDeck();
+          clearTestHand();
+        }
+      }
+
+      // --- Local Storage ---
+      function saveDeck() {
+        try {
+          localStorage.setItem(DECK_STORAGE_KEY, JSON.stringify(currentDeck));
+          updateDeckActionStatus("Deck saved successfully!");
+        } catch (error) {
+          console.error("Error saving deck:", error);
+          updateDeckActionStatus(
+            "Error saving deck. LocalStorage might be full or disabled."
+          );
+        }
+      }
+
+      function loadDeck() {
+        const savedDeck = localStorage.getItem(DECK_STORAGE_KEY);
+        if (savedDeck) {
+          try {
+            const parsedDeck = JSON.parse(savedDeck);
+            // More robust validation for the new format
+            if (
+              typeof parsedDeck === "object" &&
+              parsedDeck !== null &&
+              !Array.isArray(parsedDeck)
+            ) {
+              // Optional: Validate internal structure further if needed
+              let isValid = true;
+              for (const key in parsedDeck) {
+                if (
+                  typeof parsedDeck[key] !== "object" ||
+                  parsedDeck[key] === null ||
+                  typeof parsedDeck[key].quantity !== "number" ||
+                  typeof parsedDeck[key].imageUrl !== "string"
+                ) {
+                  isValid = false;
+                  break;
+                }
+              }
+
+              if (isValid) {
+                currentDeck = parsedDeck;
+                updateDeckActionStatus("Deck loaded successfully!");
                 renderDeck();
                 clearTestHand();
-            }
-        }
-
-
-        // --- Local Storage ---
-        function saveDeck() {
-            try {
-                localStorage.setItem(DECK_STORAGE_KEY, JSON.stringify(currentDeck));
-                updateDeckActionStatus("Deck saved successfully!");
-            } catch (error) {
-                console.error("Error saving deck:", error);
-                updateDeckActionStatus("Error saving deck. LocalStorage might be full or disabled.");
-            }
-        }
-
-        function loadDeck() {
-            const savedDeck = localStorage.getItem(DECK_STORAGE_KEY);
-            if (savedDeck) {
-                try {
-                    const parsedDeck = JSON.parse(savedDeck);
-                    // Basic validation: check if it's an object
-                    if (typeof parsedDeck === 'object' && parsedDeck !== null && !Array.isArray(parsedDeck)) {
-                        currentDeck = parsedDeck;
-                        updateDeckActionStatus("Deck loaded successfully!");
-                        renderDeck();
-                        clearTestHand();
-                    } else {
-                        updateDeckActionStatus("Failed to load deck: Invalid data format in storage.");
-                        console.warn("Invalid data found in localStorage:", parsedDeck);
-                        // Optionally clear the invalid data: localStorage.removeItem(DECK_STORAGE_KEY);
-                    }
-                } catch (error) {
-                    console.error("Error parsing saved deck:", error);
-                    updateDeckActionStatus("Error loading deck: Could not parse saved data.");
-                }
+              } else {
+                updateDeckActionStatus(
+                  "Failed to load deck: Invalid data format in storage."
+                );
+                console.warn(
+                  "Invalid deck structure found in localStorage:",
+                  parsedDeck
+                );
+              }
             } else {
-                updateDeckActionStatus("No saved deck found.");
+              updateDeckActionStatus(
+                "Failed to load deck: Invalid data type in storage."
+              );
+              console.warn(
+                "Invalid data type found in localStorage:",
+                parsedDeck
+              );
             }
+          } catch (error) {
+            console.error("Error parsing saved deck:", error);
+            updateDeckActionStatus(
+              "Error loading deck: Could not parse saved data."
+            );
+          }
+        } else {
+          updateDeckActionStatus("No saved deck found.");
+        }
+      }
+
+      // --- Test Hand Logic ---
+      function drawTestHand() {
+        testHandDisplay.innerHTML = "";
+        const deckArray = [];
+        for (const cardName in currentDeck) {
+          const cardInfo = currentDeck[cardName];
+          if (cardInfo) {
+            for (let i = 0; i < cardInfo.quantity; i++) {
+              deckArray.push(cardName);
+            }
+          }
         }
 
-        // --- Test Hand Logic ---
-        function drawTestHand() {
-            testHandDisplay.innerHTML = ''; // Clear previous hand
-            const deckArray = [];
-            for (const cardName in currentDeck) {
-                for (let i = 0; i < currentDeck[cardName]; i++) {
-                    deckArray.push(cardName);
-                }
-            }
-
-            if (deckArray.length < 7) {
-                testHandStatus.textContent = `Cannot draw hand: Deck only has ${deckArray.length} cards (needs at least 7).`;
-                return;
-            }
-
-            // Simple Fisher-Yates (Knuth) Shuffle
-            for (let i = deckArray.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [deckArray[i], deckArray[j]] = [deckArray[j], deckArray[i]]; // Swap
-            }
-
-            const hand = deckArray.slice(0, 7);
-            displayTestHand(hand);
+        if (deckArray.length < 7) {
+          testHandStatus.textContent = `Cannot draw hand: Deck only has ${deckArray.length} cards (needs at least 7).`;
+          return;
         }
 
-        function clearTestHand() {
-            testHandDisplay.innerHTML = '';
-            testHandStatus.textContent = '';
+        // Simple Fisher-Yates (Knuth) Shuffle
+        for (let i = deckArray.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [deckArray[i], deckArray[j]] = [deckArray[j], deckArray[i]];
         }
 
-        // --- Utility Functions ---
-         function updateStatus(message, isLoading = false) {
-            statusDiv.textContent = message;
-            if (isLoading) {
-                statusDiv.classList.add('loading');
-            } else {
-                statusDiv.classList.remove('loading');
-            }
+        const hand = deckArray.slice(0, 7);
+        displayTestHand(hand);
+      }
+
+      function clearTestHand() {
+        testHandDisplay.innerHTML = "";
+        testHandStatus.textContent = "";
+      }
+
+      // --- Event Listeners ---
+
+      // Autocomplete listener
+      searchInput.addEventListener("input", (event) => {
+        const query = event.target.value.trim();
+        if (query.length >= 3) {
+          debouncedAutocompleteSearch(query);
+        } else {
+          searchResults.innerHTML = ""; // Clear results if query is too short
+          clearStatus();
+          if (autocompleteAbortController) autocompleteAbortController.abort(); // Cancel pending request
         }
-        function clearStatus() {
-            statusDiv.textContent = '';
-             statusDiv.classList.remove('loading');
+      });
+
+      // Listener for clicking on autocomplete suggestions
+      searchResults.addEventListener("click", (event) => {
+        if (event.target.tagName === "LI" && event.target.dataset.cardname) {
+          const cardName = event.target.dataset.cardname;
+          addCardToDeck(cardName); // addCardToDeck now handles fetching data
         }
-         function removeLoadingIndicator() {
-             statusDiv.classList.remove('loading');
-         }
+      });
 
-        function updateDeckActionStatus(message) {
-             deckActionStatus.textContent = message;
-             // Optional: Clear message after a few seconds
-             setTimeout(() => {
-                 if (deckActionStatus.textContent === message) { // Avoid clearing newer messages
-                    deckActionStatus.textContent = '';
-                 }
-             }, 4000);
+      // Hide autocomplete results when clicking elsewhere
+      document.addEventListener("click", (event) => {
+        if (!searchSection.contains(event.target)) {
+          // searchSection is the container div
+          searchResults.innerHTML = ""; // Clear results
         }
+      });
+      // Prevent clicks inside search input/results from closing the results
+      const searchSection = document.querySelector(".search-section");
+      searchSection.addEventListener("click", (event) => {
+        event.stopPropagation();
+      });
 
-        // Basic HTML escaping to prevent XSS from card names if they ever contain special chars
-        function escapeHtml(unsafe) {
-            if (!unsafe) return '';
-            return unsafe
-                 .replace(/&/g, "&amp;")
-                 .replace(/</g, "&lt;")
-                 .replace(/>/g, "&gt;")
-                 .replace(/"/g, "&quot;")
-                 .replace(/'/g, "&#039;");
+      // Event delegation for deck list actions
+      deckList.addEventListener("click", (event) => {
+        if (event.target.classList.contains("delete-card-btn")) {
+          const cardName = event.target.getAttribute("data-cardname");
+          if (cardName) {
+            deleteCardFromDeck(cardName);
+          }
         }
+      });
 
+      deckList.addEventListener("change", (event) => {
+        if (event.target.classList.contains("quantity-input")) {
+          const cardName = event.target.getAttribute("data-cardname");
+          const newQuantity = event.target.value;
+          if (cardName) {
+            updateCardQuantity(cardName, newQuantity);
+          }
+        }
+      });
 
-        // --- Event Listeners ---
-        searchButton.addEventListener('click', () => {
-            searchScryfall(searchInput.value.trim());
-        });
+      // Prevent form submission if accidentally wrapped in a form
+      searchInput.addEventListener("keypress", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault(); // Prevent potential form submission
+          // Optional: Maybe add the first suggestion if available? Or do nothing.
+          const firstSuggestion = searchResults.querySelector("li");
+          if (firstSuggestion && firstSuggestion.dataset.cardname) {
+            addCardToDeck(firstSuggestion.dataset.cardname);
+          }
+        }
+      });
 
-        searchInput.addEventListener('keypress', (event) => {
-            if (event.key === 'Enter') {
-                searchScryfall(searchInput.value.trim());
-            }
-        });
+      // Deck action buttons
+      saveDeckButton.addEventListener("click", saveDeck);
+      loadDeckButton.addEventListener("click", loadDeck);
+      clearDeckButton.addEventListener("click", clearDeck);
+      drawHandButton.addEventListener("click", drawTestHand);
 
-        // Use event delegation for dynamically added buttons in search results
-        searchResults.addEventListener('click', (event) => {
-            if (event.target.classList.contains('add-card-btn')) {
-                const cardName = event.target.getAttribute('data-cardname');
-                if (cardName) {
-                    addCardToDeck(cardName); // Use the unescaped name for the deck object key
-                }
-            }
-        });
-
-         // Use event delegation for dynamically added elements in deck list
-        deckList.addEventListener('click', (event) => {
-            if (event.target.classList.contains('delete-card-btn')) {
-                const cardName = event.target.getAttribute('data-cardname');
-                 if (cardName) {
-                    deleteCardFromDeck(cardName);
-                }
-            }
-        });
-
-        deckList.addEventListener('change', (event) => {
-             if (event.target.classList.contains('quantity-input')) {
-                const cardName = event.target.getAttribute('data-cardname');
-                const newQuantity = event.target.value;
-                 if (cardName) {
-                    updateCardQuantity(cardName, newQuantity);
-                }
-             }
-        });
-
-
-        saveDeckButton.addEventListener('click', saveDeck);
-        loadDeckButton.addEventListener('click', loadDeck);
-        clearDeckButton.addEventListener('click', clearDeck);
-        drawHandButton.addEventListener('click', drawTestHand);
-
-
-        // --- Initial Load ---
-        document.addEventListener('DOMContentLoaded', () => {
-            loadDeck(); // Try to load an existing deck when the page loads
-            if (Object.keys(currentDeck).length === 0) {
-                 updateDeckActionStatus("Create a new deck or load a saved one.");
-            }
-            renderDeck(); // Render initially (either empty or loaded deck)
-        });
-
+      // --- Initial Load ---
+      document.addEventListener("DOMContentLoaded", () => {
+        loadDeck();
+        if (Object.keys(currentDeck).length === 0) {
+          updateDeckActionStatus("Create a new deck or load a saved one.");
+        }
+        renderDeck(); // Render initially
+      });
     </script>
-
-</body>
+  </body>
 </html>
