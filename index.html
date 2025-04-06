@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Simple MTG Deck Builder (w/ Play Area)</title>
     <style>
+      /* --- CSS Variables --- */
       :root {
         --body-bg: #f0f2f5;
         --section-bg: #ffffff;
@@ -155,6 +156,7 @@
         --result-popup-close-hover-bg: #495057;
       }
 
+      /* --- General Layout & Typography --- */
       body {
         font-family: sans-serif;
         display: grid;
@@ -178,12 +180,40 @@
         position: relative;
         margin-bottom: 15px;
       }
+
       h1 {
         text-align: center;
         color: var(--text-color-primary);
         margin: 0;
       }
 
+      h2 {
+        text-align: center;
+        color: var(--text-color-primary);
+        margin-bottom: 15px;
+        margin-top: 0;
+        flex-grow: 1;
+      }
+
+      h3 {
+        margin-top: 0;
+        margin-bottom: 10px;
+        color: var(--text-color-secondary);
+        font-size: 1em;
+        padding: 0 5px;
+      }
+
+      h4 {
+        margin: 5px 0;
+        font-size: 0.9em;
+        color: var(--text-color-muted);
+        text-align: center;
+        border-bottom: 1px solid var(--border-color-light);
+        padding-bottom: 3px;
+        width: 100%;
+      }
+
+      /* --- Theme Switch --- */
       .theme-switch-wrapper {
         display: flex;
         align-items: center;
@@ -192,15 +222,18 @@
         top: 50%;
         transform: translateY(-50%);
       }
+
       .theme-switch {
         display: inline-block;
         height: 24px;
         position: relative;
         width: 44px;
       }
+
       .theme-switch input {
         display: none;
       }
+
       .slider {
         background-color: var(--slider-bg);
         bottom: 0;
@@ -212,6 +245,7 @@
         transition: 0.4s;
         border-radius: 24px;
       }
+
       .slider:before {
         background-color: var(--slider-knob-bg);
         bottom: 3px;
@@ -223,39 +257,16 @@
         width: 18px;
         border-radius: 50%;
       }
+
       input:checked + .slider {
         background-color: var(--slider-checked-bg);
       }
+
       input:checked + .slider:before {
         transform: translateX(20px);
       }
 
-      .search-section h2,
-      .deck-section h2,
-      .actions-section h2,
-      .test-hand-section .section-header h2 {
-        text-align: center;
-        color: var(--text-color-primary);
-        margin-bottom: 15px;
-        margin-top: 0;
-        flex-grow: 1;
-      }
-      h3 {
-        margin-top: 0;
-        margin-bottom: 10px;
-        color: var(--text-color-secondary);
-        font-size: 1em;
-        padding: 0 5px;
-      }
-      h4 {
-        margin: 5px 0;
-        font-size: 0.9em;
-        color: var(--text-color-muted);
-        text-align: center;
-        border-bottom: 1px solid var(--border-color-light);
-        padding-bottom: 3px;
-        width: 100%;
-      }
+      /* --- Section Layout --- */
       .search-section,
       .deck-section,
       .actions-section,
@@ -274,20 +285,217 @@
         grid-row: 2 / 3;
         position: relative;
       }
+
       .actions-section {
         grid-column: 1 / 2;
         grid-row: 3 / 4;
       }
+
       .deck-section {
         grid-column: 2 / 3;
         grid-row: 2 / 4;
       }
+
       .test-hand-section {
         grid-column: 1 / -1;
         grid-row: 4 / 5;
         min-height: 750px;
       }
 
+      /* --- Search Section --- */
+      #searchInput {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 10px;
+        border: 1px solid var(--input-border);
+        border-radius: 4px;
+        box-sizing: border-box;
+        background-color: var(--input-bg);
+        color: var(--input-text);
+      }
+
+      #searchResults {
+        list-style: none;
+        padding: 0;
+        margin: 10px 0 0 0;
+        max-height: 180px;
+        overflow-y: auto;
+        border: 1px solid var(--border-color-light);
+        border-radius: 4px;
+        background-color: var(--section-bg);
+        z-index: 10;
+        box-shadow: 0 4px 6px var(--shadow-color);
+      }
+
+      #searchResults li {
+        padding: 5px 10px;
+        cursor: pointer;
+        border-bottom: 1px solid var(--border-color-light);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      #searchResults li:last-child {
+        border-bottom: none;
+      }
+
+      #searchResults li:hover {
+        background-color: var(--search-result-hover-bg);
+      }
+
+      .search-result-image {
+        width: 30px;
+        height: auto;
+        border-radius: 2px;
+        flex-shrink: 0;
+      }
+
+      .search-result-name {
+        font-size: 0.9em;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      #searchResults:empty {
+        border: none;
+        box-shadow: none;
+        max-height: 0;
+        margin-top: 0;
+      }
+
+      /* --- Deck Section --- */
+      #deckList {
+        list-style: none;
+        padding: 0;
+        margin-top: 10px;
+        max-height: 500px;
+        overflow-y: auto;
+        flex-grow: 1;
+      }
+
+      #deckList li {
+        padding: 8px 5px;
+        border-bottom: 1px solid var(--border-color-light);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+      }
+
+      #deckList li:last-child {
+        border-bottom: none;
+      }
+
+      .card-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-grow: 1;
+        min-width: 0;
+      }
+
+      .card-image {
+        width: 60px;
+        height: auto;
+        border-radius: 3px;
+        vertical-align: middle;
+        flex-shrink: 0;
+        cursor: default;
+      }
+
+      .card-name {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .card-controls {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        flex-shrink: 0;
+      }
+
+      .card-quantity input {
+        width: 40px;
+        text-align: center;
+        padding: 4px;
+        border: 1px solid var(--input-border);
+        border-radius: 3px;
+        background-color: var(--input-bg);
+        color: var(--input-text);
+      }
+
+      #deckCount {
+        text-align: right;
+        font-weight: 700;
+        margin-top: 15px;
+        padding-top: 10px;
+        border-top: 1px solid var(--border-color-light);
+      }
+
+      /* --- Actions Section --- */
+      .actions-section .action-button {
+        display: block;
+        width: 100%;
+      }
+
+      #savedDecksListContainer {
+        margin-top: 20px;
+        padding-top: 15px;
+        border-top: 1px solid var(--border-color-light);
+      }
+
+      #savedDecksListContainer h3 {
+        text-align: center;
+        margin-bottom: 10px;
+        font-size: 1em;
+        color: var(--text-color-secondary);
+      }
+
+      #savedDecksList {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        max-height: 150px;
+        overflow-y: auto;
+        border: 1px solid var(--saved-deck-list-border);
+        border-radius: 4px;
+        background-color: var(--saved-deck-list-bg);
+        margin-bottom: 10px;
+      }
+
+      #savedDecksList li {
+        padding: 8px 12px;
+        cursor: pointer;
+        border-bottom: 1px solid var(--border-color-light);
+        color: var(--saved-deck-item-text);
+        font-weight: 500;
+        transition: background-color 0.2s ease;
+      }
+
+      #savedDecksList li:last-child {
+        border-bottom: none;
+      }
+
+      #savedDecksList li:hover {
+        background-color: var(--saved-deck-item-hover-bg);
+      }
+
+      #savedDecksList li.no-decks {
+        font-style: italic;
+        color: var(--text-color-muted);
+        cursor: default;
+        text-align: center;
+      }
+
+      #savedDecksList li.no-decks:hover {
+        background-color: transparent;
+      }
+
+      /* --- Test Hand Section --- */
       .test-hand-section .section-header {
         display: flex;
         justify-content: space-between;
@@ -310,6 +518,7 @@
         right: 0;
         top: 0;
       }
+
       #fullscreenTestAreaButton:hover {
         background-color: var(--fullscreen-button-hover-bg);
       }
@@ -337,153 +546,26 @@
         flex-grow: 1;
       }
 
-      #searchInput {
-        width: 100%;
-        padding: 10px;
-        margin-bottom: 10px;
-        border: 1px solid var(--input-border);
-        border-radius: 4px;
-        box-sizing: border-box;
-        background-color: var(--input-bg);
-        color: var(--input-text);
-      }
-      #searchResults {
-        list-style: none;
-        padding: 0;
-        margin: 10px 0 0 0;
-        max-height: 180px;
-        overflow-y: auto;
-        border: 1px solid var(--border-color-light);
-        border-radius: 4px;
-        background-color: var(--section-bg);
-        z-index: 10;
-        box-shadow: 0 4px 6px var(--shadow-color);
-      }
-      #searchResults li {
-        padding: 5px 10px;
-        cursor: pointer;
-        border-bottom: 1px solid var(--border-color-light);
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-      #searchResults li:last-child {
-        border-bottom: none;
-      }
-      #searchResults li:hover {
-        background-color: var(--search-result-hover-bg);
-      }
-      .search-result-image {
-        width: 30px;
-        height: auto;
-        border-radius: 2px;
-        flex-shrink: 0;
-      }
-      .search-result-name {
-        font-size: 0.9em;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-      #searchResults:empty {
-        border: none;
-        box-shadow: none;
-        max-height: 0;
-        margin-top: 0;
-      }
-
-      #deckList {
-        list-style: none;
-        padding: 0;
-        margin-top: 10px;
-        max-height: 500px;
-        overflow-y: auto;
-        flex-grow: 1;
-      }
-      #deckList li {
-        padding: 8px 5px;
-        border-bottom: 1px solid var(--border-color-light);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 10px;
-      }
-      #deckList li:last-child {
-        border-bottom: none;
-      }
-      .card-info {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        flex-grow: 1;
-        min-width: 0;
-      }
-      .card-image {
-        width: 60px;
-        height: auto;
-        border-radius: 3px;
-        vertical-align: middle;
-        flex-shrink: 0;
-        cursor: default;
-      }
-      .card-name {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-      .card-controls {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        flex-shrink: 0;
-      }
-      .card-quantity input {
-        width: 40px;
-        text-align: center;
-        padding: 4px;
-        border: 1px solid var(--input-border);
-        border-radius: 3px;
-        background-color: var(--input-bg);
-        color: var(--input-text);
-      }
-      .action-button,
-      .delete-card-btn,
-      #drawHandButton,
-      #drawNextCardButton,
-      #shuffleDeckButton,
-      #searchDeckButton,
-      #scryButton,
-      #untapAllButton,
-      #flipCoinButton,
-      #rollDieButton {
-        padding: 9px 15px;
-        background-color: var(--button-bg);
-        color: var(--button-text);
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        transition: background-color 0.2s ease;
-        font-size: 0.9em;
-        margin-bottom: 10px;
-      }
       .test-controls {
         margin-bottom: 10px;
         display: flex;
         align-items: center;
         flex-wrap: wrap;
       }
-      .test-controls .action-button,
-      .test-controls {
+
+      .test-controls .action-button {
         display: inline-block;
         width: auto;
         margin-right: 10px;
         margin-bottom: 5px;
       }
+
       .scry-control {
         display: inline-flex;
         align-items: center;
         gap: 5px;
       }
+
       #scryCountInput {
         width: 45px;
         padding: 8px 5px;
@@ -505,75 +587,8 @@
         font-size: 0.9em;
         color: var(--text-color-muted);
       }
-      .action-button:hover,
-      .delete-card-btn:hover,
-      #drawHandButton:hover,
-      #drawNextCardButton:hover,
-      #shuffleDeckButton:hover,
-      #searchDeckButton:hover,
-      #scryButton:hover,
-      #untapAllButton:hover,
-      #flipCoinButton:hover,
-      #rollDieButton:hover {
-        background-color: var(--button-bg-hover);
-      }
-      .action-button:disabled,
-      #drawNextCardButton:disabled,
-      #shuffleDeckButton:disabled,
-      #searchDeckButton:disabled,
-      #scryButton:disabled,
-      #untapAllButton:disabled {
-        background-color: var(--button-disabled-bg);
-        color: var(--button-disabled-text);
-        cursor: not-allowed;
-      }
-      .delete-card-btn {
-        background-color: var(--button-delete-bg);
-        color: var(--button-delete-text);
-        padding: 4px 8px;
-        font-size: 0.8em;
-        line-height: 1;
-        margin-bottom: 0;
-      }
-      .delete-card-btn:hover {
-        background-color: var(--button-delete-bg-hover);
-      }
-      .actions-section .action-button {
-        display: block;
-        width: 100%;
-      }
-      #status,
-      #deckActionStatus,
-      #currentDeckNameStatus {
-        margin-top: 10px;
-        font-style: italic;
-        color: var(--text-color-muted);
-        min-height: 1.2em;
-        font-size: 0.9em;
-      }
-      #currentDeckNameStatus {
-        font-weight: bold;
-        font-style: normal;
-        color: var(--text-color-secondary);
-        text-align: center;
-        margin-bottom: 10px;
-      }
-      #deckCount {
-        text-align: right;
-        font-weight: 700;
-        margin-top: 15px;
-        padding-top: 10px;
-        border-top: 1px solid var(--border-color-light);
-      }
-      .loading::after {
-        content: " Loading...";
-        display: inline-block;
-        margin-left: 5px;
-        font-style: italic;
-        color: var(--text-color-muted);
-        font-size: 0.9em;
-      }
 
+      /* --- Play Area --- */
       .play-area-container {
         display: flex;
         flex-direction: column;
@@ -584,12 +599,14 @@
         flex-grow: 1;
         overflow: hidden;
       }
+
       .battlefield-and-side-zones {
         display: flex;
         gap: 15px;
         flex-grow: 1;
         min-height: 400px;
       }
+
       .battlefield-zone {
         flex-grow: 1;
         display: flex;
@@ -600,6 +617,7 @@
         padding: 10px;
         overflow: hidden;
       }
+
       #generalZone {
         flex-grow: 1;
         border-radius: 4px;
@@ -615,6 +633,7 @@
         border: 1px dashed var(--zone-general-border);
         transition: background-color 0.3s ease, border-color 0.3s ease;
       }
+
       .side-zones {
         display: flex;
         flex-direction: column;
@@ -622,6 +641,7 @@
         flex-shrink: 0;
         width: 140px;
       }
+
       #graveyardZone,
       #exileZone {
         flex-basis: 50%;
@@ -640,6 +660,7 @@
         border: 1px dashed var(--zone-side-border);
         transition: background-color 0.3s ease, border-color 0.3s ease;
       }
+
       #graveyardZone h4,
       #exileZone h4 {
         margin-bottom: 5px;
@@ -662,6 +683,8 @@
         overflow-y: auto;
         transition: background-color 0.3s ease, border-color 0.3s ease;
       }
+
+      /* --- Card Styles (Hand, Battlefield, Side Zones) --- */
       .hand-card {
         width: 100px;
         height: auto;
@@ -671,16 +694,19 @@
         transition: transform 0.2s ease, box-shadow 0.2s ease;
         overflow: hidden;
       }
+
       .hand-card:hover {
         transform: translateY(-3px) scale(1.03);
         box-shadow: var(--hand-card-hover-shadow);
       }
+
       .hand-card img {
         display: block;
         width: 100%;
         height: auto;
         pointer-events: none;
       }
+
       .battlefield-card {
         position: absolute;
         width: 110px;
@@ -695,15 +721,18 @@
         background-color: var(--section-bg);
         z-index: 1;
       }
+
       .battlefield-card.tapped {
         transform: rotate(90deg);
       }
+
       .battlefield-card:active {
         cursor: grabbing;
         box-shadow: 2px 2px 6px var(--shadow-color-heavy);
         z-index: 1000;
         transition: box-shadow 0.2s ease, transform 0.2s ease-in-out;
       }
+
       .battlefield-card img {
         width: 100%;
         height: auto;
@@ -711,6 +740,7 @@
         pointer-events: none;
         border-radius: 4px;
       }
+
       .battlefield-card .card-counters {
         position: absolute;
         bottom: 2px;
@@ -721,6 +751,7 @@
         gap: 1px;
         pointer-events: none;
       }
+
       .counter-display {
         color: var(--counter-text);
         font-size: 0.7em;
@@ -731,9 +762,11 @@
         min-width: 15px;
         text-align: center;
       }
+
       .counter-display.plus-one {
         background-color: var(--counter-plus-bg);
       }
+
       .counter-display.minus-one {
         background-color: var(--counter-minus-bg);
       }
@@ -741,6 +774,7 @@
       .dragging {
         opacity: 0.4;
       }
+
       .side-zone-card {
         width: 50px;
         height: auto;
@@ -750,6 +784,7 @@
         box-shadow: 0 1px 2px var(--shadow-color);
         position: relative;
       }
+
       .side-zone-card img {
         display: block;
         width: 100%;
@@ -757,6 +792,7 @@
         border-radius: 3px;
       }
 
+      /* --- Deck Search Area --- */
       #deckSearchArea {
         display: none;
         padding: 10px;
@@ -768,12 +804,14 @@
         overflow-y: auto;
         position: relative;
       }
+
       #deckSearchArea p {
         margin: 0 0 10px 0;
         font-size: 0.9em;
         color: var(--text-color-muted);
         text-align: center;
       }
+
       #closeSearchAreaButton {
         position: absolute;
         top: 5px;
@@ -783,6 +821,7 @@
         margin-top: 0;
         z-index: 15;
       }
+
       #deckSearchResults {
         list-style: none;
         padding: 0;
@@ -796,6 +835,7 @@
         border: none;
         box-shadow: none;
       }
+
       #deckSearchResults li {
         padding: 0;
         border: none;
@@ -808,10 +848,12 @@
         border: 1px solid var(--hand-card-border);
         box-shadow: 1px 1px 3px var(--shadow-color);
       }
+
       #deckSearchResults li:hover {
         transform: translateY(-2px) scale(1.03);
         box-shadow: var(--hand-card-hover-shadow);
       }
+
       #deckSearchResults li img {
         display: block;
         width: 100%;
@@ -819,6 +861,94 @@
         border-radius: 3px;
       }
 
+      /* --- Buttons --- */
+      .action-button,
+      .delete-card-btn,
+      #drawHandButton,
+      #drawNextCardButton,
+      #shuffleDeckButton,
+      #searchDeckButton,
+      #scryButton,
+      #untapAllButton,
+      #flipCoinButton,
+      #rollDieButton {
+        padding: 9px 15px;
+        background-color: var(--button-bg);
+        color: var(--button-text);
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+        font-size: 0.9em;
+        margin-bottom: 10px;
+      }
+
+      .action-button:hover,
+      .delete-card-btn:hover,
+      #drawHandButton:hover,
+      #drawNextCardButton:hover,
+      #shuffleDeckButton:hover,
+      #searchDeckButton:hover,
+      #scryButton:hover,
+      #untapAllButton:hover,
+      #flipCoinButton:hover,
+      #rollDieButton:hover {
+        background-color: var(--button-bg-hover);
+      }
+
+      .action-button:disabled,
+      #drawNextCardButton:disabled,
+      #shuffleDeckButton:disabled,
+      #searchDeckButton:disabled,
+      #scryButton:disabled,
+      #untapAllButton:disabled {
+        background-color: var(--button-disabled-bg);
+        color: var(--button-disabled-text);
+        cursor: not-allowed;
+      }
+
+      .delete-card-btn {
+        background-color: var(--button-delete-bg);
+        color: var(--button-delete-text);
+        padding: 4px 8px;
+        font-size: 0.8em;
+        line-height: 1;
+        margin-bottom: 0;
+      }
+
+      .delete-card-btn:hover {
+        background-color: var(--button-delete-bg-hover);
+      }
+
+      /* --- Status Messages --- */
+      #status,
+      #deckActionStatus,
+      #currentDeckNameStatus {
+        margin-top: 10px;
+        font-style: italic;
+        color: var(--text-color-muted);
+        min-height: 1.2em;
+        font-size: 0.9em;
+      }
+
+      #currentDeckNameStatus {
+        font-weight: bold;
+        font-style: normal;
+        color: var(--text-color-secondary);
+        text-align: center;
+        margin-bottom: 10px;
+      }
+
+      .loading::after {
+        content: " Loading...";
+        display: inline-block;
+        margin-left: 5px;
+        font-style: italic;
+        color: var(--text-color-muted);
+        font-size: 0.9em;
+      }
+
+      /* --- Context Menu --- */
       #cardContextMenu {
         position: absolute;
         display: none;
@@ -830,11 +960,13 @@
         z-index: 20001;
         min-width: 150px;
       }
+
       #cardContextMenu ul {
         list-style: none;
         padding: 0;
         margin: 0;
       }
+
       #cardContextMenu li {
         padding: 6px 12px;
         cursor: pointer;
@@ -842,18 +974,22 @@
         font-size: 0.9em;
         white-space: nowrap;
       }
+
       #cardContextMenu li:hover:not(.disabled):not(.hidden) {
         background-color: var(--context-menu-hover-bg);
       }
+
       #cardContextMenu li.disabled {
         color: var(--context-menu-disabled-text);
         cursor: not-allowed;
         background-color: transparent;
       }
+
       #cardContextMenu li.hidden {
         display: none;
       }
 
+      /* --- Scry Modal --- */
       #scryOverlay {
         position: fixed;
         top: 0;
@@ -868,6 +1004,7 @@
         padding: 20px;
         box-sizing: border-box;
       }
+
       #scryModal {
         background-color: var(--scry-modal-bg);
         padding: 25px;
@@ -878,11 +1015,13 @@
         overflow-y: auto;
         text-align: center;
       }
+
       #scryModal h3 {
         margin-top: 0;
         margin-bottom: 20px;
         color: var(--text-color-primary);
       }
+
       #scryCardContainer {
         display: flex;
         flex-wrap: wrap;
@@ -890,6 +1029,7 @@
         justify-content: center;
         margin-bottom: 25px;
       }
+
       .scry-card-item {
         display: flex;
         flex-direction: column;
@@ -901,6 +1041,7 @@
         border-radius: 6px;
         cursor: default;
       }
+
       .scry-card-item img {
         width: 100px;
         height: auto;
@@ -908,6 +1049,7 @@
         margin-bottom: 5px;
         pointer-events: none;
       }
+
       .scry-card-item .scry-choice-buttons button {
         padding: 5px 10px;
         font-size: 0.8em;
@@ -919,15 +1061,18 @@
         color: var(--scry-button-text);
         transition: background-color 0.2s ease;
       }
+
       .scry-card-item .scry-choice-buttons button:hover:not(:disabled) {
         background-color: var(--scry-button-hover-bg);
       }
+
       .scry-card-item .scry-choice-buttons button:disabled {
         background-color: var(--button-disabled-bg);
         color: var(--button-disabled-text);
         cursor: not-allowed;
       }
 
+      /* --- Card View Popup --- */
       #cardViewPopupOverlay {
         position: fixed;
         top: 0;
@@ -942,6 +1087,7 @@
         padding: 20px;
         box-sizing: border-box;
       }
+
       #cardViewPopupContent {
         position: relative;
         min-width: 30vw;
@@ -956,6 +1102,7 @@
         border: 1px solid var(--card-view-border);
         box-shadow: 0 5px 20px var(--shadow-color-heavy);
       }
+
       #cardViewImage {
         display: block;
         width: 100%;
@@ -964,6 +1111,7 @@
         border-radius: 25px;
         object-fit: contain;
       }
+
       #closeCardViewPopupButton {
         position: absolute;
         top: -10px;
@@ -981,56 +1129,12 @@
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
         transition: background-color 0.2s ease;
       }
+
       #closeCardViewPopupButton:hover {
         background-color: var(--card-view-close-hover-bg);
       }
 
-      #savedDecksListContainer {
-        margin-top: 20px;
-        padding-top: 15px;
-        border-top: 1px solid var(--border-color-light);
-      }
-      #savedDecksListContainer h3 {
-        text-align: center;
-        margin-bottom: 10px;
-        font-size: 1em;
-        color: var(--text-color-secondary);
-      }
-      #savedDecksList {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        max-height: 150px;
-        overflow-y: auto;
-        border: 1px solid var(--saved-deck-list-border);
-        border-radius: 4px;
-        background-color: var(--saved-deck-list-bg);
-        margin-bottom: 10px;
-      }
-      #savedDecksList li {
-        padding: 8px 12px;
-        cursor: pointer;
-        border-bottom: 1px solid var(--border-color-light);
-        color: var(--saved-deck-item-text);
-        font-weight: 500;
-        transition: background-color 0.2s ease;
-      }
-      #savedDecksList li:last-child {
-        border-bottom: none;
-      }
-      #savedDecksList li:hover {
-        background-color: var(--saved-deck-item-hover-bg);
-      }
-      #savedDecksList li.no-decks {
-        font-style: italic;
-        color: var(--text-color-muted);
-        cursor: default;
-        text-align: center;
-      }
-      #savedDecksList li.no-decks:hover {
-        background-color: transparent;
-      }
-
+      /* --- Result Popup (Coin Flip/Die Roll) --- */
       #resultPopupOverlay {
         position: fixed;
         top: 0;
@@ -1045,6 +1149,7 @@
         padding: 20px;
         box-sizing: border-box;
       }
+
       #resultPopupContent {
         position: relative;
         background-color: var(--result-popup-bg);
@@ -1055,12 +1160,14 @@
         text-align: center;
         min-width: 200px;
       }
+
       #resultPopupText {
         margin: 0 0 15px 0;
         font-size: 1.2em;
         font-weight: bold;
         color: var(--result-popup-text);
       }
+
       #closeResultPopupButton {
         position: absolute;
         top: 5px;
@@ -1078,23 +1185,25 @@
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
         transition: background-color 0.2s ease;
       }
+
       #closeResultPopupButton:hover {
         background-color: var(--result-popup-close-hover-bg);
       }
     </style>
   </head>
   <body data-theme="light">
+    <!-- Header Section -->
     <div class="header-container">
       <h1>Simple MTG Deck Builder</h1>
       <div class="theme-switch-wrapper">
-        <label class="theme-switch" for="themeToggleCheckbox"
-          ><input type="checkbox" id="themeToggleCheckbox" /><span
-            class="slider round"
-          ></span
-        ></label>
+        <label class="theme-switch" for="themeToggleCheckbox">
+          <input type="checkbox" id="themeToggleCheckbox" />
+          <span class="slider round"></span>
+        </label>
       </div>
     </div>
 
+    <!-- Card Search Section -->
     <div class="search-section">
       <h2>Card Search</h2>
       <input
@@ -1107,6 +1216,7 @@
       <div id="status">Type at least 3 characters for suggestions.</div>
     </div>
 
+    <!-- Deck Actions Section -->
     <div class="actions-section">
       <h2>Deck Actions</h2>
       <div id="currentDeckNameStatus">No Deck Loaded / Unsaved Deck</div>
@@ -1130,12 +1240,14 @@
       <div id="deckActionStatus"></div>
     </div>
 
+    <!-- Current Deck Section -->
     <div class="deck-section">
       <h2>Current Deck (<span id="deckTotalCount">0</span> cards)</h2>
       <ul id="deckList"></ul>
       <div id="deckCount">Total: <span id="deckTotalCountBottom">0</span></div>
     </div>
 
+    <!-- Test Area Section -->
     <div class="test-hand-section" id="testAreaSection" style="display: none">
       <div class="section-header">
         <h2>Test Area</h2>
@@ -1164,6 +1276,7 @@
         <span id="testHandStatus"></span>
       </div>
 
+      <!-- Library Search Area (Initially Hidden) -->
       <div id="deckSearchArea">
         <p>Right-click a card in the library for actions:</p>
         <ul id="deckSearchResults"></ul>
@@ -1172,11 +1285,14 @@
         </button>
       </div>
 
+      <!-- Play Area Container -->
       <div class="play-area-container">
         <div class="battlefield-and-side-zones">
+          <!-- Battlefield Zone -->
           <div class="battlefield-zone" id="battlefieldDisplayContainer">
             <div id="generalZone"><h4>General Battlefield</h4></div>
           </div>
+          <!-- Side Zones (Graveyard, Exile) -->
           <div class="side-zones">
             <div id="graveyardZone">
               <h4>Graveyard (<span id="graveyardCount">0</span>)</h4>
@@ -1186,10 +1302,12 @@
             </div>
           </div>
         </div>
+        <!-- Hand Zone -->
         <div id="testHandContainer"></div>
       </div>
     </div>
 
+    <!-- Card Context Menu (Initially Hidden) -->
     <div id="cardContextMenu">
       <ul>
         <li data-action="toggleTap">Tap/Untap</li>
@@ -1207,6 +1325,7 @@
       </ul>
     </div>
 
+    <!-- Scry Modal Overlay (Initially Hidden) -->
     <div id="scryOverlay">
       <div id="scryModal">
         <h3 id="scryModalTitle">Scry X</h3>
@@ -1214,6 +1333,7 @@
       </div>
     </div>
 
+    <!-- Card View Popup Overlay (Initially Hidden) -->
     <div id="cardViewPopupOverlay">
       <div id="cardViewPopupContent">
         <img id="cardViewImage" src="" alt="Card Image" />
@@ -1221,6 +1341,7 @@
       </div>
     </div>
 
+    <!-- Result Popup Overlay (Initially Hidden) -->
     <div id="resultPopupOverlay">
       <div id="resultPopupContent">
         <p id="resultPopupText"></p>
@@ -1229,6 +1350,9 @@
     </div>
 
     <script>
+      "use strict";
+
+      /* --- DOM Element References --- */
       const searchInput = document.getElementById("searchInput");
       const searchResults = document.getElementById("searchResults");
       const statusDiv = document.getElementById("status");
@@ -1295,43 +1419,63 @@
         "closeResultPopupButton"
       );
 
+      /* --- Constants --- */
       const MULTI_DECK_STORAGE_KEY = "mtgDeckBuilderMultiDeckStorageV1";
       const THEME_STORAGE_KEY = "mtgThemePreference";
+      const MIN_SEARCH_LENGTH = 3;
+      const DEBOUNCE_DELAY = 350;
+      const STATUS_CLEAR_DELAY = 4000;
+      const STARTING_HAND_SIZE = 7;
 
-      let currentDeck = {};
-      let currentLoadedDeckName = null;
-      let searchAbortController = null;
-      let currentHand = [];
-      let currentBattlefield = {};
-      let currentLibrary = [];
-      let currentGraveyard = [];
-      let currentExile = [];
-      let handCardIdCounter = 0;
-      let battlefieldCardIdCounter = 0;
-      let graveyardCardIdCounter = 0;
-      let exileCardIdCounter = 0;
+      /* --- Application State --- */
+      let currentDeck =
+        {}; /* Stores the main deck list { cardName: { quantity, imageUrl, normalImageUrl } } */
+      let currentLoadedDeckName =
+        null; /* Name of the currently loaded deck from local storage */
+      let searchAbortController =
+        null; /* Controller to abort ongoing Scryfall API requests */
+      let currentHand =
+        []; /* Array of card objects currently in the player's hand */
+      let currentBattlefield =
+        {}; /* Object storing cards on the battlefield { battlefieldId: cardData } */
+      let currentLibrary =
+        []; /* Array of card objects representing the deck's library */
+      let currentGraveyard = []; /* Array of card objects in the graveyard */
+      let currentExile = []; /* Array of card objects in exile */
+      let handCardIdCounter = 0; /* Counter for generating unique hand card IDs */
+      let battlefieldCardIdCounter = 0; /* Counter for generating unique battlefield card IDs */
+      let graveyardCardIdCounter = 0; /* Counter for generating unique graveyard card IDs */
+      let exileCardIdCounter = 0; /* Counter for generating unique exile card IDs */
       let dragInfo = {
-        cardId: null,
+        /* State for drag-and-drop operations */ cardId: null,
         sourceZone: null,
         offsetX: 0,
         offsetY: 0,
       };
-      let contextMenuVisible = false;
+      let contextMenuVisible = false; /* Flag indicating if the context menu is open */
       let contextMenuTarget = {
-        cardId: null,
+        /* State for the card targeted by the context menu */ cardId: null,
         cardData: null,
         sourceZone: null,
         libraryIndex: null,
       };
       let scryingState = {
-        active: false,
+        /* State for the scry operation */ active: false,
         cards: [],
         expectedCount: 0,
         resolvedCount: 0,
         toBottom: [],
       };
-      let isFullscreen = false;
+      let isFullscreen = false; /* Flag indicating if the test area is in fullscreen mode */
 
+      /* --- Utility Functions --- */
+
+      /**
+       * Debounce function to limit the rate at which a function can fire.
+       * @param {Function} func - The function to debounce.
+       * @param {number} wait - The debounce delay in milliseconds.
+       * @returns {Function} The debounced function.
+       */
       function debounce(func, wait) {
         let timeout;
         return function executedFunction(...args) {
@@ -1343,31 +1487,54 @@
           timeout = setTimeout(later, wait);
         };
       }
+
+      /**
+       * Updates the status message displayed below the search input.
+       * @param {string} message - The message to display.
+       * @param {boolean} [isLoading=false] - Whether to show a loading indicator.
+       */
       function updateStatus(message, isLoading = false) {
         statusDiv.textContent = message;
         statusDiv.classList.toggle("loading", isLoading);
       }
+
+      /**
+       * Clears the search status message.
+       */
       function clearStatus() {
         updateStatus("");
       }
+
+      /**
+       * Removes the loading indicator from the search status.
+       */
       function removeLoadingIndicator() {
         statusDiv.classList.remove("loading");
       }
+
+      /**
+       * Updates the status message related to deck actions (save, load, clear).
+       * Message automatically clears after a delay.
+       * @param {string} message - The message to display.
+       */
       function updateDeckActionStatus(message) {
         deckActionStatus.textContent = message;
         setTimeout(() => {
           if (deckActionStatus.textContent === message)
             deckActionStatus.textContent = "";
-        }, 4000);
+        }, STATUS_CLEAR_DELAY);
       }
+
+      /**
+       * Updates the display showing the name of the currently loaded/edited deck.
+       * Also enables/disables the delete button based on whether a deck is loaded.
+       * @param {string|null} deckName - The name of the loaded deck, or null if none.
+       */
       function updateCurrentDeckNameStatus(deckName) {
         if (deckName) {
-          currentDeckNameStatus.textContent = `Editing: ${escapeHtml(
-            deckName
-          )}`;
-          deleteSavedDeckButton.textContent = `Delete Deck: "${escapeHtml(
-            deckName
-          )}"`;
+          const safeDeckName = escapeHtml(deckName);
+          currentDeckNameStatus.textContent = `Editing: ${safeDeckName}`;
+          deleteSavedDeckButton.textContent = `Delete Deck: "${safeDeckName}"`;
           deleteSavedDeckButton.disabled = false;
         } else {
           currentDeckNameStatus.textContent = "No Deck Loaded / Unsaved Deck";
@@ -1375,6 +1542,12 @@
           deleteSavedDeckButton.disabled = true;
         }
       }
+
+      /**
+       * Escapes HTML special characters in a string to prevent XSS.
+       * @param {string|null|undefined} unsafe - The potentially unsafe string.
+       * @returns {string} The escaped string.
+       */
       function escapeHtml(unsafe) {
         if (unsafe === null || unsafe === undefined) return "";
         return unsafe
@@ -1386,6 +1559,25 @@
           .replace(/'/g, "&#039;");
       }
 
+      /**
+       * Shuffles an array in place using the Fisher-Yates algorithm.
+       * @param {Array<any>} array - The array to shuffle.
+       */
+      function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [array[i], array[j]] = [array[j], array[i]];
+        }
+      }
+
+      /* --- Scryfall API Interaction --- */
+
+      /**
+       * Performs a live search using the Scryfall API based on user input.
+       * Handles API errors and displays results or status messages.
+       * Uses an AbortController to cancel previous requests.
+       * @param {string} query - The search query string.
+       */
       async function performLiveSearch(query) {
         if (searchAbortController) {
           searchAbortController.abort();
@@ -1393,15 +1585,20 @@
         searchAbortController = new AbortController();
         const signal = searchAbortController.signal;
         searchResults.innerHTML = "";
-        if (!query || query.length < 3) {
+
+        if (!query || query.length < MIN_SEARCH_LENGTH) {
           searchResults.style.display = "none";
-          updateStatus("Type at least 3 characters for suggestions.");
+          updateStatus(
+            `Type at least ${MIN_SEARCH_LENGTH} characters for suggestions.`
+          );
           return;
         }
+
         updateStatus("Searching...", true);
         const apiUrl = `https://api.scryfall.com/cards/search?q=${encodeURIComponent(
           query
         )}&unique=cards&order=name&include_extras=false&include_variations=false`;
+
         try {
           const response = await fetch(apiUrl, { signal });
           if (!response.ok) {
@@ -1416,7 +1613,7 @@
             return;
           }
           const data = await response.json();
-          displaySearchResults(data.data.slice(0, 15));
+          displaySearchResults(data.data.slice(0, 15)); /* Limit results */
         } catch (error) {
           if (error.name === "AbortError") {
             console.log("Search fetch aborted");
@@ -1430,8 +1627,16 @@
           searchAbortController = null;
         }
       }
-      const debouncedLiveSearch = debounce(performLiveSearch, 350);
 
+      /**
+       * Debounced version of the live search function.
+       */
+      const debouncedLiveSearch = debounce(performLiveSearch, DEBOUNCE_DELAY);
+
+      /**
+       * Displays the card search results in the UI.
+       * @param {Array<object>} cards - An array of card objects from the Scryfall API.
+       */
       function displaySearchResults(cards) {
         searchResults.innerHTML = "";
         if (!cards || cards.length === 0) {
@@ -1440,12 +1645,14 @@
         }
         updateStatus(`${cards.length} result(s) shown. Click to add.`);
         searchResults.style.display = "block";
+
         cards.forEach((card) => {
           const li = document.createElement("li");
           const smallImageUrl =
             card.image_uris?.small || card.image_uris?.normal || "";
           const normalImageUrl = card.image_uris?.normal || smallImageUrl;
           const cardName = card.name || "Unknown Card";
+
           li.innerHTML = `<img src="${escapeHtml(
             smallImageUrl
           )}" alt="${escapeHtml(
@@ -1459,208 +1666,63 @@
           searchResults.appendChild(li);
         });
       }
+
+      /* --- Deck Management Functions --- */
+
+      /**
+       * Renders the current deck list in the UI.
+       * Calculates and displays the total card count.
+       * Enables/disables the draw hand button based on deck size.
+       */
       function renderDeck() {
         deckList.innerHTML = "";
         let totalCards = 0;
         const sortedCardNames = Object.keys(currentDeck).sort();
+
         sortedCardNames.forEach((cardName) => {
           const cardInfo = currentDeck[cardName];
           if (!cardInfo || cardInfo.quantity <= 0) {
-            if (cardInfo) delete currentDeck[cardName];
+            if (cardInfo)
+              delete currentDeck[cardName]; /* Clean up invalid entries */
             return;
           }
           totalCards += cardInfo.quantity;
           const li = document.createElement("li");
           const smallImageUrl = cardInfo.imageUrl || "";
           const normalImageUrl = cardInfo.normalImageUrl || smallImageUrl;
-          li.innerHTML = `<div class="card-info"><img src="${escapeHtml(
-            smallImageUrl
-          )}" alt="${escapeHtml(
-            cardName
-          )}" class="card-image" loading="lazy" data-normal-src="${escapeHtml(
+          const safeCardName = escapeHtml(cardName);
+
+          li.innerHTML = `
+            <div class="card-info">
+              <img src="${escapeHtml(
+                smallImageUrl
+              )}" alt="${safeCardName}" class="card-image" loading="lazy" data-normal-src="${escapeHtml(
             normalImageUrl
-          )}"><span class="card-name" title="${escapeHtml(
-            cardName
-          )}">${escapeHtml(
-            cardName
-          )}</span></div><div class="card-controls"><span class="card-quantity"><input type="number" min="1" value="${
-            cardInfo.quantity
-          }" data-cardname="${escapeHtml(
-            cardName
-          )}" class="quantity-input"></span><button class="delete-card-btn" data-cardname="${escapeHtml(
-            cardName
-          )}">X</button></div>`;
+          )}">
+              <span class="card-name" title="${safeCardName}">${safeCardName}</span>
+            </div>
+            <div class="card-controls">
+              <span class="card-quantity">
+                <input type="number" min="1" value="${
+                  cardInfo.quantity
+                }" data-cardname="${safeCardName}" class="quantity-input">
+              </span>
+              <button class="delete-card-btn" data-cardname="${safeCardName}">X</button>
+            </div>`;
           deckList.appendChild(li);
         });
+
         deckTotalCountSpan.textContent = totalCards;
         deckTotalCountBottomSpan.textContent = totalCards;
-        drawHandButton.disabled = totalCards < 7;
+        drawHandButton.disabled = totalCards < STARTING_HAND_SIZE;
       }
 
-      function updateCardCountersDisplay(cardElement, counters) {
-        const countersDiv = cardElement.querySelector(".card-counters");
-        if (!countersDiv) return;
-        countersDiv.innerHTML = "";
-
-        if (counters && counters.plusOne > 0) {
-          const plusOneSpan = document.createElement("span");
-          plusOneSpan.classList.add("counter-display", "plus-one");
-          plusOneSpan.textContent = `+${counters.plusOne}/+${counters.plusOne}`;
-          countersDiv.appendChild(plusOneSpan);
-        }
-        if (counters && counters.minusOne > 0) {
-          const minusOneSpan = document.createElement("span");
-          minusOneSpan.classList.add("counter-display", "minus-one");
-          minusOneSpan.textContent = `-${counters.minusOne}/-${counters.minusOne}`;
-          countersDiv.appendChild(minusOneSpan);
-        }
-      }
-
-      function displayBattlefield() {
-        while (generalZone.children.length > 1) {
-          generalZone.removeChild(generalZone.lastChild);
-        }
-        Object.entries(currentBattlefield).forEach(([id, card]) => {
-          if (card.zone === "general") {
-            const cardDiv = document.createElement("div");
-            cardDiv.classList.add("battlefield-card");
-            cardDiv.dataset.battlefieldId = id;
-            cardDiv.draggable = true;
-            const posX = typeof card.x === "number" ? card.x : 10;
-            const posY = typeof card.y === "number" ? card.y : 10;
-            cardDiv.style.left = `${posX}px`;
-            cardDiv.style.top = `${posY}px`;
-            cardDiv.classList.toggle("tapped", card.isTapped);
-
-            const smallImageUrl = card.imageUrl || "";
-            const normalImageUrl = card.normalImageUrl || smallImageUrl;
-            const safeCardName = card.name || "Unknown Card";
-            cardDiv.innerHTML = `<img src="${escapeHtml(
-              smallImageUrl
-            )}" alt="${escapeHtml(safeCardName)}" title="${escapeHtml(
-              safeCardName
-            )}" data-normal-src="${escapeHtml(normalImageUrl)}">`;
-
-            const cardCountersDiv = document.createElement("div");
-            cardCountersDiv.classList.add("card-counters");
-            cardDiv.appendChild(cardCountersDiv);
-            updateCardCountersDisplay(cardDiv, card.counters);
-
-            cardDiv.addEventListener("dragstart", handleBattlefieldDragStart);
-            cardDiv.addEventListener("dragend", handleDragEnd);
-            generalZone.appendChild(cardDiv);
-          }
-        });
-        updateUntapAllButtonVisibility();
-      }
-      function displayHand() {
-        testHandContainer.innerHTML = "";
-        currentHand.forEach((card) => {
-          const cardDiv = document.createElement("div");
-          cardDiv.classList.add("hand-card");
-          cardDiv.dataset.handId = card.handId;
-          cardDiv.draggable = true;
-          const displayImageUrl = card.imageUrl || "";
-          const normalImageUrl = card.normalImageUrl || displayImageUrl;
-          const safeCardName = card.name || "Unknown Card";
-          cardDiv.innerHTML = `<img src="${escapeHtml(
-            displayImageUrl
-          )}" alt="${escapeHtml(safeCardName)}" title="${escapeHtml(
-            safeCardName
-          )}" loading="lazy" data-normal-src="${escapeHtml(normalImageUrl)}">`;
-          cardDiv.addEventListener("click", handlePlayCardFromHand);
-          cardDiv.addEventListener("dragstart", handleHandDragStart);
-          cardDiv.addEventListener("dragend", handleDragEnd);
-          testHandContainer.appendChild(cardDiv);
-        });
-        updateTestStatus();
-      }
-      function displaySideZones() {
-        const clearZone = (zone, countSpan) => {
-          while (zone.children.length > 1) {
-            if (zone.lastChild.nodeName !== "H4") {
-              zone.removeChild(zone.lastChild);
-            } else {
-              break;
-            }
-          }
-          countSpan.textContent = "0";
-        };
-        clearZone(graveyardZone, graveyardCountSpan);
-        clearZone(exileZone, exileCountSpan);
-        currentGraveyard.forEach((card) => {
-          const cardDiv = document.createElement("div");
-          cardDiv.classList.add("side-zone-card");
-          cardDiv.dataset.gyId = card.gyId;
-          const displayImageUrl = card.imageUrl || "";
-          const normalImageUrl = card.normalImageUrl || displayImageUrl;
-          const safeCardName = card.name || "Unknown Card";
-          cardDiv.innerHTML = `<img src="${escapeHtml(
-            displayImageUrl
-          )}" alt="${escapeHtml(safeCardName)}" title="${escapeHtml(
-            safeCardName
-          )}" loading="lazy" data-normal-src="${escapeHtml(normalImageUrl)}">`;
-          graveyardZone.appendChild(cardDiv);
-        });
-        currentExile.forEach((card) => {
-          const cardDiv = document.createElement("div");
-          cardDiv.classList.add("side-zone-card");
-          cardDiv.dataset.exileId = card.exileId;
-          const displayImageUrl = card.imageUrl || "";
-          const normalImageUrl = card.normalImageUrl || displayImageUrl;
-          const safeCardName = card.name || "Unknown Card";
-          cardDiv.innerHTML = `<img src="${escapeHtml(
-            displayImageUrl
-          )}" alt="${escapeHtml(safeCardName)}" title="${escapeHtml(
-            safeCardName
-          )}" loading="lazy" data-normal-src="${escapeHtml(normalImageUrl)}">`;
-          exileZone.appendChild(cardDiv);
-        });
-        updateTestStatus();
-      }
-
-      function updateUntapAllButtonVisibility() {
-        let tappedCardExists = false;
-        for (const id in currentBattlefield) {
-          if (
-            currentBattlefield[id].zone === "general" &&
-            currentBattlefield[id].isTapped
-          ) {
-            tappedCardExists = true;
-            break;
-          }
-        }
-        untapAllButton.style.display = tappedCardExists
-          ? "inline-block"
-          : "none";
-      }
-
-      function updateTestStatus(message = "") {
-        const handCount = currentHand.length;
-        const libraryCount = currentLibrary.length;
-        const gyCount = currentGraveyard.length;
-        const exileCount = currentExile.length;
-        graveyardCountSpan.textContent = gyCount;
-        exileCountSpan.textContent = exileCount;
-        let statusText = message ? `${message} ` : "";
-        statusText += `Hand: ${handCount}, Library: ${libraryCount}, GY: ${gyCount}, Exile: ${exileCount}.`;
-        const libraryAvailable = libraryCount > 0;
-        if (!scryingState.active) {
-          drawNextCardButton.disabled = !libraryAvailable;
-          shuffleDeckButton.disabled = libraryCount <= 1;
-          searchDeckButton.disabled = !libraryAvailable;
-          scryButton.disabled = !libraryAvailable;
-          scryCountInput.disabled = !libraryAvailable;
-          if (libraryAvailable) scryCountInput.max = libraryCount;
-          else scryCountInput.max = 1;
-        }
-        if (!libraryAvailable && !scryingState.active) {
-          statusText += " Library is empty.";
-        }
-        testHandStatus.textContent = statusText;
-        updateUntapAllButtonVisibility();
-      }
-
+      /**
+       * Adds a card to the current deck or increments its quantity.
+       * @param {string} cardName - The name of the card.
+       * @param {string} smallImageUrl - The URL for the small card image.
+       * @param {string} normalImageUrl - The URL for the normal card image.
+       */
       function addCardToDeck(cardName, smallImageUrl, normalImageUrl) {
         if (!cardName) {
           console.error("Attempted to add card with no name.");
@@ -1669,6 +1731,7 @@
         }
         const existingCard = currentDeck[cardName];
         const safeCardName = escapeHtml(cardName);
+
         if (existingCard) {
           existingCard.quantity++;
           updateDeckActionStatus(
@@ -1681,6 +1744,7 @@
             typeof normalImageUrl === "string" ? normalImageUrl : safeSmallUrl;
           if (!safeSmallUrl)
             console.warn(`Missing image URL for card: ${safeCardName}.`);
+
           currentDeck[cardName] = {
             quantity: 1,
             imageUrl: safeSmallUrl,
@@ -1694,10 +1758,18 @@
         searchResults.style.display = "none";
         clearStatus();
       }
+
+      /**
+       * Updates the quantity of a specific card in the deck.
+       * Removes the card if the quantity becomes zero or less.
+       * @param {string} cardName - The name of the card to update.
+       * @param {string|number} newQuantity - The new quantity for the card.
+       */
       function updateCardQuantity(cardName, newQuantity) {
         const quantity = parseInt(newQuantity, 10);
         const cardInfo = currentDeck[cardName];
         if (!cardInfo) return;
+
         const safeCardName = escapeHtml(cardName);
         if (isNaN(quantity) || quantity <= 0) {
           deleteCardFromDeck(cardName);
@@ -1712,6 +1784,11 @@
           renderDeck();
         }
       }
+
+      /**
+       * Removes a card completely from the current deck.
+       * @param {string} cardName - The name of the card to remove.
+       */
       function deleteCardFromDeck(cardName) {
         if (currentDeck[cardName]) {
           const safeCardName = escapeHtml(cardName);
@@ -1720,6 +1797,11 @@
           renderDeck();
         }
       }
+
+      /**
+       * Clears the entire current deck and resets the test area.
+       * Prompts the user for confirmation.
+       */
       function clearDeck() {
         if (
           confirm(
@@ -1736,12 +1818,20 @@
         }
       }
 
+      /* --- Local Storage (Deck Saving/Loading) --- */
+
+      /**
+       * Retrieves all saved decks from local storage.
+       * Performs basic validation on the retrieved data structure.
+       * @returns {object} An object containing saved decks { deckName: deckData }.
+       */
       function getSavedDecks() {
         const savedData = localStorage.getItem(MULTI_DECK_STORAGE_KEY);
         let decks = {};
         if (savedData) {
           try {
             const parsedData = JSON.parse(savedData);
+            /* Basic validation: ensure it's a non-null object */
             if (
               typeof parsedData === "object" &&
               parsedData !== null &&
@@ -1753,14 +1843,23 @@
                 "Invalid data type found in multi-deck storage:",
                 parsedData
               );
+              localStorage.removeItem(
+                MULTI_DECK_STORAGE_KEY
+              ); /* Clear invalid data */
             }
           } catch (error) {
             console.error("Error parsing saved decks:", error);
+            localStorage.removeItem(
+              MULTI_DECK_STORAGE_KEY
+            ); /* Clear corrupted data */
           }
         }
         return decks;
       }
 
+      /**
+       * Renders the list of saved decks in the UI.
+       */
       function renderSavedDecksList() {
         const savedDecks = getSavedDecks();
         const deckNames = Object.keys(savedDecks).sort();
@@ -1781,6 +1880,10 @@
         }
       }
 
+      /**
+       * Saves the current deck to local storage.
+       * Prompts the user for a deck name and handles overwriting existing decks.
+       */
       function saveDeck() {
         const deckName = prompt(
           "Enter a name for this deck:",
@@ -1805,7 +1908,8 @@
           return;
         }
 
-        savedDecks[trimmedDeckName] = { ...currentDeck };
+        /* Create a deep copy to avoid modifying the saved data if currentDeck changes later */
+        savedDecks[trimmedDeckName] = JSON.parse(JSON.stringify(currentDeck));
 
         try {
           localStorage.setItem(
@@ -1826,6 +1930,12 @@
         }
       }
 
+      /**
+       * Loads a deck from local storage by its name.
+       * Performs validation on the loaded deck data structure.
+       * Updates the current deck and UI.
+       * @param {string} deckName - The name of the deck to load.
+       */
       function loadDeckByName(deckName) {
         const savedDecks = getSavedDecks();
         const deckData = savedDecks[deckName];
@@ -1833,12 +1943,14 @@
         if (deckData) {
           let isValid = true;
           const validatedDeck = {};
-          for (const key in deckData) {
-            if (typeof key !== "string" || key.trim() === "") {
+          /* Validate the structure of the loaded deck data */
+          for (const cardName in deckData) {
+            if (typeof cardName !== "string" || cardName.trim() === "") {
               isValid = false;
+              console.warn("Invalid card name found in loaded deck:", cardName);
               break;
             }
-            const entry = deckData[key];
+            const entry = deckData[cardName];
             if (
               typeof entry !== "object" ||
               entry === null ||
@@ -1849,14 +1961,20 @@
               (entry.hasOwnProperty("normalImageUrl") &&
                 typeof entry.normalImageUrl !== "string")
             ) {
+              /* Attempt to fix missing normalImageUrl */
               if (typeof entry.imageUrl === "string" && !entry.normalImageUrl) {
                 entry.normalImageUrl = entry.imageUrl;
               } else {
                 isValid = false;
+                console.warn(
+                  "Invalid card data structure for:",
+                  cardName,
+                  entry
+                );
                 break;
               }
             }
-            validatedDeck[key] = {
+            validatedDeck[cardName] = {
               quantity: entry.quantity,
               imageUrl: entry.imageUrl,
               normalImageUrl: entry.normalImageUrl || entry.imageUrl,
@@ -1870,19 +1988,19 @@
               `Deck "${escapeHtml(deckName)}" loaded successfully!`
             );
             updateCurrentDeckNameStatus(deckName);
-            clearTestArea();
+            clearTestArea(); /* Reset play area when loading a new deck */
             renderDeck();
             drawHandButton.disabled =
               Object.values(currentDeck).reduce(
                 (sum, card) => sum + card.quantity,
                 0
-              ) < 7;
+              ) < STARTING_HAND_SIZE;
             disableDrawNextButton();
             disableShuffleButton();
             disableSearchButton();
             disableScryButton();
             hideDeckSearchArea();
-            testAreaSection.style.display = "block";
+            testAreaSection.style.display = "block"; /* Show test area */
           } else {
             updateDeckActionStatus(
               `Failed to load deck "${escapeHtml(
@@ -1896,10 +2014,14 @@
           }
         } else {
           updateDeckActionStatus(`Deck "${escapeHtml(deckName)}" not found.`);
-          renderSavedDecksList();
+          renderSavedDecksList(); /* Refresh list in case it was deleted elsewhere */
         }
       }
 
+      /**
+       * Deletes the currently loaded deck from local storage.
+       * Prompts the user for confirmation.
+       */
       function deleteSavedDeck() {
         const deckNameToDelete = currentLoadedDeckName;
 
@@ -1918,7 +2040,7 @@
               deckNameToDelete
             )}" not found in storage.`
           );
-          currentLoadedDeckName = null;
+          currentLoadedDeckName = null; /* Reset state */
           updateCurrentDeckNameStatus(null);
           renderSavedDecksList();
           return;
@@ -1940,7 +2062,7 @@
             updateDeckActionStatus(
               `Deck "${escapeHtml(deckNameToDelete)}" deleted.`
             );
-            clearDeck();
+            clearDeck(); /* Clear the currently loaded deck from UI */
             renderSavedDecksList();
           } catch (error) {
             console.error("Error deleting deck:", error);
@@ -1953,9 +2075,226 @@
         }
       }
 
+      /* --- Test Area / Play Simulation Functions --- */
+
+      /**
+       * Updates the display of +1/+1 and -1/-1 counters on a battlefield card element.
+       * @param {HTMLElement} cardElement - The DOM element representing the card on the battlefield.
+       * @param {object} counters - The counters object ({ plusOne: number, minusOne: number }).
+       */
+      function updateCardCountersDisplay(cardElement, counters) {
+        const countersDiv = cardElement.querySelector(".card-counters");
+        if (!countersDiv) return;
+        countersDiv.innerHTML = ""; /* Clear existing counters */
+
+        if (counters?.plusOne > 0) {
+          const plusOneSpan = document.createElement("span");
+          plusOneSpan.classList.add("counter-display", "plus-one");
+          plusOneSpan.textContent = `+${counters.plusOne}/+${counters.plusOne}`;
+          countersDiv.appendChild(plusOneSpan);
+        }
+        if (counters?.minusOne > 0) {
+          const minusOneSpan = document.createElement("span");
+          minusOneSpan.classList.add("counter-display", "minus-one");
+          minusOneSpan.textContent = `-${counters.minusOne}/-${counters.minusOne}`;
+          countersDiv.appendChild(minusOneSpan);
+        }
+      }
+
+      /**
+       * Renders the cards currently on the battlefield in the UI.
+       */
+      function displayBattlefield() {
+        /* Clear existing battlefield cards, keeping the title */
+        while (generalZone.children.length > 1) {
+          generalZone.removeChild(generalZone.lastChild);
+        }
+
+        Object.entries(currentBattlefield).forEach(([id, card]) => {
+          if (card.zone === "general") {
+            const cardDiv = document.createElement("div");
+            cardDiv.classList.add("battlefield-card");
+            cardDiv.dataset.battlefieldId = id;
+            cardDiv.draggable = true;
+            const posX = typeof card.x === "number" ? card.x : 10;
+            const posY = typeof card.y === "number" ? card.y : 10;
+            cardDiv.style.left = `${posX}px`;
+            cardDiv.style.top = `${posY}px`;
+            cardDiv.classList.toggle("tapped", card.isTapped);
+
+            const smallImageUrl = card.imageUrl || "";
+            const normalImageUrl = card.normalImageUrl || smallImageUrl;
+            const safeCardName = escapeHtml(card.name || "Unknown Card");
+            cardDiv.innerHTML = `<img src="${escapeHtml(
+              smallImageUrl
+            )}" alt="${safeCardName}" title="${safeCardName}" data-normal-src="${escapeHtml(
+              normalImageUrl
+            )}">`;
+
+            /* Add container for counters */
+            const cardCountersDiv = document.createElement("div");
+            cardCountersDiv.classList.add("card-counters");
+            cardDiv.appendChild(cardCountersDiv);
+            updateCardCountersDisplay(cardDiv, card.counters);
+
+            cardDiv.addEventListener("dragstart", handleBattlefieldDragStart);
+            cardDiv.addEventListener("dragend", handleDragEnd);
+            generalZone.appendChild(cardDiv);
+          }
+        });
+        updateUntapAllButtonVisibility();
+      }
+
+      /**
+       * Renders the cards currently in the hand zone in the UI.
+       */
+      function displayHand() {
+        testHandContainer.innerHTML = "";
+        currentHand.forEach((card) => {
+          const cardDiv = document.createElement("div");
+          cardDiv.classList.add("hand-card");
+          cardDiv.dataset.handId = card.handId;
+          cardDiv.draggable = true;
+          const displayImageUrl = card.imageUrl || "";
+          const normalImageUrl = card.normalImageUrl || displayImageUrl;
+          const safeCardName = escapeHtml(card.name || "Unknown Card");
+
+          cardDiv.innerHTML = `<img src="${escapeHtml(
+            displayImageUrl
+          )}" alt="${safeCardName}" title="${safeCardName}" loading="lazy" data-normal-src="${escapeHtml(
+            normalImageUrl
+          )}">`;
+          cardDiv.addEventListener("click", handlePlayCardFromHand);
+          cardDiv.addEventListener("dragstart", handleHandDragStart);
+          cardDiv.addEventListener("dragend", handleDragEnd);
+          testHandContainer.appendChild(cardDiv);
+        });
+        updateTestStatus(); /* Update counts */
+      }
+
+      /**
+       * Renders the cards in the graveyard and exile zones.
+       */
+      function displaySideZones() {
+        /* Helper to clear a zone while keeping the H4 title */
+        const clearZone = (zone, countSpan) => {
+          while (zone.children.length > 1) {
+            if (zone.lastChild.nodeName !== "H4") {
+              zone.removeChild(zone.lastChild);
+            } else {
+              break; /* Stop when only the H4 remains */
+            }
+          }
+          countSpan.textContent = "0";
+        };
+
+        clearZone(graveyardZone, graveyardCountSpan);
+        clearZone(exileZone, exileCountSpan);
+
+        currentGraveyard.forEach((card) => {
+          const cardDiv = document.createElement("div");
+          cardDiv.classList.add("side-zone-card");
+          cardDiv.dataset.gyId = card.gyId;
+          const displayImageUrl = card.imageUrl || "";
+          const normalImageUrl = card.normalImageUrl || displayImageUrl;
+          const safeCardName = escapeHtml(card.name || "Unknown Card");
+          cardDiv.innerHTML = `<img src="${escapeHtml(
+            displayImageUrl
+          )}" alt="${safeCardName}" title="${safeCardName}" loading="lazy" data-normal-src="${escapeHtml(
+            normalImageUrl
+          )}">`;
+          graveyardZone.appendChild(cardDiv);
+        });
+
+        currentExile.forEach((card) => {
+          const cardDiv = document.createElement("div");
+          cardDiv.classList.add("side-zone-card");
+          cardDiv.dataset.exileId = card.exileId;
+          const displayImageUrl = card.imageUrl || "";
+          const normalImageUrl = card.normalImageUrl || displayImageUrl;
+          const safeCardName = escapeHtml(card.name || "Unknown Card");
+          cardDiv.innerHTML = `<img src="${escapeHtml(
+            displayImageUrl
+          )}" alt="${safeCardName}" title="${safeCardName}" loading="lazy" data-normal-src="${escapeHtml(
+            normalImageUrl
+          )}">`;
+          exileZone.appendChild(cardDiv);
+        });
+
+        updateTestStatus(); /* Update counts */
+      }
+
+      /**
+       * Shows or hides the "Untap All" button based on whether any cards on the battlefield are tapped.
+       */
+      function updateUntapAllButtonVisibility() {
+        let tappedCardExists = false;
+        for (const id in currentBattlefield) {
+          if (
+            currentBattlefield[id].zone === "general" &&
+            currentBattlefield[id].isTapped
+          ) {
+            tappedCardExists = true;
+            break;
+          }
+        }
+        untapAllButton.style.display = tappedCardExists
+          ? "inline-block"
+          : "none";
+      }
+
+      /**
+       * Updates the status text in the test area (card counts, messages) and enables/disables relevant buttons.
+       * @param {string} [message=""] - An optional message to prepend to the status.
+       */
+      function updateTestStatus(message = "") {
+        const handCount = currentHand.length;
+        const libraryCount = currentLibrary.length;
+        const gyCount = currentGraveyard.length;
+        const exileCount = currentExile.length;
+
+        graveyardCountSpan.textContent = gyCount;
+        exileCountSpan.textContent = exileCount;
+
+        let statusText = message ? `${message} ` : "";
+        statusText += `Hand: ${handCount}, Library: ${libraryCount}, GY: ${gyCount}, Exile: ${exileCount}.`;
+
+        const libraryAvailable = libraryCount > 0;
+
+        /* Only modify button states if not currently scrying */
+        if (!scryingState.active) {
+          drawNextCardButton.disabled = !libraryAvailable;
+          shuffleDeckButton.disabled = libraryCount <= 1;
+          searchDeckButton.disabled = !libraryAvailable;
+          scryButton.disabled = !libraryAvailable;
+          scryCountInput.disabled = !libraryAvailable;
+          if (libraryAvailable) {
+            scryCountInput.max = libraryCount;
+            if (parseInt(scryCountInput.value, 10) > libraryCount) {
+              scryCountInput.value =
+                libraryCount; /* Adjust if value exceeds max */
+            }
+          } else {
+            scryCountInput.max = 1;
+            scryCountInput.value = 1;
+          }
+        }
+
+        if (!libraryAvailable && !scryingState.active) {
+          statusText += " Library is empty.";
+        }
+        testHandStatus.textContent = statusText;
+        updateUntapAllButtonVisibility();
+      }
+
+      /**
+       * Draws the initial starting hand from the current deck.
+       * Shuffles the deck, sets up the library and hand state, and updates the UI.
+       */
       function drawTestHand() {
-        clearTestArea();
+        clearTestArea(); /* Reset everything before drawing */
         const deckArray = [];
+        /* Create a flat array representing the deck */
         for (const cardName in currentDeck) {
           const cardInfo = currentDeck[cardName];
           if (cardInfo && cardInfo.quantity > 0) {
@@ -1967,10 +2306,11 @@
               });
           }
         }
+
         const deckSize = deckArray.length;
-        if (deckSize < 7) {
+        if (deckSize < STARTING_HAND_SIZE) {
           updateTestStatus(
-            `Cannot draw hand: Deck only has ${deckSize} cards (needs at least 7).`
+            `Cannot draw hand: Deck only has ${deckSize} cards (needs at least ${STARTING_HAND_SIZE}).`
           );
           disableDrawNextButton();
           disableShuffleButton();
@@ -1979,24 +2319,28 @@
           displayHand();
           displayBattlefield();
           displaySideZones();
-          testAreaSection.style.display = "none";
+          testAreaSection.style.display =
+            "none"; /* Hide test area if deck too small */
           return;
         }
 
-        testAreaSection.style.display = "block";
+        testAreaSection.style.display =
+          "block"; /* Ensure test area is visible */
         shuffleArray(deckArray);
-        const hand = deckArray.slice(0, 7);
+
+        const hand = deckArray.slice(0, STARTING_HAND_SIZE);
         currentHand = hand.map((card) => ({
           handId: `h-${handCardIdCounter++}`,
           name: card.name,
           imageUrl: card.imageUrl,
           normalImageUrl: card.normalImageUrl,
         }));
-        currentLibrary = deckArray.slice(7);
+        currentLibrary = deckArray.slice(STARTING_HAND_SIZE);
+
         displayHand();
         displayBattlefield();
         displaySideZones();
-        updateTestStatus("Drew 7 cards.");
+        updateTestStatus(`Drew ${STARTING_HAND_SIZE} cards.`);
         enableDrawNextButton();
         enableShuffleButton();
         enableSearchButton();
@@ -2004,6 +2348,10 @@
         hideDeckSearchArea();
         updateUntapAllButtonVisibility();
       }
+
+      /**
+       * Draws the next card from the library and adds it to the hand.
+       */
       function drawNextCard() {
         if (currentLibrary.length === 0) {
           updateTestStatus("Cannot draw: Library is empty.");
@@ -2022,15 +2370,22 @@
         });
         displayHand();
         updateTestStatus(`Drew ${escapeHtml(nextCard.name)}.`);
+
+        /* If library search is open, refresh it */
         if (deckSearchArea.style.display === "block") {
           displayLibraryForSearch();
         }
-        updateTestStatus();
+        updateTestStatus(); /* Update counts and button states */
       }
+
+      /**
+       * Shuffles the current library.
+       */
       function shuffleLibrary() {
         if (currentLibrary.length > 1) {
           shuffleArray(currentLibrary);
           updateTestStatus("Library shuffled.");
+          /* If library search is open, refresh it */
           if (deckSearchArea.style.display === "block") {
             displayLibraryForSearch();
           }
@@ -2038,12 +2393,8 @@
           updateTestStatus("Cannot shuffle: Library has 1 or 0 cards.");
         }
       }
-      function shuffleArray(array) {
-        for (let i = array.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [array[i], array[j]] = [array[j], array[i]];
-        }
-      }
+
+      /* --- Button State Management --- */
       function enableDrawNextButton() {
         drawNextCardButton.disabled =
           currentLibrary.length === 0 || scryingState.active;
@@ -2066,18 +2417,23 @@
         searchDeckButton.disabled = true;
       }
       function enableScryButton() {
-        scryButton.disabled =
-          currentLibrary.length === 0 || scryingState.active;
-        scryCountInput.disabled =
-          currentLibrary.length === 0 || scryingState.active;
-        if (currentLibrary.length > 0)
+        const libraryAvailable = currentLibrary.length > 0;
+        scryButton.disabled = !libraryAvailable || scryingState.active;
+        scryCountInput.disabled = !libraryAvailable || scryingState.active;
+        if (libraryAvailable) {
           scryCountInput.max = currentLibrary.length;
-        else scryCountInput.max = 1;
+        } else {
+          scryCountInput.max = 1;
+        }
       }
       function disableScryButton() {
         scryButton.disabled = true;
         scryCountInput.disabled = true;
       }
+
+      /**
+       * Resets the entire test area state (hand, battlefield, library, etc.) and UI.
+       */
       function clearTestArea() {
         currentHand = [];
         currentBattlefield = {};
@@ -2094,6 +2450,8 @@
           offsetX: 0,
           offsetY: 0,
         };
+
+        /* Clear UI elements safely */
         if (testHandContainer) testHandContainer.innerHTML = "";
         if (generalZone) {
           while (generalZone.children.length > 1) {
@@ -2104,23 +2462,21 @@
           while (graveyardZone.children.length > 1) {
             if (graveyardZone.lastChild.nodeName !== "H4") {
               graveyardZone.removeChild(graveyardZone.lastChild);
-            } else {
-              break;
-            }
+            } else break;
           }
         }
         if (exileZone) {
           while (exileZone.children.length > 1) {
             if (exileZone.lastChild.nodeName !== "H4") {
               exileZone.removeChild(exileZone.lastChild);
-            } else {
-              break;
-            }
+            } else break;
           }
         }
+
         if (testHandStatus) testHandStatus.textContent = "";
         if (graveyardCountSpan) graveyardCountSpan.textContent = "0";
         if (exileCountSpan) exileCountSpan.textContent = "0";
+
         disableDrawNextButton();
         disableShuffleButton();
         disableSearchButton();
@@ -2129,20 +2485,28 @@
         hideContextMenu();
         hideCardViewPopup();
         hideResultPopup();
-        cancelScry();
+        cancelScry(); /* Ensure any active scry is cancelled */
         updateUntapAllButtonVisibility();
       }
+
+      /**
+       * Handles clicking a card in the hand to play it to the battlefield.
+       * @param {Event} event - The click event object.
+       */
       function handlePlayCardFromHand(event) {
         const cardDiv = event.currentTarget;
         const handId = cardDiv.dataset.handId;
         const cardIndex = currentHand.findIndex(
           (card) => card.handId === handId
         );
+
         if (cardIndex > -1) {
           const [cardToPlay] = currentHand.splice(cardIndex, 1);
           const battlefieldId = `bf-${battlefieldCardIdCounter++}`;
+          /* Place card near top-left with slight random offset */
           const initialX = 10 + Math.floor(Math.random() * 10);
           const initialY = 10 + Math.floor(Math.random() * 10);
+
           currentBattlefield[battlefieldId] = {
             name: cardToPlay.name,
             imageUrl: cardToPlay.imageUrl,
@@ -2159,6 +2523,12 @@
         }
       }
 
+      /* --- Drag and Drop Functionality --- */
+
+      /**
+       * Handles the start of dragging a card from the hand.
+       * @param {DragEvent} event - The dragstart event object.
+       */
       function handleHandDragStart(event) {
         if (scryingState.active) {
           event.preventDefault();
@@ -2178,6 +2548,7 @@
 
           event.dataTransfer.setData("text/plain", handId);
           event.dataTransfer.effectAllowed = "move";
+          /* Add dragging class slightly later for visual feedback */
           setTimeout(() => {
             cardElement.classList.add("dragging");
           }, 0);
@@ -2186,10 +2557,15 @@
           hideCardViewPopup();
           hideResultPopup();
         } else {
-          event.preventDefault();
+          event.preventDefault(); /* Prevent dragging if card not found */
         }
       }
 
+      /**
+       * Handles the start of dragging a card from the battlefield.
+       * Calculates the correct offset, accounting for tapped rotation.
+       * @param {DragEvent} event - The dragstart event object.
+       */
       function handleBattlefieldDragStart(event) {
         if (scryingState.active) {
           event.preventDefault();
@@ -2197,42 +2573,46 @@
         }
         const cardElement = event.target.closest(".battlefield-card");
         if (!cardElement || !cardElement.dataset.battlefieldId) return;
+
         const cardId = cardElement.dataset.battlefieldId;
         if (
           !currentBattlefield[cardId] ||
           currentBattlefield[cardId].zone !== "general"
         ) {
-          event.preventDefault();
+          event.preventDefault(); /* Prevent dragging if card not found or not in general zone */
           return;
         }
 
         dragInfo.cardId = cardId;
         dragInfo.sourceZone = "battlefield";
         const rect = cardElement.getBoundingClientRect();
-
         const isTapped = currentBattlefield[cardId].isTapped;
-        let clientX = event.clientX;
-        let clientY = event.clientY;
+        const clientX = event.clientX;
+        const clientY = event.clientY;
 
+        /* Calculate offset relative to the card's top-left corner, considering rotation */
         if (isTapped) {
           const centerX = rect.left + rect.width / 2;
           const centerY = rect.top + rect.height / 2;
+          /* Vector from center to click point */
           const rotatedOffsetX = clientX - centerX;
           const rotatedOffsetY = clientY - centerY;
+          /* Distance and angle from center */
           const clickDist = Math.sqrt(
             rotatedOffsetX ** 2 + rotatedOffsetY ** 2
           );
           const clickAngle = Math.atan2(rotatedOffsetY, rotatedOffsetX);
+          /* Rotate click point back 90 degrees clockwise to find original relative position */
           const originalAngle = clickAngle + Math.PI / 2;
-
           const originalOffsetX = clickDist * Math.cos(originalAngle);
           const originalOffsetY = clickDist * Math.sin(originalAngle);
-
-          const untapppedWidth = rect.height;
+          /* Calculate offset from top-left of the *untapped* card dimensions */
+          const untapppedWidth = rect.height; /* Swapped dimensions */
           const untapppedHeight = rect.width;
           dragInfo.offsetX = untapppedWidth / 2 + originalOffsetX;
           dragInfo.offsetY = untapppedHeight / 2 + originalOffsetY;
         } else {
+          /* Simple offset for untapped cards */
           dragInfo.offsetX = clientX - rect.left;
           dragInfo.offsetY = clientY - rect.top;
         }
@@ -2248,22 +2628,36 @@
         hideResultPopup();
       }
 
+      /**
+       * Handles the end of any drag operation (cleans up state and visuals).
+       * @param {DragEvent} event - The dragend event object.
+       */
       function handleDragEnd(event) {
         const draggedElement = document.querySelector(".dragging");
         if (draggedElement) {
           draggedElement.classList.remove("dragging");
         }
-
+        /* Reset drag info */
         dragInfo.cardId = null;
         dragInfo.sourceZone = null;
         dragInfo.offsetX = 0;
         dragInfo.offsetY = 0;
       }
 
+      /**
+       * Handles the dragover event on drop zones (allows dropping).
+       * @param {DragEvent} event - The dragover event object.
+       */
       function handleDragOver(event) {
-        event.preventDefault();
+        event.preventDefault(); /* Necessary to allow dropping */
         event.dataTransfer.dropEffect = "move";
       }
+
+      /**
+       * Handles the drop event on valid drop zones (battlefield, graveyard, exile).
+       * Moves the card between zones based on the source and target.
+       * @param {DragEvent} event - The drop event object.
+       */
       function handleDrop(event) {
         event.preventDefault();
         event.stopPropagation();
@@ -2276,12 +2670,14 @@
         const draggedCardId = dragInfo.cardId;
         const sourceZone = dragInfo.sourceZone;
 
-        if (!draggedCardId || !sourceZone) return;
+        if (!draggedCardId || !sourceZone) return; /* No valid drag info */
 
+        /* --- Drop on Graveyard or Exile --- */
         if (dropZoneId === "graveyardZone" || dropZoneId === "exileZone") {
           let cardData = null;
           let cardRemoved = false;
 
+          /* Remove card from source zone */
           if (
             sourceZone === "battlefield" &&
             currentBattlefield[draggedCardId]
@@ -2299,12 +2695,16 @@
             }
           }
 
+          /* Add card to target zone */
           if (cardRemoved && cardData) {
+            /* Clean up properties not needed in side zones */
             delete cardData.x;
             delete cardData.y;
             delete cardData.zone;
             delete cardData.isTapped;
             delete cardData.counters;
+            delete cardData.handId; /* Remove handId if it came from hand */
+            delete cardData.battlefieldId; /* Remove battlefieldId if it came from battlefield */
 
             if (dropZoneId === "graveyardZone") {
               cardData.gyId = `gy-${graveyardCardIdCounter++}`;
@@ -2313,34 +2713,39 @@
                 `Moved ${escapeHtml(cardData.name)} to Graveyard.`
               );
             } else {
+              /* Exile Zone */
               cardData.exileId = `ex-${exileCardIdCounter++}`;
               currentExile.push(cardData);
               updateTestStatus(`Moved ${escapeHtml(cardData.name)} to Exile.`);
             }
+            /* Update UI */
             displayBattlefield();
             displayHand();
             displaySideZones();
             updateUntapAllButtonVisibility();
           }
         } else if (dropZoneId === "generalZone") {
+        /* --- Drop on Battlefield --- */
           const zoneRect = targetZoneElement.getBoundingClientRect();
           let cardData = null;
           let cardMoved = false;
 
+          /* Card came from Hand */
           if (sourceZone === "hand") {
             const cardIndex = currentHand.findIndex(
               (card) => card.handId === draggedCardId
             );
             if (cardIndex > -1) {
               [cardData] = currentHand.splice(cardIndex, 1);
-
               const battlefieldId = `bf-${battlefieldCardIdCounter++}`;
-              const cardWidth = 80;
-              const cardHeight = 112;
+              const cardWidth = 110; /* Approximate battlefield card width */
+              const cardHeight = 154; /* Approximate battlefield card height */
 
-              let newX = event.clientX - zoneRect.left - cardWidth / 2;
-              let newY = event.clientY - zoneRect.top - cardHeight / 2;
+              /* Calculate drop position relative to the zone, centered under cursor */
+              let newX = event.clientX - zoneRect.left - dragInfo.offsetX;
+              let newY = event.clientY - zoneRect.top - dragInfo.offsetY;
 
+              /* Clamp position within zone boundaries */
               newX = Math.max(
                 0,
                 Math.min(newX, targetZoneElement.clientWidth - cardWidth - 5)
@@ -2351,14 +2756,16 @@
               );
 
               currentBattlefield[battlefieldId] = {
-                ...cardData,
+                name: cardData.name,
+                imageUrl: cardData.imageUrl,
+                normalImageUrl: cardData.normalImageUrl,
                 zone: "general",
                 isTapped: false,
                 x: newX,
                 y: newY,
                 counters: { plusOne: 0, minusOne: 0 },
               };
-              delete currentBattlefield[battlefieldId].handId;
+              /* No need for handId on battlefield */
 
               updateTestStatus(
                 `Played ${escapeHtml(cardData.name)} from hand.`
@@ -2368,6 +2775,7 @@
               displayBattlefield();
             }
           } else if (
+          /* Card came from Battlefield (repositioning) */
             sourceZone === "battlefield" &&
             currentBattlefield[draggedCardId]
           ) {
@@ -2380,9 +2788,11 @@
               const cardWidth = parseFloat(cardStyle.width);
               const cardHeight = parseFloat(cardStyle.height);
 
+              /* Calculate new top-left based on drop point and drag offset */
               let newX = event.clientX - zoneRect.left - dragInfo.offsetX;
               let newY = event.clientY - zoneRect.top - dragInfo.offsetY;
 
+              /* Clamp position within zone boundaries */
               newX = Math.max(
                 0,
                 Math.min(newX, targetZoneElement.clientWidth - cardWidth - 5)
@@ -2392,6 +2802,7 @@
                 Math.min(newY, targetZoneElement.clientHeight - cardHeight - 5)
               );
 
+              /* Update state and element style */
               cardData.x = newX;
               cardData.y = newY;
               cardElement.style.left = `${newX}px`;
@@ -2401,12 +2812,14 @@
                 `Moved ${escapeHtml(cardData.name)} on battlefield.`
               );
               cardMoved = true;
+              /* No need to call displayBattlefield() here, just moved the element */
+              /* However, calling it ensures consistency if other state changed */
               displayBattlefield();
             } else {
               console.error(
                 "Could not find dragged battlefield card element on drop."
               );
-              displayBattlefield();
+              displayBattlefield(); /* Refresh to ensure consistency */
             }
           }
 
@@ -2416,23 +2829,31 @@
               sourceZone,
               draggedCardId
             );
+            /* Refresh UI in case of inconsistent state */
             displayBattlefield();
             displayHand();
           }
         } else {
           console.warn("Drop occurred on unexpected element:", dropZoneId);
+          /* Refresh UI */
           displayBattlefield();
           displayHand();
         }
 
+        /* Reset drag info after drop */
         dragInfo.cardId = null;
         dragInfo.sourceZone = null;
         dragInfo.offsetX = 0;
         dragInfo.offsetY = 0;
       }
 
+      /* --- Library Search Functionality --- */
+
+      /**
+       * Toggles the visibility of the library search area.
+       */
       function toggleDeckSearchArea() {
-        if (scryingState.active) return;
+        if (scryingState.active) return; /* Don't allow search during scry */
         if (
           deckSearchArea.style.display === "none" ||
           !deckSearchArea.style.display
@@ -2444,28 +2865,41 @@
           hideDeckSearchArea();
         }
       }
+
+      /**
+       * Hides the library search area and clears its contents.
+       */
       function hideDeckSearchArea() {
         deckSearchArea.style.display = "none";
         deckSearchResults.innerHTML = "";
-        updateTestStatus();
+        updateTestStatus(); /* Reset status message */
       }
+
+      /**
+       * Displays the contents of the current library in the search area UI, sorted alphabetically.
+       */
       function displayLibraryForSearch() {
         deckSearchResults.innerHTML = "";
         if (currentLibrary.length === 0) {
           deckSearchResults.innerHTML = "<li>Library is empty.</li>";
           return;
         }
+        /* Sort a copy for display, keep original library order intact */
         const sortedLibrary = [...currentLibrary].sort((a, b) =>
           a.name.localeCompare(b.name)
         );
 
-        sortedLibrary.forEach((card, displayIndex) => {
+        sortedLibrary.forEach((card) => {
+          /* Find the original index in the unsorted library to allow actions on the correct card */
           const originalIndex = currentLibrary.findIndex((c) => c === card);
           if (originalIndex === -1 && currentLibrary.includes(card)) {
+            /* This might happen with duplicate objects, though unlikely with current setup */
             console.warn(
-              "Potential duplicate card issue in library search display:",
+              "Potential duplicate card object issue in library search display:",
               card.name
             );
+            /* Fallback: find first matching name (less reliable if multiple copies have different object refs) */
+            // originalIndex = currentLibrary.findIndex(c => c.name === card.name);
           }
 
           const li = document.createElement("li");
@@ -2478,6 +2912,7 @@
             card.name
           )}" loading="lazy" data-normal-src="${escapeHtml(normalImageUrl)}">`;
 
+          /* Store necessary data for context menu actions */
           li.dataset.libraryIndex = originalIndex;
           li.dataset.cardname = card.name;
           li.dataset.imageurl = card.imageUrl;
@@ -2487,26 +2922,52 @@
         });
       }
 
+      /* --- Theme Management --- */
+
+      /**
+       * Sets the color theme (light/dark) and saves the preference to local storage.
+       * @param {'light' | 'dark'} themeName - The name of the theme to apply.
+       */
       function setTheme(themeName) {
         localStorage.setItem(THEME_STORAGE_KEY, themeName);
         document.body.setAttribute("data-theme", themeName);
         themeToggle.checked = themeName === "dark";
       }
+
+      /**
+       * Toggles the color theme based on the theme switch checkbox state.
+       */
       function toggleTheme() {
-        if (themeToggle.checked) setTheme("dark");
-        else setTheme("light");
+        setTheme(themeToggle.checked ? "dark" : "light");
       }
+
+      /**
+       * Loads the preferred theme from local storage or detects the system preference.
+       */
       function loadTheme() {
         const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
         const prefersDark =
           window.matchMedia &&
           window.matchMedia("(prefers-color-scheme: dark)").matches;
-        if (storedTheme) setTheme(storedTheme);
-        else if (prefersDark) setTheme("dark");
-        else setTheme("light");
+
+        if (storedTheme === "light" || storedTheme === "dark") {
+          setTheme(storedTheme);
+        } else if (prefersDark) {
+          setTheme("dark");
+        } else {
+          setTheme("light"); /* Default to light */
+        }
       }
 
+      /* --- Context Menu Functionality --- */
+
+      /**
+       * Shows the context menu for a clicked card element.
+       * @param {MouseEvent} event - The contextmenu event object.
+       * @param {HTMLElement} cardElement - The card element that was right-clicked.
+       */
       function showContextMenu(event, cardElement) {
+        /* Prevent context menu during scry unless clicking a scry card */
         if (
           scryingState.active &&
           !cardElement.classList.contains("scry-card-item")
@@ -2515,7 +2976,7 @@
           return;
         }
         event.preventDefault();
-        hideContextMenu();
+        hideContextMenu(); /* Hide any existing menu */
         hideCardViewPopup();
         hideResultPopup();
 
@@ -2525,6 +2986,7 @@
         let libraryIndex = null;
         const cardRect = cardElement.getBoundingClientRect();
 
+        /* Determine card source and data based on element class/dataset */
         if (cardElement.classList.contains("battlefield-card")) {
           sourceZone = "battlefield";
           cardId = cardElement.dataset.battlefieldId;
@@ -2532,12 +2994,12 @@
             cardData = { ...currentBattlefield[cardId] };
         } else if (cardElement.classList.contains("side-zone-card")) {
           const parentZone = cardElement.closest("#graveyardZone, #exileZone");
-          if (parentZone && parentZone.id === "graveyardZone") {
+          if (parentZone?.id === "graveyardZone") {
             sourceZone = "graveyard";
             cardId = cardElement.dataset.gyId;
             const foundCard = currentGraveyard.find((c) => c.gyId === cardId);
             if (foundCard) cardData = { ...foundCard };
-          } else if (parentZone && parentZone.id === "exileZone") {
+          } else if (parentZone?.id === "exileZone") {
             sourceZone = "exile";
             cardId = cardElement.dataset.exileId;
             const foundCard = currentExile.find((c) => c.exileId === cardId);
@@ -2556,14 +3018,15 @@
             libraryIndex >= 0 &&
             libraryIndex < currentLibrary.length
           ) {
+            /* Ensure index is valid before accessing */
             if (currentLibrary[libraryIndex]) {
               cardData = { ...currentLibrary[libraryIndex] };
-              cardId = `lib-${libraryIndex}`;
+              cardId = `lib-${libraryIndex}`; /* Create a temporary ID for context */
             } else {
               console.error(
                 `Invalid library index access: ${libraryIndex} out of ${currentLibrary.length}`
               );
-              return;
+              return; /* Don't show menu if data is inconsistent */
             }
           }
         } else if (cardElement.classList.contains("scry-card-item")) {
@@ -2574,7 +3037,7 @@
           );
           if (foundCard)
             cardData = {
-              name: foundCard.name,
+              /* Only need basic info for view action */ name: foundCard.name,
               imageUrl: foundCard.imageUrl,
               normalImageUrl: foundCard.normalImageUrl,
             };
@@ -2588,12 +3051,17 @@
           return;
         }
 
+        /* Store target info and update menu items */
         contextMenuTarget = { cardId, cardData, sourceZone, libraryIndex };
         updateContextMenuItems(sourceZone, cardData);
         positionContextMenu(cardRect);
         cardContextMenu.style.display = "block";
         contextMenuVisible = true;
       }
+
+      /**
+       * Hides the context menu and resets its target state.
+       */
       function hideContextMenu() {
         cardContextMenu.style.display = "none";
         contextMenuVisible = false;
@@ -2605,42 +3073,60 @@
         };
       }
 
+      /**
+       * Positions the context menu near the clicked card, ensuring it stays within the viewport.
+       * Adjusts behavior based on fullscreen mode.
+       * @param {DOMRect} cardRect - The bounding rectangle of the clicked card element.
+       */
       function positionContextMenu(cardRect) {
         const menuWidth = cardContextMenu.offsetWidth;
         const menuHeight = cardContextMenu.offsetHeight;
         const viewportWidth = window.innerWidth;
         const viewportHeight = window.innerHeight;
-        const buffer = 5;
+        const buffer = 5; /* Small buffer from edges */
         let idealTop, idealLeft, minLeft, maxLeft, minTop, maxTop;
 
         if (isFullscreen) {
+          /* Fullscreen coordinates are relative to viewport */
           minLeft = buffer;
           maxLeft = viewportWidth - buffer;
           minTop = buffer;
           maxTop = viewportHeight - buffer;
 
+          /* Try placing above the card first */
           idealTop = cardRect.top - menuHeight - buffer;
           idealLeft = cardRect.left;
 
+          /* If above doesn't fit, place below */
           if (idealTop < minTop) {
             idealTop = cardRect.bottom + buffer;
           }
+          /* If right edge overflows, align right edges */
           if (idealLeft + menuWidth > maxLeft) {
             idealLeft = cardRect.right - menuWidth;
           }
 
+          /* Clamp within viewport boundaries */
           idealLeft = Math.max(minLeft, idealLeft);
           idealTop = Math.max(minTop, idealTop);
 
+          /* Final check for bottom/right overflow after adjustments */
           if (idealTop + menuHeight > maxTop) {
             idealTop = maxTop - menuHeight;
-            idealTop = Math.max(minTop, idealTop);
+            idealTop = Math.max(
+              minTop,
+              idealTop
+            ); /* Ensure it doesn't go off top */
           }
           if (idealLeft + menuWidth > maxLeft) {
             idealLeft = maxLeft - menuWidth;
-            idealLeft = Math.max(minLeft, idealLeft);
+            idealLeft = Math.max(
+              minLeft,
+              idealLeft
+            ); /* Ensure it doesn't go off left */
           }
         } else {
+          /* Non-fullscreen coordinates need scroll offset */
           const scrollX = window.scrollX;
           const scrollY = window.scrollY;
           minLeft = scrollX + buffer;
@@ -2648,9 +3134,11 @@
           minTop = scrollY + buffer;
           maxTop = viewportHeight + scrollY - buffer;
 
+          /* Try placing above the card first */
           idealTop = cardRect.top + scrollY - menuHeight - buffer;
           idealLeft = cardRect.left + scrollX;
 
+          /* Adjustments similar to fullscreen, but with scroll offsets */
           if (idealTop < minTop) {
             idealTop = cardRect.bottom + scrollY + buffer;
           }
@@ -2675,54 +3163,60 @@
         cardContextMenu.style.top = `${idealTop}px`;
       }
 
+      /**
+       * Updates the context menu items (enabling/disabling/hiding) based on the card's source zone and state.
+       * @param {'battlefield' | 'hand' | 'graveyard' | 'exile' | 'library' | 'scry'} sourceZone - The zone the card is currently in.
+       * @param {object} cardData - The data object for the card.
+       */
       function updateContextMenuItems(sourceZone, cardData) {
         const items = cardContextMenu.querySelectorAll("li");
         items.forEach((item) => {
           const action = item.dataset.action;
           item.classList.remove("disabled", "hidden");
 
+          /* Special handling for Scry zone (only View Card allowed) */
           if (sourceZone === "scry") {
             if (action !== "viewCard") {
               item.classList.add("hidden");
             }
-          } else {
-            if (
-              (action === "toBattlefield" && sourceZone === "battlefield") ||
-              (action === "toGraveyard" && sourceZone === "graveyard") ||
-              (action === "toExile" && sourceZone === "exile") ||
-              (action === "toHand" && sourceZone === "hand")
-            ) {
-              item.classList.add("disabled");
-            }
+            return; /* Skip other checks for scry zone */
+          }
 
-            if (action === "toggleTap") {
-              if (sourceZone === "battlefield") {
-                item.textContent = cardData?.isTapped ? "Untap" : "Tap";
-              } else {
-                item.classList.add("hidden");
-              }
-            }
+          /* Disable moving to the current zone */
+          if (
+            (action === "toBattlefield" && sourceZone === "battlefield") ||
+            (action === "toGraveyard" && sourceZone === "graveyard") ||
+            (action === "toExile" && sourceZone === "exile") ||
+            (action === "toHand" && sourceZone === "hand") ||
+            ((action === "toLibraryTop" || action === "toLibraryBottom") &&
+              sourceZone === "library")
+          ) {
+            item.classList.add("disabled");
+          }
 
-            if (
-              (action === "toLibraryTop" || action === "toLibraryBottom") &&
-              sourceZone === "library"
-            ) {
-              item.classList.add("disabled");
+          /* Tap/Untap only for battlefield */
+          if (action === "toggleTap") {
+            if (sourceZone === "battlefield") {
+              item.textContent = cardData?.isTapped ? "Untap" : "Tap";
+            } else {
+              item.classList.add("hidden");
             }
+          }
 
-            if (action.includes("Counter")) {
-              if (sourceZone !== "battlefield") {
-                item.classList.add("hidden");
-              } else {
-                if (action === "removePlusOneCounter") {
-                  if (!cardData.counters || cardData.counters.plusOne <= 0) {
-                    item.classList.add("disabled");
-                  }
+          /* Counter actions only for battlefield */
+          if (action.includes("Counter")) {
+            if (sourceZone !== "battlefield") {
+              item.classList.add("hidden");
+            } else {
+              /* Disable removing counters if none exist */
+              if (action === "removePlusOneCounter") {
+                if (!cardData?.counters?.plusOne > 0) {
+                  item.classList.add("disabled");
                 }
-                if (action === "removeMinusOneCounter") {
-                  if (!cardData.counters || cardData.counters.minusOne <= 0) {
-                    item.classList.add("disabled");
-                  }
+              }
+              if (action === "removeMinusOneCounter") {
+                if (!cardData?.counters?.minusOne > 0) {
+                  item.classList.add("disabled");
                 }
               }
             }
@@ -2730,40 +3224,13 @@
         });
       }
 
-      function showCardViewPopup(imageUrl) {
-        if (!imageUrl) {
-          console.warn("Cannot show card view: No image URL provided.");
-          return;
-        }
-        hideResultPopup();
-        const normalImageUrl = imageUrl.includes("?")
-          ? imageUrl.split("?")[0]
-          : imageUrl;
-        cardViewImage.src = normalImageUrl.replace("small", "normal");
-        cardViewImage.alt = "Card Image";
-        cardViewPopupOverlay.style.display = "flex";
-      }
-
-      function hideCardViewPopup() {
-        cardViewPopupOverlay.style.display = "none";
-        cardViewImage.src = "";
-        cardViewImage.alt = "";
-      }
-
-      function showResultPopup(message) {
-        hideContextMenu();
-        hideCardViewPopup();
-        resultPopupText.textContent = message;
-        resultPopupOverlay.style.display = "flex";
-      }
-
-      function hideResultPopup() {
-        resultPopupOverlay.style.display = "none";
-        resultPopupText.textContent = "";
-      }
-
+      /**
+       * Handles clicks on context menu items, performing the selected action.
+       * @param {Event} event - The click event object.
+       */
       function handleContextMenuAction(event) {
         const targetLi = event.target.closest("li");
+        /* Ensure a valid, enabled menu item was clicked and target data exists */
         if (
           !targetLi ||
           targetLi.classList.contains("disabled") ||
@@ -2784,6 +3251,7 @@
           return;
         }
 
+        /* --- Handle "View Card" Action --- */
         if (action === "viewCard") {
           const imageUrl = cardData.normalImageUrl || cardData.imageUrl;
           showCardViewPopup(imageUrl);
@@ -2791,16 +3259,13 @@
           return;
         }
 
+        /* --- Prevent other actions if source is Scry --- */
         if (sourceZone === "scry") {
           hideContextMenu();
           return;
         }
 
-        let cardRemoved = false;
-        let performVisualUpdate = true;
-        let cardToMove = null;
-        let statusMsg = "";
-
+        /* --- Handle Tap/Untap Action --- */
         if (action === "toggleTap") {
           if (sourceZone === "battlefield" && currentBattlefield[cardId]) {
             const card = currentBattlefield[cardId];
@@ -2810,11 +3275,11 @@
             );
             if (cardElement) {
               cardElement.classList.toggle("tapped", card.isTapped);
+              /* Adjust position slightly if untapping near edge (due to rotation change) */
               if (!card.isTapped) {
-                const zoneRect = generalZone.getBoundingClientRect();
-                const cardRect = cardElement.getBoundingClientRect();
-                const cardWidth = cardRect.width;
-                const cardHeight = cardRect.height;
+                const cardStyle = window.getComputedStyle(cardElement);
+                const cardWidth = parseFloat(cardStyle.width);
+                const cardHeight = parseFloat(cardStyle.height);
                 let currentX = parseFloat(cardElement.style.left);
                 let currentY = parseFloat(cardElement.style.top);
                 let newX = Math.max(
@@ -2825,7 +3290,6 @@
                   0,
                   Math.min(currentY, generalZone.clientHeight - cardHeight - 5)
                 );
-
                 if (newX !== currentX || newY !== currentY) {
                   cardElement.style.left = `${newX}px`;
                   cardElement.style.top = `${newY}px`;
@@ -2839,22 +3303,22 @@
                 cardData.name
               )}.`
             );
-            performVisualUpdate = false;
             updateUntapAllButtonVisibility();
           } else {
             console.error(
               "Cannot toggle tap: Card not found on battlefield or invalid zone."
             );
-            performVisualUpdate = false;
           }
           hideContextMenu();
-          return;
+          return; /* Tap action finished */
         }
 
+        /* --- Handle Counter Actions --- */
         if (action.includes("Counter")) {
           if (sourceZone === "battlefield" && currentBattlefield[cardId]) {
             const card = currentBattlefield[cardId];
             if (!card.counters) card.counters = { plusOne: 0, minusOne: 0 };
+            let statusMsg = "";
 
             switch (action) {
               case "addPlusOneCounter":
@@ -2895,22 +3359,27 @@
                 break;
             }
 
+            /* Update counter display on the card element */
             const cardElement = generalZone.querySelector(
               `.battlefield-card[data-battlefield-id="${cardId}"]`
             );
             if (cardElement) {
               updateCardCountersDisplay(cardElement, card.counters);
             }
-            performVisualUpdate = false;
             updateTestStatus(statusMsg);
           } else {
             console.error("Cannot modify counters: Card not on battlefield.");
-            performVisualUpdate = false;
           }
           hideContextMenu();
-          return;
+          return; /* Counter action finished */
         }
 
+        /* --- Handle Zone Change Actions --- */
+        let cardRemoved = false;
+        let cardToMove = null;
+        let statusMsg = "";
+
+        /* 1. Remove card from source zone */
         if (sourceZone === "battlefield") {
           if (currentBattlefield[cardId]) {
             cardToMove = { ...currentBattlefield[cardId] };
@@ -2952,6 +3421,7 @@
           }
         }
 
+        /* If removal failed, stop */
         if (!cardRemoved || !cardToMove) {
           console.error(
             "Failed to remove card from source zone:",
@@ -2961,20 +3431,22 @@
           );
           hideContextMenu();
           if (deckSearchArea.style.display === "block") {
-            displayLibraryForSearch();
+            displayLibraryForSearch(); /* Refresh search if open */
           }
           updateTestStatus();
           return;
         }
 
+        /* 2. Prepare card data for the new zone (remove irrelevant properties) */
         const cleanCardData = {
           name: cardToMove.name,
           imageUrl: cardToMove.imageUrl,
           normalImageUrl: cardToMove.normalImageUrl,
         };
         statusMsg = `Moved ${escapeHtml(cleanCardData.name)}`;
-        let libraryAction = false;
+        let libraryAction = false; /* Flag if library was modified */
 
+        /* 3. Add card to the destination zone */
         switch (action) {
           case "toHand":
             cleanCardData.handId = `h-${handCardIdCounter++}`;
@@ -3012,79 +3484,110 @@
             libraryAction = true;
             break;
           default:
+            /* Should not happen, but handle defensively */
             console.warn("Unknown context menu action:", action);
             statusMsg = `Error processing action for ${escapeHtml(
               cleanCardData.name
             )}.`;
-
-            if (sourceZone === "library") {
+            /* Attempt to revert by putting the card back */
+            if (sourceZone === "library" && libraryIndex !== null) {
               currentLibrary.splice(libraryIndex, 0, cardToMove);
             } else if (sourceZone === "hand") {
-              const originalIndex = currentHand.findIndex(
-                (c) => c.handId > cardToMove.handId
-              );
-              if (originalIndex > -1)
-                currentHand.splice(originalIndex, 0, cardToMove);
-              else currentHand.push(cardToMove);
+              currentHand.push(cardToMove); /* Simplest revert */
             } else if (sourceZone === "battlefield") {
               currentBattlefield[cardId] = cardToMove;
             } else if (sourceZone === "graveyard") {
-              const originalIndex = currentGraveyard.findIndex(
-                (c) => c.gyId > cardToMove.gyId
-              );
-              if (originalIndex > -1)
-                currentGraveyard.splice(originalIndex, 0, cardToMove);
-              else currentGraveyard.push(cardToMove);
+              currentGraveyard.push(cardToMove);
             } else if (sourceZone === "exile") {
-              const originalIndex = currentExile.findIndex(
-                (c) => c.exileId > cardToMove.exileId
-              );
-              if (originalIndex > -1)
-                currentExile.splice(originalIndex, 0, cardToMove);
-              else currentExile.push(cardToMove);
+              currentExile.push(cardToMove);
             } else {
               console.error(
                 "Reverting action failed, card may be lost from test area."
               );
             }
-            performVisualUpdate = true;
             break;
         }
 
-        if (performVisualUpdate) {
-          displayBattlefield();
-          displaySideZones();
-          displayHand();
-          updateTestStatus(statusMsg);
-        } else {
-          updateTestStatus();
-        }
+        /* 4. Update UI */
+        displayBattlefield();
+        displaySideZones();
+        displayHand();
+        updateTestStatus(statusMsg);
 
+        /* Refresh library search if it was involved or is open */
         if (
           (libraryAction || sourceZone === "library") &&
           deckSearchArea.style.display === "block"
         ) {
           displayLibraryForSearch();
         }
+        /* Update library-dependent button states */
         if (libraryAction || sourceZone === "library") {
-          if (currentLibrary.length > 0) {
-            enableDrawNextButton();
-            enableShuffleButton();
-            enableSearchButton();
-            enableScryButton();
-          } else {
-            disableDrawNextButton();
-            disableShuffleButton();
-            disableSearchButton();
-            disableScryButton();
-          }
+          enableDrawNextButton();
+          enableShuffleButton();
+          enableSearchButton();
+          enableScryButton();
         }
         updateUntapAllButtonVisibility();
         hideContextMenu();
       }
 
+      /* --- Popups (Card View, Result) --- */
+
+      /**
+       * Shows the large card view popup.
+       * @param {string} imageUrl - The URL of the card image (preferably normal size).
+       */
+      function showCardViewPopup(imageUrl) {
+        if (!imageUrl) {
+          console.warn("Cannot show card view: No image URL provided.");
+          return;
+        }
+        hideResultPopup(); /* Close other popups */
+        /* Attempt to get normal size image if small was provided */
+        const normalImageUrl = imageUrl.includes("?")
+          ? imageUrl.split("?")[0]
+          : imageUrl;
+        cardViewImage.src = normalImageUrl.replace("small", "normal");
+        cardViewImage.alt = "Card Image";
+        cardViewPopupOverlay.style.display = "flex";
+      }
+
+      /**
+       * Hides the large card view popup.
+       */
+      function hideCardViewPopup() {
+        cardViewPopupOverlay.style.display = "none";
+        cardViewImage.src = "";
+        cardViewImage.alt = "";
+      }
+
+      /**
+       * Shows a simple popup for results like coin flips or die rolls.
+       * @param {string} message - The message to display in the popup.
+       */
+      function showResultPopup(message) {
+        hideContextMenu(); /* Close other overlays */
+        hideCardViewPopup();
+        resultPopupText.textContent = message;
+        resultPopupOverlay.style.display = "flex";
+      }
+
+      /**
+       * Hides the result popup.
+       */
+      function hideResultPopup() {
+        resultPopupOverlay.style.display = "none";
+        resultPopupText.textContent = "";
+      }
+
+      /* --- Scry Functionality --- */
+
+      /**
+       * Initiates the Scry process. Takes cards from the library and displays them in the Scry modal.
+       */
       function handleScry() {
-        if (scryingState.active) return;
+        if (scryingState.active) return; /* Already scrying */
         const count = parseInt(scryCountInput.value, 10);
         if (isNaN(count) || count <= 0) {
           updateTestStatus("Invalid scry amount.");
@@ -3095,40 +3598,49 @@
           updateTestStatus("Library is empty, cannot scry.");
           return;
         }
+
+        /* Initialize scry state */
         scryingState.active = true;
         scryingState.cards = [];
         scryingState.expectedCount = actualCount;
         scryingState.resolvedCount = 0;
         scryingState.toBottom = [];
 
+        /* Move cards from library to scry state */
         for (let i = 0; i < actualCount; i++) {
           const card = currentLibrary.shift();
           if (card) {
-            card.scryTempId = `scry-${i}`;
+            card.scryTempId = `scry-${i}`; /* Add temporary ID for tracking */
             scryingState.cards.push(card);
           } else {
             console.error("Attempted to scry undefined card from library.");
-            scryingState.expectedCount--;
+            scryingState.expectedCount--; /* Adjust count if card was invalid */
           }
         }
 
         if (scryingState.expectedCount <= 0) {
           console.warn("No valid cards found to scry.");
-          cancelScry();
+          cancelScry(); /* Clean up state */
           return;
         }
 
+        /* Disable other actions during scry */
         disableDrawNextButton();
         disableShuffleButton();
         disableSearchButton();
         disableScryButton();
         untapAllButton.disabled = true;
+
         displayScryModal(scryingState.expectedCount);
         updateTestStatus(
           `Scrying ${scryingState.expectedCount} cards... Choose Top or Bottom for each.`
         );
       }
 
+      /**
+       * Displays the Scry modal UI with the cards to be resolved.
+       * @param {number} count - The number of cards being scryed.
+       */
       function displayScryModal(count) {
         scryModalTitle.textContent = `Scry ${count}`;
         scryCardContainer.innerHTML = "";
@@ -3164,6 +3676,7 @@
           buttonDiv.appendChild(bottomButton);
           cardDiv.appendChild(buttonDiv);
 
+          /* Allow context menu (for View Card) on scry items */
           cardDiv.addEventListener("contextmenu", (event) =>
             showContextMenu(event, cardDiv)
           );
@@ -3174,9 +3687,13 @@
         scryOverlay.style.display = "flex";
       }
 
+      /**
+       * Handles the user's choice (Top or Bottom) for a single card during Scry.
+       * @param {Event} event - The click event from the Top/Bottom button.
+       */
       function handleScryChoice(event) {
         if (!scryingState.active) return;
-        hideContextMenu();
+        hideContextMenu(); /* Close context menu if open */
 
         const button = event.target;
         const choice = button.dataset.choice;
@@ -3191,88 +3708,122 @@
           return;
         }
 
+        /* Remove card from the active scry list */
         const [cardData] = scryingState.cards.splice(cardIndex, 1);
-        delete cardData.scryTempId;
+        delete cardData.scryTempId; /* Remove temporary ID */
 
         let actionMsg = "";
         if (choice === "top") {
+          /* Put card back on top of library immediately */
           currentLibrary.unshift(cardData);
           actionMsg = `Keeping ${escapeHtml(cardData.name)} on top.`;
         } else {
+          /* Add card to a temporary 'bottom' list */
           scryingState.toBottom.push(cardData);
           actionMsg = `Moving ${escapeHtml(cardData.name)} to bottom.`;
         }
 
-        cardItem.remove();
+        cardItem.remove(); /* Remove the resolved card from the modal */
         updateTestStatus(actionMsg);
 
         scryingState.resolvedCount++;
 
+        /* Check if all cards have been resolved */
         if (scryingState.resolvedCount === scryingState.expectedCount) {
+          /* Add all cards marked for bottom to the actual bottom of the library */
           currentLibrary.push(...scryingState.toBottom);
-          scryingState.toBottom = [];
+          scryingState.toBottom = []; /* Clear temporary list */
           endScrySession();
         }
       }
 
+      /**
+       * Cleans up the Scry state and UI after the operation is complete or cancelled.
+       */
       function endScrySession() {
         const wasActive = scryingState.active;
         hideContextMenu();
+        /* Reset scry state */
         scryingState.active = false;
         scryingState.cards = [];
         scryingState.toBottom = [];
         scryingState.expectedCount = 0;
         scryingState.resolvedCount = 0;
+
+        /* Hide modal and clear its content */
         scryOverlay.style.display = "none";
         scryCardContainer.innerHTML = "";
+
+        /* Re-enable buttons */
         enableDrawNextButton();
         enableShuffleButton();
         enableSearchButton();
         enableScryButton();
         untapAllButton.disabled = false;
 
+        /* Update status message */
         if (wasActive) {
           let currentStatus = testHandStatus.textContent || "";
+          /* Clean up intermediate scry messages */
           currentStatus = currentStatus
             .replace(/Scrying.*Choose.*|Keeping.*top\.|Moving.*bottom\./g, "")
             .trim();
           updateTestStatus(currentStatus + " Scry finished.");
         } else {
-          updateTestStatus();
+          updateTestStatus(); /* General update if cancelled before starting */
         }
 
+        /* Refresh library search if open */
         if (deckSearchArea.style.display === "block") {
           displayLibraryForSearch();
         }
       }
 
+      /**
+       * Cancels an ongoing Scry operation, returning all involved cards to the top of the library.
+       */
       function cancelScry() {
         if (scryingState.active) {
           hideContextMenu();
+          /* Gather all cards currently in scry state or marked for bottom */
           const cardsToReturn = [
             ...scryingState.cards,
             ...scryingState.toBottom,
           ];
-          cardsToReturn.forEach((card) => delete card.scryTempId);
+          cardsToReturn.forEach(
+            (card) => delete card.scryTempId
+          ); /* Clean up temp IDs */
+          /* Return all cards to the top of the library */
           currentLibrary.unshift(...cardsToReturn);
 
           updateTestStatus("Scry cancelled. Cards returned to library.");
-          endScrySession();
+          endScrySession(); /* Clean up state and UI */
         }
       }
 
+      /* --- Miscellaneous Actions (Coin Flip, Die Roll, Fullscreen) --- */
+
+      /**
+       * Simulates a coin flip and displays the result in a popup.
+       */
       function flipCoin() {
         const result = Math.random() < 0.5 ? "Heads" : "Tails";
         showResultPopup(`Coin flip: ${result}`);
-        updateTestStatus();
+        updateTestStatus(); /* Update zone counts */
       }
 
+      /**
+       * Simulates rolling a 6-sided die and displays the result in a popup.
+       */
       function rollDie() {
         const result = Math.floor(Math.random() * 6) + 1;
         showResultPopup(`Rolled a d6: ${result}`);
-        updateTestStatus();
+        updateTestStatus(); /* Update zone counts */
       }
 
+      /**
+       * Toggles fullscreen mode for the test area section.
+       */
       function toggleFullscreen() {
         isFullscreen = !isFullscreen;
         testAreaSection.classList.toggle("fullscreen-mode", isFullscreen);
@@ -3280,14 +3831,18 @@
           ? "Exit Fullscreen"
           : "Fullscreen";
 
+        /* Hide/show other elements and adjust body styles for fullscreen */
         if (isFullscreen) {
-          document.body.style.overflow = "hidden";
+          document.body.style.overflow = "hidden"; /* Prevent scrolling */
+          /* Hide all direct children of body except necessary overlays/menus and the test area */
           document
             .querySelectorAll(
               "body > :not(.test-hand-section):not(#cardContextMenu):not(#scryOverlay):not(#cardViewPopupOverlay):not(#resultPopupOverlay)"
             )
             .forEach((el) => (el.style.display = "none"));
+          /* Ensure header is hidden */
           document.querySelector(".header-container").style.display = "none";
+          /* Force body to fill viewport */
           document.body.style.position = "fixed";
           document.body.style.width = "100%";
           document.body.style.height = "100%";
@@ -3295,243 +3850,269 @@
           document.body.style.left = "0";
           document.body.style.margin = "0";
           document.body.style.padding = "0";
-          document.body.style.overflow = "hidden";
         } else {
+          /* Restore normal body styles and element visibility */
           document.body.style.overflow = "";
           document
             .querySelectorAll(
               "body > :not(.test-hand-section):not(#cardContextMenu):not(#scryOverlay):not(#cardViewPopupOverlay):not(#resultPopupOverlay)"
             )
-            .forEach((el) => (el.style.display = ""));
-          document.querySelector(".header-container").style.display = "flex";
+            .forEach((el) => (el.style.display = "")); /* Restore display */
+          document.querySelector(".header-container").style.display =
+            "flex"; /* Restore header */
           document.body.style.position = "";
           document.body.style.width = "";
           document.body.style.height = "";
           document.body.style.top = "";
           document.body.style.left = "";
-          document.body.style.margin = "20px auto";
-          document.body.style.padding = "15px";
-          document.body.style.overflow = "";
+          document.body.style.margin =
+            "20px auto"; /* Restore original margin */
+          document.body.style.padding = "15px"; /* Restore original padding */
         }
+        /* Close any open popups/menus when toggling fullscreen */
         hideContextMenu();
         hideCardViewPopup();
         hideResultPopup();
       }
 
-      searchInput.addEventListener("input", (event) => {
-        debouncedLiveSearch(event.target.value.trim());
-      });
-      searchResults.addEventListener("click", (event) => {
-        const li = event.target.closest("li");
-        if (li && li.dataset.cardname)
-          addCardToDeck(
-            li.dataset.cardname,
-            li.dataset.imageurl,
-            li.dataset.normalimageurl
-          );
-      });
-      document.addEventListener("click", (event) => {
-        const searchSection = event.target.closest(".search-section");
-        const resultsList = event.target.closest("#searchResults");
-        if (!searchSection && !resultsList) {
-          searchResults.innerHTML = "";
-          searchResults.style.display = "none";
-        }
+      /* --- Event Listeners --- */
 
-        if (contextMenuVisible && !cardContextMenu.contains(event.target)) {
+      /**
+       * Initializes all event listeners for the application.
+       */
+      function initializeEventListeners() {
+        /* Search Input & Results */
+        searchInput.addEventListener("input", (event) => {
+          debouncedLiveSearch(event.target.value.trim());
+        });
+        searchResults.addEventListener("click", (event) => {
+          const li = event.target.closest("li");
+          if (li?.dataset.cardname) {
+            addCardToDeck(
+              li.dataset.cardname,
+              li.dataset.imageurl,
+              li.dataset.normalimageurl
+            );
+          }
+        });
+        searchInput.addEventListener("keypress", (event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            const firstResult = searchResults.querySelector("li");
+            if (firstResult?.dataset.cardname) {
+              addCardToDeck(
+                firstResult.dataset.cardname,
+                firstResult.dataset.imageurl,
+                firstResult.dataset.normalimageurl
+              );
+            }
+          }
+        });
+
+        /* Deck List Interactions (Event Delegation) */
+        deckList.addEventListener("click", (event) => {
+          if (event.target.classList.contains("delete-card-btn")) {
+            const cardName = event.target.dataset.cardname;
+            if (cardName) {
+              if (
+                confirm(
+                  `Are you sure you want to remove "${escapeHtml(
+                    cardName
+                  )}" from the deck?`
+                )
+              ) {
+                deleteCardFromDeck(cardName);
+              }
+            }
+          } else if (event.target.classList.contains("card-image")) {
+            const normalSrc = event.target.dataset.normalSrc;
+            if (normalSrc) {
+              showCardViewPopup(normalSrc);
+            }
+          }
+        });
+        deckList.addEventListener("change", (event) => {
+          if (event.target.classList.contains("quantity-input")) {
+            const cardName = event.target.dataset.cardname;
+            if (cardName) {
+              updateCardQuantity(cardName, event.target.value);
+            }
+          }
+        });
+
+        /* Deck Action Buttons */
+        saveDeckButton.addEventListener("click", saveDeck);
+        deleteSavedDeckButton.addEventListener("click", deleteSavedDeck);
+        clearDeckButton.addEventListener("click", clearDeck);
+
+        /* Saved Decks List (Event Delegation) */
+        savedDecksList.addEventListener("click", (event) => {
+          const li = event.target.closest("li");
+          if (li?.dataset.deckName && !li.classList.contains("no-decks")) {
+            loadDeckByName(li.dataset.deckName);
+          }
+        });
+
+        /* Test Area Buttons */
+        drawHandButton.addEventListener("click", drawTestHand);
+        drawNextCardButton.addEventListener("click", drawNextCard);
+        shuffleDeckButton.addEventListener("click", shuffleLibrary);
+        searchDeckButton.addEventListener("click", toggleDeckSearchArea);
+        closeSearchAreaButton.addEventListener("click", hideDeckSearchArea);
+        scryButton.addEventListener("click", handleScry);
+        flipCoinButton.addEventListener("click", flipCoin);
+        rollDieButton.addEventListener("click", rollDie);
+        untapAllButton.addEventListener("click", () => {
+          let untappedCount = 0;
+          for (const id in currentBattlefield) {
+            if (
+              currentBattlefield[id].zone === "general" &&
+              currentBattlefield[id].isTapped
+            ) {
+              currentBattlefield[id].isTapped = false;
+              untappedCount++;
+            }
+          }
+          if (untappedCount > 0) {
+            displayBattlefield();
+            updateTestStatus(`Untapped ${untappedCount} card(s).`);
+          }
+          updateUntapAllButtonVisibility();
+        });
+        fullscreenTestAreaButton.addEventListener("click", toggleFullscreen);
+
+        /* Drag and Drop Zone Listeners */
+        [generalZone, graveyardZone, exileZone].forEach((zone) => {
+          zone.addEventListener("dragover", handleDragOver);
+          zone.addEventListener("drop", handleDrop);
+        });
+
+        /* Theme Toggle */
+        themeToggle.addEventListener("change", toggleTheme);
+
+        /* Context Menu Listener */
+        cardContextMenu.addEventListener("click", handleContextMenuAction);
+
+        /* Popup Close Buttons */
+        closeCardViewPopupButton.addEventListener("click", hideCardViewPopup);
+        closeResultPopupButton.addEventListener("click", hideResultPopup);
+
+        /* Global Listeners (Click outside, Double Click, Escape key, Scroll/Resize) */
+        document.addEventListener("click", (event) => {
+          /* Close search results if clicking outside */
+          if (
+            !event.target.closest(".search-section") &&
+            !event.target.closest("#searchResults")
+          ) {
+            searchResults.innerHTML = "";
+            searchResults.style.display = "none";
+          }
+          /* Close context menu if clicking outside */
+          if (contextMenuVisible && !cardContextMenu.contains(event.target)) {
+            /* Check if click was on a card (which would open a new menu) */
+            const targetCard = event.target.closest(
+              ".battlefield-card, .side-zone-card, .hand-card, .scry-card-item, .library-search-card"
+            );
+            if (!targetCard) {
+              hideContextMenu();
+            }
+          }
+          /* Close library search if clicking outside */
+          if (
+            deckSearchArea.style.display === "block" &&
+            !event.target.closest("#deckSearchArea") &&
+            !event.target.closest("#searchDeckButton") &&
+            !event.target.closest("#closeSearchAreaButton") &&
+            !cardContextMenu.contains(
+              event.target
+            ) /* Allow context menu clicks */
+          ) {
+            hideDeckSearchArea();
+          }
+          /* Close popups if clicking on overlay */
+          if (event.target === cardViewPopupOverlay) hideCardViewPopup();
+          if (event.target === resultPopupOverlay) hideResultPopup();
+        });
+
+        document.addEventListener("contextmenu", (event) => {
+          /* Hide previous menu before showing new one */
+          if (contextMenuVisible) {
+            hideContextMenu();
+          }
+          /* Show menu if right-clicking on a card element */
           const targetCard = event.target.closest(
             ".battlefield-card, .side-zone-card, .hand-card, .scry-card-item, .library-search-card"
           );
-          if (!targetCard) {
-            hideContextMenu();
+          if (targetCard) {
+            event.preventDefault();
+            showContextMenu(event, targetCard);
           }
-        }
+        });
 
-        const deckSearchDiv = event.target.closest("#deckSearchArea");
-        const searchButton = event.target.closest("#searchDeckButton");
-        const closeSearchButton = event.target.closest(
-          "#closeSearchAreaButton"
-        );
-
-        if (
-          deckSearchArea.style.display === "block" &&
-          !deckSearchDiv &&
-          !searchButton &&
-          !closeSearchButton &&
-          !cardContextMenu.contains(event.target)
-        ) {
-          hideDeckSearchArea();
-        }
-
-        if (event.target === cardViewPopupOverlay) {
-          hideCardViewPopup();
-        }
-
-        if (event.target === resultPopupOverlay) {
-          hideResultPopup();
-        }
-      });
-      searchInput.addEventListener("keypress", (event) => {
-        if (event.key === "Enter") {
-          event.preventDefault();
-          const firstResult = searchResults.querySelector("li");
-          if (firstResult && firstResult.dataset.cardname)
-            addCardToDeck(
-              firstResult.dataset.cardname,
-              firstResult.dataset.imageurl,
-              firstResult.dataset.normalimageurl
-            );
-        }
-      });
-      deckList.addEventListener("click", (event) => {
-        if (event.target.classList.contains("delete-card-btn")) {
-          const cardName = event.target.getAttribute("data-cardname");
-          if (cardName) {
-            if (
-              confirm(
-                `Are you sure you want to remove "${escapeHtml(
-                  cardName
-                )}" from the deck?`
-              )
-            ) {
-              deleteCardFromDeck(cardName);
+        document.addEventListener("dblclick", (event) => {
+          /* Show large view on double-clicking a card image */
+          const targetCardImage = event.target.closest(
+            ".battlefield-card img, .side-zone-card img, .hand-card img, .scry-card-item img, .library-search-card img, .card-image" /* Added deck list image */
+          );
+          if (targetCardImage) {
+            const normalSrc = targetCardImage.dataset.normalSrc;
+            if (normalSrc) {
+              showCardViewPopup(normalSrc);
             }
           }
-        } else if (event.target.classList.contains("card-image")) {
-          const normalSrc = event.target.dataset.normalSrc;
-          if (normalSrc) {
-            showCardViewPopup(normalSrc);
+        });
+
+        document.addEventListener("keydown", (event) => {
+          if (event.key === "Escape") {
+            /* Prioritize closing things on Escape key */
+            if (isFullscreen) toggleFullscreen();
+            else if (resultPopupOverlay.style.display === "flex")
+              hideResultPopup();
+            else if (scryingState.active) cancelScry();
+            else if (cardViewPopupOverlay.style.display === "flex")
+              hideCardViewPopup();
+            else if (deckSearchArea.style.display === "block")
+              hideDeckSearchArea();
+            else if (contextMenuVisible) hideContextMenu();
           }
-        }
-      });
-      deckList.addEventListener("change", (event) => {
-        if (event.target.classList.contains("quantity-input")) {
-          const cardName = event.target.getAttribute("data-cardname");
-          if (cardName) updateCardQuantity(cardName, event.target.value);
-        }
-      });
-      saveDeckButton.addEventListener("click", saveDeck);
-      deleteSavedDeckButton.addEventListener("click", deleteSavedDeck);
-      clearDeckButton.addEventListener("click", clearDeck);
+        });
 
-      savedDecksList.addEventListener("click", (event) => {
-        const li = event.target.closest("li");
-        if (li && li.dataset.deckName && !li.classList.contains("no-decks")) {
-          loadDeckByName(li.dataset.deckName);
-        }
-      });
-
-      drawHandButton.addEventListener("click", drawTestHand);
-      drawNextCardButton.addEventListener("click", drawNextCard);
-      shuffleDeckButton.addEventListener("click", shuffleLibrary);
-      searchDeckButton.addEventListener("click", toggleDeckSearchArea);
-      closeSearchAreaButton.addEventListener("click", hideDeckSearchArea);
-      scryButton.addEventListener("click", handleScry);
-      flipCoinButton.addEventListener("click", flipCoin);
-      rollDieButton.addEventListener("click", rollDie);
-
-      [generalZone, graveyardZone, exileZone].forEach((zone) => {
-        zone.addEventListener("dragover", handleDragOver);
-        zone.addEventListener("drop", handleDrop);
-      });
-
-      untapAllButton.addEventListener("click", () => {
-        let untappedCount = 0;
-        for (const id in currentBattlefield) {
-          if (
-            currentBattlefield[id].zone === "general" &&
-            currentBattlefield[id].isTapped
-          ) {
-            currentBattlefield[id].isTapped = false;
-            untappedCount++;
-          }
-        }
-        if (untappedCount > 0) {
-          displayBattlefield();
-          updateTestStatus(`Untapped ${untappedCount} card(s).`);
-        }
-        updateUntapAllButtonVisibility();
-      });
-
-      themeToggle.addEventListener("change", toggleTheme);
-
-      document.addEventListener("contextmenu", (event) => {
-        if (contextMenuVisible) {
-          hideContextMenu();
-        }
-
-        const targetCard = event.target.closest(
-          ".battlefield-card, .side-zone-card, .hand-card, .scry-card-item, .library-search-card"
+        /* Hide popups/menus on scroll/resize to prevent detachment */
+        window.addEventListener(
+          "scroll",
+          () => {
+            if (!isFullscreen) {
+              hideContextMenu();
+              hideCardViewPopup();
+              hideResultPopup();
+            }
+          },
+          true /* Use capture phase */
         );
-
-        if (targetCard) {
-          event.preventDefault();
-          showContextMenu(event, targetCard);
-        }
-      });
-
-      document.addEventListener("dblclick", (event) => {
-        const targetCardImage = event.target.closest(
-          ".battlefield-card img, .side-zone-card img, .hand-card img, .scry-card-item img, .library-search-card img"
-        );
-        if (targetCardImage) {
-          const normalSrc = targetCardImage.dataset.normalSrc;
-          if (normalSrc) {
-            showCardViewPopup(normalSrc);
-          }
-        }
-      });
-
-      cardContextMenu.addEventListener("click", handleContextMenuAction);
-      closeCardViewPopupButton.addEventListener("click", hideCardViewPopup);
-      closeResultPopupButton.addEventListener("click", hideResultPopup);
-      fullscreenTestAreaButton.addEventListener("click", toggleFullscreen);
-
-      document.addEventListener("keydown", (event) => {
-        if (event.key === "Escape") {
-          if (isFullscreen) {
-            toggleFullscreen();
-          } else if (resultPopupOverlay.style.display === "flex") {
-            hideResultPopup();
-          } else if (scryingState.active) {
-            cancelScry();
-          } else if (cardViewPopupOverlay.style.display === "flex") {
-            hideCardViewPopup();
-          } else if (deckSearchArea.style.display === "block") {
-            hideDeckSearchArea();
-          } else if (contextMenuVisible) {
-            hideContextMenu();
-          }
-        }
-      });
-
-      window.addEventListener(
-        "scroll",
-        () => {
-          if (!isFullscreen) {
+        window.addEventListener(
+          "resize",
+          () => {
             hideContextMenu();
             hideCardViewPopup();
             hideResultPopup();
-          }
-        },
-        true
-      );
-      window.addEventListener(
-        "resize",
-        () => {
-          hideContextMenu();
-          hideCardViewPopup();
-          hideResultPopup();
-        },
-        true
-      );
+          },
+          true /* Use capture phase */
+        );
+      }
 
+      /* --- Initialization --- */
+
+      /**
+       * Runs when the DOM is fully loaded.
+       * Loads theme, renders initial deck state, populates saved decks list, and sets up listeners.
+       */
       document.addEventListener("DOMContentLoaded", () => {
         loadTheme();
-        renderDeck();
+        renderDeck(); /* Render empty deck initially */
         renderSavedDecksList();
         updateCurrentDeckNameStatus(null);
-        hideResultPopup();
+        hideResultPopup(); /* Ensure popups are hidden on load */
+        initializeEventListeners();
       });
     </script>
   </body>
