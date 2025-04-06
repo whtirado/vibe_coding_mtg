@@ -24,6 +24,10 @@
         --button-delete-bg: #dc3545;
         --button-delete-text: #ffffff;
         --button-delete-bg-hover: #c82333;
+        --button-life-bg: #28a745; /* Green for life increase */
+        --button-life-bg-hover: #218838;
+        --button-life-minus-bg: #dc3545; /* Red for life decrease */
+        --button-life-minus-bg-hover: #c82333;
         --input-bg: #ffffff;
         --input-border: #cccccc;
         --input-text: #333333;
@@ -79,6 +83,7 @@
         --result-popup-close-bg: #6c757d;
         --result-popup-close-text: #ffffff;
         --result-popup-close-hover-bg: #5a6268;
+        --life-text-color: #004085; /* Slightly darker blue for life */
       }
 
       body[data-theme="dark"] {
@@ -99,6 +104,10 @@
         --button-delete-bg: #a02c38;
         --button-delete-text: #ffffff;
         --button-delete-bg-hover: #80232e;
+        --button-life-bg: #218838; /* Dark theme green */
+        --button-life-bg-hover: #1e7e34;
+        --button-life-minus-bg: #a02c38; /* Dark theme red */
+        --button-life-minus-bg-hover: #80232e;
         --input-bg: #3a3a3a;
         --input-border: #666666;
         --input-text: #e0e0e0;
@@ -154,6 +163,7 @@
         --result-popup-close-bg: #5a6268;
         --result-popup-close-text: #ffffff;
         --result-popup-close-hover-bg: #495057;
+        --life-text-color: #61dafb; /* Lighter blue for dark theme life */
       }
 
       /* --- General Layout & Typography --- */
@@ -551,19 +561,21 @@
         display: flex;
         align-items: center;
         flex-wrap: wrap;
+        gap: 5px; /* Add gap for spacing between control groups */
       }
 
-      .test-controls .action-button {
+      .test-controls .action-button,
+      .life-counter-controls button {
         display: inline-block;
         width: auto;
-        margin-right: 10px;
-        margin-bottom: 5px;
+        margin-right: 5px; /* Reduced margin */
       }
 
       .scry-control {
         display: inline-flex;
         align-items: center;
         gap: 5px;
+        margin-right: 5px;
       }
 
       #scryCountInput {
@@ -575,8 +587,50 @@
         background-color: var(--input-bg);
         color: var(--input-text);
         font-size: 0.9em;
-        margin-bottom: 10px;
-        margin-right: 10px;
+        margin-bottom: 0; /* Adjusted margin */
+        margin-right: 0;
+      }
+
+      /* --- Life Counter --- */
+      .life-counter-controls {
+        display: inline-flex;
+        align-items: center;
+        background-color: var(--body-bg); /* Slightly different bg */
+        padding: 3px 8px;
+        border-radius: 4px;
+        border: 1px solid var(--border-color-light);
+        height: 28px;
+      }
+
+      .life-counter-controls span {
+        font-weight: bold;
+        color: var(--life-text-color);
+        font-size: 1.15em;
+        margin: 0 8px;
+        min-width: 30px;
+        text-align: center;
+      }
+
+      .life-counter-controls button {
+        padding: 3px 8px; /* Smaller padding */
+        font-size: 1em;
+        line-height: 1;
+        margin: 0 2px; /* Add slight margin between buttons */
+        margin-bottom: 0; /* Reset margin from parent */
+        min-width: 25px;
+      }
+
+      #increaseLifeButton {
+        background-color: var(--button-life-bg);
+      }
+      #increaseLifeButton:hover {
+        background-color: var(--button-life-bg-hover);
+      }
+      #decreaseLifeButton {
+        background-color: var(--button-life-minus-bg);
+      }
+      #decreaseLifeButton:hover {
+        background-color: var(--button-life-minus-bg-hover);
       }
 
       #testHandStatus {
@@ -587,6 +641,7 @@
         margin-bottom: 5px;
         font-size: 0.9em;
         color: var(--text-color-muted);
+        text-align: right; /* Align status to the right */
       }
 
       /* --- Play Area --- */
@@ -742,6 +797,10 @@
         border-radius: 4px;
       }
 
+      .deck-action.action-button {
+        margin-bottom: 5px;
+      }
+
       .battlefield-card .card-counters {
         position: absolute;
         bottom: 2px;
@@ -881,7 +940,6 @@
         cursor: pointer;
         transition: background-color 0.2s ease;
         font-size: 0.9em;
-        margin-bottom: 10px;
       }
 
       .action-button:hover,
@@ -1220,10 +1278,10 @@
     <div class="actions-section">
       <h2>Deck Actions</h2>
       <div id="currentDeckNameStatus">No Deck Loaded / Unsaved Deck</div>
-      <button id="saveDeckButton" class="action-button">
+      <button id="saveDeckButton" class="deck-action action-button">
         Save Current Deck As...
       </button>
-      <button id="clearDeckButton" class="action-button">
+      <button id="clearDeckButton" class="deck-action action-button">
         Clear Current Deck
       </button>
 
@@ -1273,6 +1331,18 @@
         </button>
         <button id="flipCoinButton" class="action-button">Flip Coin</button>
         <button id="rollDieButton" class="action-button">Roll d6</button>
+
+        <!-- Life Counter -->
+        <div class="life-counter-controls">
+          <span>Life Points</span>
+          <button id="decreaseLifeButton">-</button>
+          <span id="lifeTotalDisplay">20</span>
+          <button id="increaseLifeButton">+</button>
+        </div>
+        <!-- End Life Counter -->
+      </div>
+
+      <div>
         <span id="testHandStatus"></span>
       </div>
 
@@ -1418,6 +1488,10 @@
       const closeResultPopupButton = document.getElementById(
         "closeResultPopupButton"
       );
+      // Life Counter Elements
+      const lifeTotalDisplay = document.getElementById("lifeTotalDisplay");
+      const increaseLifeButton = document.getElementById("increaseLifeButton");
+      const decreaseLifeButton = document.getElementById("decreaseLifeButton");
 
       /* --- Constants --- */
       const MULTI_DECK_STORAGE_KEY = "mtgDeckBuilderMultiDeckStorageV1";
@@ -1426,6 +1500,7 @@
       const DEBOUNCE_DELAY = 350;
       const STATUS_CLEAR_DELAY = 4000;
       const STARTING_HAND_SIZE = 7;
+      const STARTING_LIFE_TOTAL = 20;
 
       /* --- Application State --- */
       let currentDeck =
@@ -1446,6 +1521,7 @@
       let battlefieldCardIdCounter = 0; /* Counter for generating unique battlefield card IDs */
       let graveyardCardIdCounter = 0; /* Counter for generating unique graveyard card IDs */
       let exileCardIdCounter = 0; /* Counter for generating unique exile card IDs */
+      let currentPlayerLife = STARTING_LIFE_TOTAL; /* Player's life total */
       let dragInfo = {
         /* State for drag-and-drop operations */ cardId: null,
         sourceZone: null,
@@ -2001,6 +2077,7 @@
             disableScryButton();
             hideDeckSearchArea();
             testAreaSection.style.display = "block"; /* Show test area */
+            updateLifeDisplay(); // Ensure life total is displayed correctly
           } else {
             updateDeckActionStatus(
               `Failed to load deck "${escapeHtml(
@@ -2073,6 +2150,33 @@
         } else {
           updateDeckActionStatus("Delete cancelled.");
         }
+      }
+
+      /* --- Life Point Management --- */
+
+      /**
+       * Updates the life total display in the UI.
+       */
+      function updateLifeDisplay() {
+        lifeTotalDisplay.textContent = currentPlayerLife;
+      }
+
+      /**
+       * Increases the player's life total by 1.
+       */
+      function increaseLife() {
+        currentPlayerLife++;
+        updateLifeDisplay();
+        // Optional: updateTestStatus(`Life total increased to ${currentPlayerLife}.`);
+      }
+
+      /**
+       * Decreases the player's life total by 1.
+       */
+      function decreaseLife() {
+        currentPlayerLife--;
+        updateLifeDisplay();
+        // Optional: updateTestStatus(`Life total decreased to ${currentPlayerLife}.`);
       }
 
       /* --- Test Area / Play Simulation Functions --- */
@@ -2285,11 +2389,13 @@
         }
         testHandStatus.textContent = statusText;
         updateUntapAllButtonVisibility();
+        updateLifeDisplay(); // Keep life display updated
       }
 
       /**
        * Draws the initial starting hand from the current deck.
        * Shuffles the deck, sets up the library and hand state, and updates the UI.
+       * Resets life total.
        */
       function drawTestHand() {
         clearTestArea(); /* Reset everything before drawing */
@@ -2321,6 +2427,8 @@
           displaySideZones();
           testAreaSection.style.display =
             "none"; /* Hide test area if deck too small */
+          currentPlayerLife = STARTING_LIFE_TOTAL; // Reset life even if draw fails
+          updateLifeDisplay();
           return;
         }
 
@@ -2336,6 +2444,7 @@
           normalImageUrl: card.normalImageUrl,
         }));
         currentLibrary = deckArray.slice(STARTING_HAND_SIZE);
+        currentPlayerLife = STARTING_LIFE_TOTAL; // Reset life total for new game
 
         displayHand();
         displayBattlefield();
@@ -2347,6 +2456,7 @@
         enableScryButton();
         hideDeckSearchArea();
         updateUntapAllButtonVisibility();
+        updateLifeDisplay(); // Display initial life
       }
 
       /**
@@ -2433,6 +2543,7 @@
 
       /**
        * Resets the entire test area state (hand, battlefield, library, etc.) and UI.
+       * Resets life total.
        */
       function clearTestArea() {
         currentHand = [];
@@ -2440,6 +2551,7 @@
         currentLibrary = [];
         currentGraveyard = [];
         currentExile = [];
+        currentPlayerLife = STARTING_LIFE_TOTAL; // Reset life on clear
         handCardIdCounter = 0;
         battlefieldCardIdCounter = 0;
         graveyardCardIdCounter = 0;
@@ -2487,6 +2599,7 @@
         hideResultPopup();
         cancelScry(); /* Ensure any active scry is cancelled */
         updateUntapAllButtonVisibility();
+        updateLifeDisplay(); // Update life display after reset
       }
 
       /**
@@ -3981,6 +4094,10 @@
         });
         fullscreenTestAreaButton.addEventListener("click", toggleFullscreen);
 
+        /* Life Counter Buttons */
+        increaseLifeButton.addEventListener("click", increaseLife);
+        decreaseLifeButton.addEventListener("click", decreaseLife);
+
         /* Drag and Drop Zone Listeners */
         [generalZone, graveyardZone, exileZone].forEach((zone) => {
           zone.addEventListener("dragover", handleDragOver);
@@ -4111,6 +4228,7 @@
         renderDeck(); /* Render empty deck initially */
         renderSavedDecksList();
         updateCurrentDeckNameStatus(null);
+        updateLifeDisplay(); // Initialize life display text
         hideResultPopup(); /* Ensure popups are hidden on load */
         initializeEventListeners();
       });
