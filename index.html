@@ -3809,7 +3809,7 @@
        */
       function flipCoin() {
         const result = Math.random() < 0.5 ? "Heads" : "Tails";
-        showResultPopup(`Coin flip: ${result}`);
+        showResultPopup(`Coin: ${result}`);
         updateTestStatus(); /* Update zone counts */
       }
 
@@ -3818,7 +3818,7 @@
        */
       function rollDie() {
         const result = Math.floor(Math.random() * 6) + 1;
-        showResultPopup(`Rolled a d6: ${result}`);
+        showResultPopup(`Dice Roll: ${result}`);
         updateTestStatus(); /* Update zone counts */
       }
 
