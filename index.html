@@ -576,6 +576,7 @@
         color: var(--input-text);
         font-size: 0.9em;
         margin-bottom: 10px;
+        margin-right: 10px;
       }
 
       #testHandStatus {
@@ -2725,7 +2726,7 @@
             updateUntapAllButtonVisibility();
           }
         } else if (dropZoneId === "generalZone") {
-        /* --- Drop on Battlefield --- */
+          /* --- Drop on Battlefield --- */
           const zoneRect = targetZoneElement.getBoundingClientRect();
           let cardData = null;
           let cardMoved = false;
@@ -2775,7 +2776,7 @@
               displayBattlefield();
             }
           } else if (
-          /* Card came from Battlefield (repositioning) */
+            /* Card came from Battlefield (repositioning) */
             sourceZone === "battlefield" &&
             currentBattlefield[draggedCardId]
           ) {
