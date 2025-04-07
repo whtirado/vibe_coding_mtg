@@ -91,6 +91,7 @@
         --textarea-bg: var(--input-bg);
         --textarea-border: var(--input-border);
         --textarea-text: var(--input-text);
+        --hand-shift-amount: 75px; /* How much cards shift */
       }
 
       body[data-theme="dark"] {
@@ -764,9 +765,30 @@
         height: auto;
         border-radius: 4px;
         box-shadow: 1px 1px 3px var(--shadow-color);
-        cursor: pointer;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        cursor: pointer; /* Change to 'grab' if needed */
+        transition: transform 0.2s ease, box-shadow 0.2s ease,
+          margin-left 0.2s ease, margin-right 0.2s ease; /* Added margin transitions */
         overflow: hidden;
+        position: relative; /* Needed for z-index during drag */
+        margin: 0; /* Reset margin for easier shifting */
+      }
+
+      /* Style for card being dragged */
+      .hand-card.dragging {
+        opacity: 0.4;
+        cursor: grabbing;
+        z-index: 100; /* Ensure dragged card is on top */
+      }
+
+      /* Style for cards shifting aside */
+      .hand-card.shift-right {
+        margin-left: var(--hand-shift-amount);
+        transition: margin-left 0.2s ease;
+      }
+
+      .hand-card.shift-left {
+        margin-right: var(--hand-shift-amount);
+        transition: margin-right 0.2s ease;
       }
 
       .hand-card:hover {
@@ -849,6 +871,7 @@
         background-color: var(--counter-minus-bg);
       }
 
+      /* Class for general dragging (can be removed if hand-card.dragging is sufficient) */
       .dragging {
         opacity: 0.4;
       }
@@ -1708,6 +1731,7 @@
         sourceZone: null,
         offsetX: 0,
         offsetY: 0,
+        element: null, // Store the actual dragged element
       };
       let contextMenuVisible = false; /* Flag indicating if the context menu is open */
       let contextMenuTarget = {
@@ -2458,12 +2482,12 @@
        * Renders the cards currently in the hand zone in the UI.
        */
       function displayHand() {
-        testHandContainer.innerHTML = "";
+        const fragment = document.createDocumentFragment();
         currentHand.forEach((card) => {
           const cardDiv = document.createElement("div");
           cardDiv.classList.add("hand-card");
           cardDiv.dataset.handId = card.handId;
-          cardDiv.draggable = true;
+          cardDiv.draggable = true; // Make hand cards draggable
           const displayImageUrl = card.imageUrl || "";
           const normalImageUrl = card.normalImageUrl || displayImageUrl;
           const safeCardName = escapeHtml(card.name || "Unknown Card");
@@ -2473,12 +2497,17 @@
           )}" alt="${safeCardName}" title="${safeCardName}" loading="lazy" data-normal-src="${escapeHtml(
             normalImageUrl
           )}">`;
+
+          // Event listeners for individual cards (play, drag start/end)
           cardDiv.addEventListener("click", handlePlayCardFromHand);
           cardDiv.addEventListener("dragstart", handleHandDragStart);
           cardDiv.addEventListener("dragend", handleDragEnd);
-          testHandContainer.appendChild(cardDiv);
+
+          fragment.appendChild(cardDiv);
         });
-        updateTestStatus(); /* Update counts */
+        testHandContainer.innerHTML = ""; // Clear previous hand
+        testHandContainer.appendChild(fragment); // Append new hand
+        updateTestStatus(); // Update counts
       }
 
       /**
@@ -2766,6 +2795,7 @@
           sourceZone: null,
           offsetX: 0,
           offsetY: 0,
+          element: null,
         };
 
         /* Clear UI elements safely */
@@ -2813,6 +2843,12 @@
        * @param {Event} event - The click event object.
        */
       function handlePlayCardFromHand(event) {
+        // Prevent playing card if it was part of a drag operation that just finished
+        if (event.detail === 0) {
+          // This can happen after dragend in some browsers
+          return;
+        }
+
         const cardDiv = event.currentTarget;
         const handId = cardDiv.dataset.handId;
         const cardIndex = currentHand.findIndex(
@@ -2862,12 +2898,15 @@
         if (cardIndex > -1) {
           dragInfo.cardId = handId;
           dragInfo.sourceZone = "hand";
-          dragInfo.offsetX = event.offsetX;
-          dragInfo.offsetY = event.offsetY;
+          dragInfo.element = cardElement; // Store the element being dragged
+          // Don't calculate offset for hand reordering, not needed.
+          // dragInfo.offsetX = event.offsetX;
+          // dragInfo.offsetY = event.offsetY;
 
           event.dataTransfer.setData("text/plain", handId);
           event.dataTransfer.effectAllowed = "move";
-          /* Add dragging class slightly later for visual feedback */
+
+          // Add dragging class slightly later for visual feedback
           setTimeout(() => {
             cardElement.classList.add("dragging");
           }, 0);
@@ -2876,7 +2915,7 @@
           hideCardViewPopup();
           hideResultPopup();
         } else {
-          event.preventDefault(); /* Prevent dragging if card not found */
+          event.preventDefault(); // Prevent dragging if card not found
         }
       }
 
@@ -2904,6 +2943,7 @@
 
         dragInfo.cardId = cardId;
         dragInfo.sourceZone = "battlefield";
+        dragInfo.element = cardElement; // Store element
         const rect = cardElement.getBoundingClientRect();
         const isTapped = currentBattlefield[cardId].isTapped;
         const clientX = event.clientX;
@@ -2952,15 +2992,23 @@
        * @param {DragEvent} event - The dragend event object.
        */
       function handleDragEnd(event) {
-        const draggedElement = document.querySelector(".dragging");
-        if (draggedElement) {
-          draggedElement.classList.remove("dragging");
+        // Clear visual feedback (dragging class, shifting classes)
+        if (dragInfo.element) {
+          dragInfo.element.classList.remove("dragging");
         }
-        /* Reset drag info */
-        dragInfo.cardId = null;
-        dragInfo.sourceZone = null;
-        dragInfo.offsetX = 0;
-        dragInfo.offsetY = 0;
+        // Remove shifting classes from all hand cards
+        testHandContainer.querySelectorAll(".hand-card").forEach((cardEl) => {
+          cardEl.classList.remove("shift-left", "shift-right");
+        });
+
+        // Reset drag info
+        dragInfo = {
+          cardId: null,
+          sourceZone: null,
+          offsetX: 0,
+          offsetY: 0,
+          element: null,
+        };
       }
 
       /**
@@ -2973,23 +3021,171 @@
       }
 
       /**
+       * Finds the element being hovered over during hand reordering.
+       * @param {DragEvent} event - The dragover event.
+       * @returns {HTMLElement | null} The element after which to insert, or null.
+       */
+      function getHandDragAfterElement(container, x) {
+        const draggableElements = [
+          ...container.querySelectorAll(".hand-card:not(.dragging)"),
+        ];
+
+        return draggableElements.reduce(
+          (closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = x - box.left - box.width / 2; // Find midpoint of card
+            if (offset < 0 && offset > closest.offset) {
+              return { offset: offset, element: child };
+            } else {
+              return closest;
+            }
+          },
+          { offset: Number.NEGATIVE_INFINITY }
+        ).element;
+      }
+
+      /**
+       * Handles drag over the hand container for reordering.
+       * @param {DragEvent} event
+       */
+      function handleHandDragOver(event) {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "move"; // Indicate valid drop target
+
+        if (!dragInfo.element || dragInfo.sourceZone !== "hand") {
+          return; // Only handle hand-to-hand drags
+        }
+
+        const afterElement = getHandDragAfterElement(
+          testHandContainer,
+          event.clientX
+        );
+        const draggableElements = [
+          ...testHandContainer.querySelectorAll(".hand-card:not(.dragging)"),
+        ];
+
+        draggableElements.forEach((el) => {
+          el.classList.remove("shift-left", "shift-right");
+        });
+
+        if (afterElement == null) {
+          // If dragging past the end, shift the last element
+          if (draggableElements.length > 0) {
+            draggableElements[draggableElements.length - 1].classList.add(
+              "shift-left"
+            );
+          }
+        } else {
+          // Shift the element we're inserting before
+          afterElement.classList.add("shift-right");
+        }
+      }
+
+      /**
+       * Handles drag leave from the hand container.
+       * @param {DragEvent} event
+       */
+      function handleHandDragLeave(event) {
+        // If the mouse leaves the container, remove shifting classes
+        if (event.target === testHandContainer) {
+          testHandContainer.querySelectorAll(".hand-card").forEach((cardEl) => {
+            cardEl.classList.remove("shift-left", "shift-right");
+          });
+        }
+      }
+
+      /**
+       * Handles dropping a card onto the hand container for reordering.
+       * @param {DragEvent} event
+       */
+      function handleHandDrop(event) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        if (dragInfo.sourceZone !== "hand" || !dragInfo.cardId) {
+          console.warn("Attempted to drop non-hand card into hand?");
+          return; // Only allow hand-to-hand drops here
+        }
+
+        const draggedHandId = dragInfo.cardId;
+        const draggedCardIndex = currentHand.findIndex(
+          (c) => c.handId === draggedHandId
+        );
+
+        if (draggedCardIndex === -1) {
+          console.error("Could not find dragged card in currentHand array.");
+          handleDragEnd(event); // Clean up visuals
+          return;
+        }
+
+        // Remove the card from its original position in the array
+        const [draggedCardData] = currentHand.splice(draggedCardIndex, 1);
+
+        // Find where to insert it
+        const afterElement = getHandDragAfterElement(
+          testHandContainer,
+          event.clientX
+        );
+
+        if (afterElement == null) {
+          // Dropped at the end
+          currentHand.push(draggedCardData);
+        } else {
+          // Dropped before 'afterElement'
+          const afterElementId = afterElement.dataset.handId;
+          const targetIndex = currentHand.findIndex(
+            (c) => c.handId === afterElementId
+          );
+          if (targetIndex !== -1) {
+            currentHand.splice(targetIndex, 0, draggedCardData);
+          } else {
+            // Fallback: add to end if target index not found (shouldn't happen)
+            console.warn(
+              "Target element for drop not found in array, adding to end."
+            );
+            currentHand.push(draggedCardData);
+          }
+        }
+
+        // Clean up shift classes explicitly before re-rendering
+        testHandContainer.querySelectorAll(".hand-card").forEach((cardEl) => {
+          cardEl.classList.remove("shift-left", "shift-right");
+        });
+
+        // Re-render the hand with the new order
+        displayHand();
+        updateTestStatus("Reordered hand.");
+
+        // Full cleanup happens in handleDragEnd which fires after drop
+      }
+
+      /**
        * Handles the drop event on valid drop zones (battlefield, graveyard, exile).
        * Moves the card between zones based on the source and target.
+       * Skips if drop target is hand (handled by handleHandDrop).
        * @param {DragEvent} event - The drop event object.
        */
       function handleDrop(event) {
+        const targetZoneElement = event.currentTarget;
+        const dropZoneId = targetZoneElement.id;
+
+        // Ignore drops onto the hand container itself (handled by handleHandDrop)
+        if (dropZoneId === "testHandContainer") {
+          return;
+        }
+
         event.preventDefault();
         event.stopPropagation();
         hideContextMenu();
         hideCardViewPopup();
         hideResultPopup();
 
-        const targetZoneElement = event.currentTarget;
-        const dropZoneId = targetZoneElement.id;
         const draggedCardId = dragInfo.cardId;
         const sourceZone = dragInfo.sourceZone;
 
         if (!draggedCardId || !sourceZone) return; /* No valid drag info */
+        // Prevent dropping hand cards onto themselves during reorder attempt
+        if (sourceZone === "hand" && dropZoneId === "testHandContainer") return;
 
         /* --- Drop on Graveyard or Exile --- */
         if (dropZoneId === "graveyardZone" || dropZoneId === "exileZone") {
@@ -3159,11 +3355,7 @@
           displayHand();
         }
 
-        /* Reset drag info after drop */
-        dragInfo.cardId = null;
-        dragInfo.sourceZone = null;
-        dragInfo.offsetX = 0;
-        dragInfo.offsetY = 0;
+        // Reset drag info *after* drop logic (handled by dragend)
       }
 
       /* --- Library Search Functionality --- */
@@ -4472,10 +4664,11 @@
             "Error saving deck to local storage. It might be full.",
             "error"
           );
+        } finally {
+          // Ensure flag and button state are reset regardless of outcome
           isImporting = false;
-          saveImportedDeckButton.disabled = false; // Ensure button is enabled on error
+          saveImportedDeckButton.disabled = false;
         }
-        // Note: isImporting and saveImportedDeckButton are handled inside the try/catch/finally now for success/error cases
       }
 
       /* --- Miscellaneous Actions (Coin Flip, Die Roll, Fullscreen) --- */
@@ -4669,6 +4862,10 @@
           zone.addEventListener("dragover", handleDragOver);
           zone.addEventListener("drop", handleDrop);
         });
+        // Add listeners specifically to the hand container for reordering
+        testHandContainer.addEventListener("dragover", handleHandDragOver);
+        testHandContainer.addEventListener("dragleave", handleHandDragLeave);
+        testHandContainer.addEventListener("drop", handleHandDrop);
 
         /* Theme Toggle */
         themeToggle.addEventListener("change", toggleTheme);
@@ -4688,11 +4885,10 @@
           handleSaveImportedDeck
         );
 
-        // --- Prevent clicks inside the import popup content from closing it --- // MODIFIED HERE
+        // Prevent clicks inside the import popup content from closing it
         importDeckPopupContent.addEventListener("click", (event) => {
           event.stopPropagation();
         });
-        // ---------------------------------------------------------------------
 
         /* Global Listeners (Click outside, Double Click, Escape key, Scroll/Resize) */
         document.addEventListener("click", (event) => {
@@ -4709,6 +4905,7 @@
             const targetCard = event.target.closest(
               ".battlefield-card, .side-zone-card, .hand-card, .scry-card-item, .library-search-card"
             );
+            // Don't close if clicking another card (new menu will open)
             if (!targetCard) {
               hideContextMenu();
             }
@@ -4727,7 +4924,7 @@
           /* Close popups if clicking directly on their overlay */
           if (event.target === cardViewPopupOverlay) hideCardViewPopup();
           if (event.target === resultPopupOverlay) hideResultPopup();
-          if (event.target === importDeckPopupOverlay) hideImportDeckPopup(); // This now works correctly
+          if (event.target === importDeckPopupOverlay) hideImportDeckPopup();
         });
 
         document.addEventListener("contextmenu", (event) => {
