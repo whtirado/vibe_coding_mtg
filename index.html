@@ -84,6 +84,13 @@
         --result-popup-close-text: #ffffff;
         --result-popup-close-hover-bg: #5a6268;
         --life-text-color: #004085; /* Slightly darker blue for life */
+        --import-overlay-bg: rgba(0, 0, 0, 0.75);
+        --import-modal-bg: #ffffff;
+        --import-status-error-text: #dc3545;
+        --import-status-success-text: #28a745;
+        --textarea-bg: var(--input-bg);
+        --textarea-border: var(--input-border);
+        --textarea-text: var(--input-text);
       }
 
       body[data-theme="dark"] {
@@ -164,6 +171,13 @@
         --result-popup-close-text: #ffffff;
         --result-popup-close-hover-bg: #495057;
         --life-text-color: #61dafb; /* Lighter blue for dark theme life */
+        --import-overlay-bg: rgba(0, 0, 0, 0.85);
+        --import-modal-bg: #2c2c2c;
+        --import-status-error-text: #f8d7da;
+        --import-status-success-text: #d4edda;
+        --textarea-bg: var(--input-bg);
+        --textarea-border: var(--input-border);
+        --textarea-text: var(--input-text);
       }
 
       /* --- General Layout & Typography --- */
@@ -450,6 +464,10 @@
       .actions-section .action-button {
         display: block;
         width: 100%;
+      }
+      .actions-section .deck-action {
+        /* Ensure deck actions have consistent margin */
+        margin-bottom: 5px;
       }
 
       #savedDecksListContainer {
@@ -1247,6 +1265,108 @@
       #closeResultPopupButton:hover {
         background-color: var(--result-popup-close-hover-bg);
       }
+
+      /* --- Import Deck Popup --- */
+      #importDeckPopupOverlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: var(--import-overlay-bg);
+        display: none; /* Initially hidden */
+        justify-content: center;
+        align-items: center;
+        z-index: 20010; /* Ensure it's above most things but below fullscreen */
+        padding: 20px;
+        box-sizing: border-box;
+      }
+
+      #importDeckPopupContent {
+        background-color: var(--import-modal-bg);
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        width: 90%;
+        max-width: 550px; /* Limit width */
+        max-height: 90%;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      #importDeckPopupContent h3 {
+        text-align: center;
+        margin-top: 0;
+        color: var(--text-color-primary);
+      }
+
+      #importDeckPopupContent label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 500;
+        font-size: 0.9em;
+        color: var(--text-color-secondary);
+      }
+
+      #importDeckPopupContent input[type="text"],
+      #importDeckPopupContent textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid var(--input-border);
+        border-radius: 4px;
+        box-sizing: border-box;
+        background-color: var(--textarea-bg);
+        color: var(--textarea-text);
+        font-size: 0.95em;
+      }
+
+      #importDeckPopupContent textarea {
+        min-height: 400px;
+        resize: vertical; /* Allow vertical resizing */
+      }
+
+      #importDeckPopupContent .import-buttons {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 10px;
+      }
+
+      #importDeckPopupContent #saveImportedDeckButton {
+        background-color: var(--button-bg);
+        color: var(--button-text);
+      }
+      #importDeckPopupContent #saveImportedDeckButton:hover:not(:disabled) {
+        background-color: var(--button-bg-hover);
+      }
+
+      #importDeckPopupContent #closeImportDeckPopupButton {
+        background-color: var(--scry-button-bg); /* Use a secondary color */
+        color: var(--button-text);
+      }
+      #importDeckPopupContent #closeImportDeckPopupButton:hover {
+        background-color: var(--scry-button-hover-bg);
+      }
+
+      #importDeckStatus {
+        font-size: 0.9em;
+        min-height: 1.2em;
+        text-align: center;
+        word-wrap: break-word;
+        white-space: pre-wrap; /* Allow line breaks in status */
+      }
+
+      #importDeckStatus.error {
+        color: var(--import-status-error-text);
+        font-weight: bold;
+      }
+
+      #importDeckStatus.success {
+        color: var(--import-status-success-text);
+        font-weight: bold;
+      }
     </style>
   </head>
   <body data-theme="light">
@@ -1280,6 +1400,9 @@
       <div id="currentDeckNameStatus">No Deck Loaded / Unsaved Deck</div>
       <button id="saveDeckButton" class="deck-action action-button">
         Save Current Deck As...
+      </button>
+      <button id="importDeckButton" class="deck-action action-button">
+        Import Deck
       </button>
       <button id="clearDeckButton" class="deck-action action-button">
         Clear Current Deck
@@ -1419,6 +1542,42 @@
       </div>
     </div>
 
+    <!-- Import Deck Popup Overlay (Initially Hidden) -->
+    <div id="importDeckPopupOverlay">
+      <div id="importDeckPopupContent">
+        <h3>Import Deck</h3>
+        <div>
+          <label for="importDeckNameInput">Deck Name:</label>
+          <input
+            type="text"
+            id="importDeckNameInput"
+            placeholder="Enter a name for the deck"
+          />
+        </div>
+        <div>
+          <label for="importDeckListTextarea">Paste Decklist:</label>
+          <textarea
+            id="importDeckListTextarea"
+            rows="15"
+            placeholder="Example Format:
+4x Card Name
+3 Card Name
+1 Card Name // Optional Comment
+..."
+          ></textarea>
+        </div>
+        <div id="importDeckStatus"></div>
+        <div class="import-buttons">
+          <button id="saveImportedDeckButton" class="action-button">
+            Save Imported Deck
+          </button>
+          <button id="closeImportDeckPopupButton" class="action-button">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+
     <script>
       "use strict";
 
@@ -1432,6 +1591,7 @@
         "deckTotalCountBottom"
       );
       const saveDeckButton = document.getElementById("saveDeckButton");
+      const importDeckButton = document.getElementById("importDeckButton"); // Added
       const deleteSavedDeckButton = document.getElementById(
         "deleteSavedDeckButton"
       );
@@ -1492,6 +1652,26 @@
       const lifeTotalDisplay = document.getElementById("lifeTotalDisplay");
       const increaseLifeButton = document.getElementById("increaseLifeButton");
       const decreaseLifeButton = document.getElementById("decreaseLifeButton");
+      // Import Deck Popup Elements (Added)
+      const importDeckPopupOverlay = document.getElementById(
+        "importDeckPopupOverlay"
+      );
+      const importDeckPopupContent = document.getElementById(
+        "importDeckPopupContent"
+      );
+      const importDeckNameInput = document.getElementById(
+        "importDeckNameInput"
+      );
+      const importDeckListTextarea = document.getElementById(
+        "importDeckListTextarea"
+      );
+      const saveImportedDeckButton = document.getElementById(
+        "saveImportedDeckButton"
+      );
+      const closeImportDeckPopupButton = document.getElementById(
+        "closeImportDeckPopupButton"
+      );
+      const importDeckStatus = document.getElementById("importDeckStatus");
 
       /* --- Constants --- */
       const MULTI_DECK_STORAGE_KEY = "mtgDeckBuilderMultiDeckStorageV1";
@@ -1501,6 +1681,7 @@
       const STATUS_CLEAR_DELAY = 4000;
       const STARTING_HAND_SIZE = 7;
       const STARTING_LIFE_TOTAL = 20;
+      const SCRYFALL_API_DELAY = 75; // ms delay for Scryfall API politeness
 
       /* --- Application State --- */
       let currentDeck =
@@ -1543,6 +1724,7 @@
         toBottom: [],
       };
       let isFullscreen = false; /* Flag indicating if the test area is in fullscreen mode */
+      let isImporting = false; // Flag to prevent multiple import saves at once
 
       /* --- Utility Functions --- */
 
@@ -1602,6 +1784,21 @@
       }
 
       /**
+       * Updates the status message inside the import popup.
+       * @param {string} message - The message to display.
+       * @param {'info' | 'error' | 'success'} [type='info'] - The type of message (for styling).
+       */
+      function updateImportStatus(message, type = "info") {
+        importDeckStatus.textContent = message;
+        importDeckStatus.classList.remove("error", "success");
+        if (type === "error") {
+          importDeckStatus.classList.add("error");
+        } else if (type === "success") {
+          importDeckStatus.classList.add("success");
+        }
+      }
+
+      /**
        * Updates the display showing the name of the currently loaded/edited deck.
        * Also enables/disables the delete button based on whether a deck is loaded.
        * @param {string|null} deckName - The name of the loaded deck, or null if none.
@@ -1646,6 +1843,15 @@
         }
       }
 
+      /**
+       * Simple delay function using Promises.
+       * @param {number} ms - Milliseconds to wait.
+       * @returns {Promise<void>}
+       */
+      function sleep(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      }
+
       /* --- Scryfall API Interaction --- */
 
       /**
@@ -1676,6 +1882,7 @@
         )}&unique=cards&order=name&include_extras=false&include_variations=false`;
 
         try {
+          await sleep(SCRYFALL_API_DELAY); // Add delay before fetch
           const response = await fetch(apiUrl, { signal });
           if (!response.ok) {
             if (response.status === 404) {
@@ -2167,7 +2374,6 @@
       function increaseLife() {
         currentPlayerLife++;
         updateLifeDisplay();
-        // Optional: updateTestStatus(`Life total increased to ${currentPlayerLife}.`);
       }
 
       /**
@@ -2176,7 +2382,6 @@
       function decreaseLife() {
         currentPlayerLife--;
         updateLifeDisplay();
-        // Optional: updateTestStatus(`Life total decreased to ${currentPlayerLife}.`);
       }
 
       /* --- Test Area / Play Simulation Functions --- */
@@ -2597,6 +2802,7 @@
         hideContextMenu();
         hideCardViewPopup();
         hideResultPopup();
+        hideImportDeckPopup(); // Also hide import popup
         cancelScry(); /* Ensure any active scry is cancelled */
         updateUntapAllButtonVisibility();
         updateLifeDisplay(); // Update life display after reset
@@ -3657,6 +3863,7 @@
           return;
         }
         hideResultPopup(); /* Close other popups */
+        hideImportDeckPopup();
         /* Attempt to get normal size image if small was provided */
         const normalImageUrl = imageUrl.includes("?")
           ? imageUrl.split("?")[0]
@@ -3682,6 +3889,7 @@
       function showResultPopup(message) {
         hideContextMenu(); /* Close other overlays */
         hideCardViewPopup();
+        hideImportDeckPopup();
         resultPopupText.textContent = message;
         resultPopupOverlay.style.display = "flex";
       }
@@ -3914,6 +4122,362 @@
         }
       }
 
+      /* --- Import Deck Functionality --- */ // Added Section
+
+      /**
+       * Shows the import deck popup modal.
+       */
+      function showImportDeckPopup() {
+        importDeckNameInput.value = "";
+        importDeckListTextarea.value = "";
+        updateImportStatus(""); // Clear status
+        saveImportedDeckButton.disabled = false; // Re-enable button
+        isImporting = false; // Reset flag
+        importDeckPopupOverlay.style.display = "flex";
+        importDeckNameInput.focus();
+        hideResultPopup();
+        hideCardViewPopup();
+        hideContextMenu();
+      }
+
+      /**
+       * Hides the import deck popup modal.
+       */
+      function hideImportDeckPopup() {
+        importDeckPopupOverlay.style.display = "none";
+        updateImportStatus(""); // Clear status on close
+      }
+
+      /**
+       * Parses decklist text into card names and quantities.
+       * Supports formats like "4x Card Name" or "4 Card Name".
+       * Ignores lines that look like category headers (e.g., "Creature (20)").
+       * Ignores comments starting with //
+       * @param {string} decklistText - The raw text from the textarea.
+       * @returns {{ deck: { [cardName: string]: number }, errors: string[] }}
+       */
+      function parseDecklist(decklistText) {
+        const lines = decklistText.split("\n");
+        const parsedDeck = {};
+        const errors = [];
+        // Regex to capture "4x Card Name" or "4 Card Name", ignoring leading/trailing spaces and comments
+        const lineRegex = /^\s*(\d+)\s*x?\s+([^/]+)(?:\/\/.*)?$/i;
+        // Regex to identify category headers like "Creature (20)" or just "Lands"
+        const headerRegex = /^\s*([a-zA-Z\s]+)\s*(\(\d+\))?\s*$/;
+
+        lines.forEach((line, index) => {
+          const trimmedLine = line.trim();
+          if (!trimmedLine) return; // Skip empty lines
+
+          // Skip header lines
+          if (headerRegex.test(trimmedLine) && !lineRegex.test(trimmedLine)) {
+            // Check it doesn't ALSO match the card format (e.g., "4 Forest")
+            const headerMatch = trimmedLine.match(headerRegex);
+            // Only consider it a header if it's just words or words + (num)
+            if (headerMatch && !/^\d+/.test(trimmedLine)) {
+              // console.log(`Skipping header: ${trimmedLine}`);
+              return;
+            }
+          }
+
+          const match = trimmedLine.match(lineRegex);
+
+          if (match) {
+            const quantity = parseInt(match[1], 10);
+            // Trim card name and handle potential double spaces, plus basic/snow lands
+            let cardName = match[2].trim().replace(/\s+/g, " ");
+            // Normalize basic land names (optional, but good practice)
+            const basicLands = [
+              "Plains",
+              "Island",
+              "Swamp",
+              "Mountain",
+              "Forest",
+            ];
+            const snowLands = [
+              "Snow-Covered Plains",
+              "Snow-Covered Island",
+              "Snow-Covered Swamp",
+              "Snow-Covered Mountain",
+              "Snow-Covered Forest",
+            ];
+            if (basicLands.includes(cardName)) {
+              // Use the standard capitalization
+            } else if (
+              snowLands.some(
+                (snowName) => snowName.toLowerCase() === cardName.toLowerCase()
+              )
+            ) {
+              cardName = snowLands.find(
+                (snowName) => snowName.toLowerCase() === cardName.toLowerCase()
+              );
+            }
+
+            if (!isNaN(quantity) && quantity > 0 && cardName) {
+              parsedDeck[cardName] = (parsedDeck[cardName] || 0) + quantity;
+            } else {
+              errors.push(
+                `Invalid format on line ${index + 1}: "${trimmedLine}"`
+              );
+            }
+          } else {
+            // Only add error if it's not a header line we already skipped
+            if (!headerRegex.test(trimmedLine) || /^\d+/.test(trimmedLine)) {
+              errors.push(
+                `Could not parse line ${index + 1}: "${trimmedLine}"`
+              );
+            }
+          }
+        });
+
+        return { deck: parsedDeck, errors };
+      }
+
+      /**
+       * Fetches card data (image URLs) from Scryfall for a list of card names/quantities.
+       * Uses the /cards/collection endpoint for efficiency.
+       * @param {{ [cardName: string]: number }} parsedQuantities - Object of card names and quantities.
+       * @returns {Promise<{ importedDeckData: { [cardName: string]: { quantity: number, imageUrl: string, normalImageUrl: string } }, fetchErrors: string[] }>}
+       */
+      async function fetchCardDataForParsedDeck(parsedQuantities) {
+        const importedDeckData = {};
+        const fetchErrors = [];
+        const cardNames = Object.keys(parsedQuantities);
+
+        if (cardNames.length === 0) {
+          return { importedDeckData, fetchErrors };
+        }
+
+        updateImportStatus("Fetching card data from Scryfall...", "info");
+        saveImportedDeckButton.disabled = true; // Disable save while fetching
+
+        // Prepare identifiers for Scryfall API
+        const identifiers = cardNames.map((name) => ({ name }));
+
+        try {
+          // Scryfall API recommends chunks of 75
+          const chunkSize = 75;
+          for (let i = 0; i < identifiers.length; i += chunkSize) {
+            const chunk = identifiers.slice(i, i + chunkSize);
+            await sleep(SCRYFALL_API_DELAY); // Politeness delay
+            const response = await fetch(
+              "https://api.scryfall.com/cards/collection",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ identifiers: chunk }),
+              }
+            );
+
+            if (!response.ok) {
+              throw new Error(
+                `Scryfall API error: ${response.status} ${response.statusText}`
+              );
+            }
+
+            const data = await response.json();
+
+            // Process found cards
+            if (data.data && data.data.length > 0) {
+              data.data.forEach((card) => {
+                const cardName = card.name;
+                // Find original requested name (case-insensitive compare)
+                const originalName = Object.keys(parsedQuantities).find(
+                  (reqName) => reqName.toLowerCase() === cardName.toLowerCase()
+                );
+
+                if (originalName && parsedQuantities[originalName]) {
+                  // Check if it was in our request chunk
+                  const smallImageUrl =
+                    card.image_uris?.small || card.image_uris?.normal || "";
+                  const normalImageUrl =
+                    card.image_uris?.normal || smallImageUrl;
+                  importedDeckData[originalName] = {
+                    // Use original name casing
+                    quantity: parsedQuantities[originalName],
+                    imageUrl: smallImageUrl,
+                    normalImageUrl: normalImageUrl,
+                  };
+                } else {
+                  // This might happen if Scryfall returns a slightly different name match
+                  console.warn(
+                    `Scryfall returned card '${cardName}' not explicitly matched to request chunk.`
+                  );
+                }
+              });
+            }
+
+            // Record not found cards from this chunk
+            if (data.not_found && data.not_found.length > 0) {
+              data.not_found.forEach((notFound) => {
+                // Find the original casing if possible by matching identifier name
+                const originalIdentifier = chunk.find(
+                  (id) =>
+                    id.name?.toLowerCase() === notFound.name?.toLowerCase()
+                );
+                const originalName =
+                  originalIdentifier?.name || notFound.name || "Unknown";
+                fetchErrors.push(
+                  `Card not found: "${escapeHtml(originalName)}"`
+                );
+              });
+            }
+          } // End chunk loop
+        } catch (error) {
+          console.error("Error fetching card data:", error);
+          fetchErrors.push(
+            `Network or API error during fetch: ${error.message}`
+          );
+        } finally {
+          saveImportedDeckButton.disabled = false; // Re-enable save button
+        }
+
+        // Final check: ensure all originally requested cards were accounted for
+        cardNames.forEach((originalName) => {
+          if (
+            !importedDeckData[originalName] &&
+            !fetchErrors.some((err) =>
+              err.includes(`"${escapeHtml(originalName)}"`)
+            )
+          ) {
+            // If not found in results and not already in fetchErrors, add it now
+            fetchErrors.push(`Card not found: "${escapeHtml(originalName)}"`);
+          }
+        });
+
+        return { importedDeckData, fetchErrors };
+      }
+
+      /**
+       * Handles the process of saving the imported deck.
+       * Parses text, fetches card data, validates, and saves to local storage.
+       */
+      async function handleSaveImportedDeck() {
+        if (isImporting) return; // Prevent double clicks
+        isImporting = true;
+        saveImportedDeckButton.disabled = true; // Disable button during processing
+        updateImportStatus("Processing...", "info");
+
+        const deckName = importDeckNameInput.value.trim();
+        const decklistText = importDeckListTextarea.value;
+
+        // --- Basic Validation ---
+        if (!deckName) {
+          updateImportStatus("Error: Deck name cannot be empty.", "error");
+          isImporting = false;
+          saveImportedDeckButton.disabled = false;
+          return;
+        }
+        if (!decklistText.trim()) {
+          updateImportStatus("Error: Decklist cannot be empty.", "error");
+          isImporting = false;
+          saveImportedDeckButton.disabled = false;
+          return;
+        }
+
+        // --- Parse Decklist ---
+        const { deck: parsedQuantities, errors: parseErrors } =
+          parseDecklist(decklistText);
+
+        if (parseErrors.length > 0) {
+          updateImportStatus(
+            `Error parsing decklist:\n${parseErrors.slice(0, 3).join("\n")}${
+              parseErrors.length > 3 ? "\n..." : ""
+            }`,
+            "error"
+          );
+          isImporting = false;
+          saveImportedDeckButton.disabled = false;
+          return;
+        }
+        if (Object.keys(parsedQuantities).length === 0) {
+          updateImportStatus(
+            "Error: No valid card entries found in the decklist.",
+            "error"
+          );
+          isImporting = false;
+          saveImportedDeckButton.disabled = false;
+          return;
+        }
+
+        // --- Fetch Card Data ---
+        const { importedDeckData, fetchErrors } =
+          await fetchCardDataForParsedDeck(parsedQuantities);
+        let statusMessages = [];
+        const foundCardCount = Object.keys(importedDeckData).length;
+        let totalCardsInDeck = 0;
+        Object.values(importedDeckData).forEach(
+          (card) => (totalCardsInDeck += card.quantity)
+        );
+
+        if (fetchErrors.length > 0) {
+          statusMessages.push(
+            `Could not find data for some cards:\n${fetchErrors
+              .slice(0, 3)
+              .join("\n")}${fetchErrors.length > 3 ? "\n..." : ""}`
+          );
+        }
+        if (foundCardCount === 0) {
+          updateImportStatus(
+            `Error: Failed to fetch data for any cards. Check spelling and format. ${statusMessages.join(
+              " "
+            )}`,
+            "error"
+          );
+          isImporting = false;
+          saveImportedDeckButton.disabled = false;
+          return;
+        }
+
+        // --- Save to Local Storage ---
+        const savedDecks = getSavedDecks();
+        const safeDeckName = escapeHtml(deckName);
+
+        if (savedDecks[deckName]) {
+          if (
+            !confirm(
+              `A deck named "${safeDeckName}" already exists. Overwrite it?`
+            )
+          ) {
+            updateImportStatus("Import cancelled.", "info");
+            isImporting = false;
+            saveImportedDeckButton.disabled = false;
+            return;
+          }
+        }
+
+        savedDecks[deckName] = importedDeckData; // Save the fetched data
+
+        try {
+          localStorage.setItem(
+            MULTI_DECK_STORAGE_KEY,
+            JSON.stringify(savedDecks)
+          );
+          let successMsg = `Deck "${safeDeckName}" imported successfully with ${foundCardCount} unique cards (${totalCardsInDeck} total).`;
+          if (statusMessages.length > 0) {
+            successMsg += "\n" + statusMessages.join("\n"); // Add warnings about unfound cards
+          }
+          updateImportStatus(successMsg, "success");
+          renderSavedDecksList(); // Update the list in the main UI
+
+          // Optionally clear fields or close popup after success?
+          // importDeckNameInput.value = '';
+          // importDeckListTextarea.value = '';
+          setTimeout(hideImportDeckPopup, 4000); // Auto-close after showing success/warnings
+        } catch (error) {
+          console.error("Error saving imported deck:", error);
+          updateImportStatus(
+            "Error saving deck to local storage. It might be full.",
+            "error"
+          );
+          isImporting = false;
+          saveImportedDeckButton.disabled = false; // Ensure button is enabled on error
+        }
+        // Note: isImporting and saveImportedDeckButton are handled inside the try/catch/finally now for success/error cases
+      }
+
       /* --- Miscellaneous Actions (Coin Flip, Die Roll, Fullscreen) --- */
 
       /**
@@ -3950,7 +4514,7 @@
           /* Hide all direct children of body except necessary overlays/menus and the test area */
           document
             .querySelectorAll(
-              "body > :not(.test-hand-section):not(#cardContextMenu):not(#scryOverlay):not(#cardViewPopupOverlay):not(#resultPopupOverlay)"
+              "body > :not(.test-hand-section):not(#cardContextMenu):not(#scryOverlay):not(#cardViewPopupOverlay):not(#resultPopupOverlay):not(#importDeckPopupOverlay)" // Keep import overlay potentially visible
             )
             .forEach((el) => (el.style.display = "none"));
           /* Ensure header is hidden */
@@ -3968,7 +4532,7 @@
           document.body.style.overflow = "";
           document
             .querySelectorAll(
-              "body > :not(.test-hand-section):not(#cardContextMenu):not(#scryOverlay):not(#cardViewPopupOverlay):not(#resultPopupOverlay)"
+              "body > :not(.test-hand-section):not(#cardContextMenu):not(#scryOverlay):not(#cardViewPopupOverlay):not(#resultPopupOverlay):not(#importDeckPopupOverlay)"
             )
             .forEach((el) => (el.style.display = "")); /* Restore display */
           document.querySelector(".header-container").style.display =
@@ -3986,6 +4550,7 @@
         hideContextMenu();
         hideCardViewPopup();
         hideResultPopup();
+        hideImportDeckPopup(); // Also hide import popup on fullscreen toggle
       }
 
       /* --- Event Listeners --- */
@@ -4055,6 +4620,7 @@
 
         /* Deck Action Buttons */
         saveDeckButton.addEventListener("click", saveDeck);
+        importDeckButton.addEventListener("click", showImportDeckPopup); // Added
         deleteSavedDeckButton.addEventListener("click", deleteSavedDeck);
         clearDeckButton.addEventListener("click", clearDeck);
 
@@ -4113,6 +4679,20 @@
         /* Popup Close Buttons */
         closeCardViewPopupButton.addEventListener("click", hideCardViewPopup);
         closeResultPopupButton.addEventListener("click", hideResultPopup);
+        closeImportDeckPopupButton.addEventListener(
+          "click",
+          hideImportDeckPopup
+        );
+        saveImportedDeckButton.addEventListener(
+          "click",
+          handleSaveImportedDeck
+        );
+
+        // --- Prevent clicks inside the import popup content from closing it --- // MODIFIED HERE
+        importDeckPopupContent.addEventListener("click", (event) => {
+          event.stopPropagation();
+        });
+        // ---------------------------------------------------------------------
 
         /* Global Listeners (Click outside, Double Click, Escape key, Scroll/Resize) */
         document.addEventListener("click", (event) => {
@@ -4126,7 +4706,6 @@
           }
           /* Close context menu if clicking outside */
           if (contextMenuVisible && !cardContextMenu.contains(event.target)) {
-            /* Check if click was on a card (which would open a new menu) */
             const targetCard = event.target.closest(
               ".battlefield-card, .side-zone-card, .hand-card, .scry-card-item, .library-search-card"
             );
@@ -4140,15 +4719,15 @@
             !event.target.closest("#deckSearchArea") &&
             !event.target.closest("#searchDeckButton") &&
             !event.target.closest("#closeSearchAreaButton") &&
-            !cardContextMenu.contains(
-              event.target
-            ) /* Allow context menu clicks */
+            !cardContextMenu.contains(event.target)
           ) {
             hideDeckSearchArea();
           }
-          /* Close popups if clicking on overlay */
+
+          /* Close popups if clicking directly on their overlay */
           if (event.target === cardViewPopupOverlay) hideCardViewPopup();
           if (event.target === resultPopupOverlay) hideResultPopup();
+          if (event.target === importDeckPopupOverlay) hideImportDeckPopup(); // This now works correctly
         });
 
         document.addEventListener("contextmenu", (event) => {
@@ -4183,6 +4762,8 @@
           if (event.key === "Escape") {
             /* Prioritize closing things on Escape key */
             if (isFullscreen) toggleFullscreen();
+            else if (importDeckPopupOverlay.style.display === "flex")
+              hideImportDeckPopup();
             else if (resultPopupOverlay.style.display === "flex")
               hideResultPopup();
             else if (scryingState.active) cancelScry();
@@ -4202,6 +4783,7 @@
               hideContextMenu();
               hideCardViewPopup();
               hideResultPopup();
+              hideImportDeckPopup();
             }
           },
           true /* Use capture phase */
@@ -4212,6 +4794,7 @@
             hideContextMenu();
             hideCardViewPopup();
             hideResultPopup();
+            hideImportDeckPopup();
           },
           true /* Use capture phase */
         );
@@ -4230,6 +4813,7 @@
         updateCurrentDeckNameStatus(null);
         updateLifeDisplay(); // Initialize life display text
         hideResultPopup(); /* Ensure popups are hidden on load */
+        hideImportDeckPopup();
         initializeEventListeners();
       });
     </script>
