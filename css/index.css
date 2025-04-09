@@ -1,0 +1,1385 @@
+/* --- CSS Variables --- */
+:root {
+  --body-bg: #f0f2f5;
+  --section-bg: #ffffff;
+  --text-color-primary: #333333;
+  --text-color-secondary: #444444;
+  --text-color-muted: #555555;
+  --text-color-link: #007bff;
+  --border-color-light: #eeeeee;
+  --border-color-medium: #cccccc;
+  --border-color-dark: #aaaaaa;
+  --button-bg: #007bff;
+  --button-text: #ffffff;
+  --button-bg-hover: #0056b3;
+  --button-disabled-bg: #cccccc;
+  --button-disabled-text: #666666;
+  --button-delete-bg: #dc3545;
+  --button-delete-text: #ffffff;
+  --button-delete-bg-hover: #c82333;
+  --button-life-bg: #28a745; /* Green for life increase */
+  --button-life-bg-hover: #218838;
+  --button-life-minus-bg: #dc3545; /* Red for life decrease */
+  --button-life-minus-bg-hover: #c82333;
+  --input-bg: #ffffff;
+  --input-border: #cccccc;
+  --input-text: #333333;
+  --list-item-hover-bg: #f0f8ff;
+  --search-result-hover-bg: #f0f0f0;
+  --battlefield-bg: #e0e0e0;
+  --battlefield-border: #cccccc;
+  --zone-general-bg: #e9f5e9;
+  --zone-general-border: #9ccc9c;
+  --zone-side-bg: #f0f0f0;
+  --zone-side-border: #aaaaaa;
+  --hand-container-bg: #f9f9f9;
+  --hand-card-bg: #ffffff;
+  --hand-card-border: #dddddd;
+  --hand-card-hover-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --shadow-color-heavy: rgba(0, 0, 0, 0.3);
+  --slider-bg: #ccc;
+  --slider-knob-bg: white;
+  --slider-checked-bg: #007bff;
+  --context-menu-bg: #ffffff;
+  --context-menu-border: #cccccc;
+  --context-menu-text: #333333;
+  --context-menu-hover-bg: #f0f0f0;
+  --context-menu-disabled-text: #aaaaaa;
+  --scry-overlay-bg: rgba(0, 0, 0, 0.75);
+  --scry-modal-bg: #ffffff;
+  --scry-card-bg: #f9f9f9;
+  --scry-card-border: #dddddd;
+  --scry-button-bg: #6c757d;
+  --scry-button-text: #ffffff;
+  --scry-button-hover-bg: #5a6268;
+  --scry-button-selected-bg: #0056b3;
+  --card-view-overlay-bg: rgba(0, 0, 0, 0.8);
+  --card-view-bg: #ffffff;
+  --card-view-border: #cccccc;
+  --card-view-close-bg: #6c757d;
+  --card-view-close-text: #ffffff;
+  --card-view-close-hover-bg: #5a6268;
+  --saved-deck-list-bg: #f8f9fa;
+  --saved-deck-list-border: #dee2e6;
+  --saved-deck-item-hover-bg: #e9ecef;
+  --saved-deck-item-text: #0056b3;
+  --fullscreen-button-bg: #6c757d;
+  --fullscreen-button-hover-bg: #5a6268;
+  --counter-plus-bg: rgba(30, 120, 30, 0.8);
+  --counter-minus-bg: rgba(120, 30, 30, 0.8);
+  --counter-text: #ffffff;
+  --result-popup-overlay-bg: rgba(0, 0, 0, 0.6);
+  --result-popup-bg: #ffffff;
+  --result-popup-border: #cccccc;
+  --result-popup-text: #333333;
+  --result-popup-close-bg: #6c757d;
+  --result-popup-close-text: #ffffff;
+  --result-popup-close-hover-bg: #5a6268;
+  --life-text-color: #004085; /* Slightly darker blue for life */
+  --import-overlay-bg: rgba(0, 0, 0, 0.75);
+  --import-modal-bg: #ffffff;
+  --import-status-error-text: #dc3545;
+  --import-status-success-text: #28a745;
+  --textarea-bg: var(--input-bg);
+  --textarea-border: var(--input-border);
+  --textarea-text: var(--input-text);
+  --hand-shift-amount: 75px; /* How much cards shift */
+}
+
+body[data-theme="dark"] {
+  --body-bg: #1a1a1a;
+  --section-bg: #2c2c2c;
+  --text-color-primary: #e0e0e0;
+  --text-color-secondary: #cccccc;
+  --text-color-muted: #aaaaaa;
+  --text-color-link: #4dabf7;
+  --border-color-light: #444444;
+  --border-color-medium: #666666;
+  --border-color-dark: #888888;
+  --button-bg: #0056b3;
+  --button-text: #ffffff;
+  --button-bg-hover: #003d80;
+  --button-disabled-bg: #555555;
+  --button-disabled-text: #aaaaaa;
+  --button-delete-bg: #a02c38;
+  --button-delete-text: #ffffff;
+  --button-delete-bg-hover: #80232e;
+  --button-life-bg: #218838; /* Dark theme green */
+  --button-life-bg-hover: #1e7e34;
+  --button-life-minus-bg: #a02c38; /* Dark theme red */
+  --button-life-minus-bg-hover: #80232e;
+  --input-bg: #3a3a3a;
+  --input-border: #666666;
+  --input-text: #e0e0e0;
+  --list-item-hover-bg: #3a4a5a;
+  --search-result-hover-bg: #444444;
+  --battlefield-bg: #3a3a3a;
+  --battlefield-border: #666666;
+  --zone-general-bg: #2a4a2a;
+  --zone-general-border: #5c8c5c;
+  --zone-side-bg: #444444;
+  --zone-side-border: #777777;
+  --hand-container-bg: #252525;
+  --hand-card-bg: #383838;
+  --hand-card-border: #505050;
+  --hand-card-hover-shadow: 0 2px 8px rgba(255, 255, 255, 0.15);
+  --shadow-color: rgba(255, 255, 255, 0.05);
+  --shadow-color-heavy: rgba(255, 255, 255, 0.15);
+  --slider-bg: #555;
+  --slider-knob-bg: #bbb;
+  --slider-checked-bg: #0056b3;
+  --context-menu-bg: #3a3a3a;
+  --context-menu-border: #666666;
+  --context-menu-text: #e0e0e0;
+  --context-menu-hover-bg: #444444;
+  --context-menu-disabled-text: #888888;
+  --scry-overlay-bg: rgba(0, 0, 0, 0.85);
+  --scry-modal-bg: #2c2c2c;
+  --scry-card-bg: #383838;
+  --scry-card-border: #505050;
+  --scry-button-bg: #5a6268;
+  --scry-button-text: #ffffff;
+  --scry-button-hover-bg: #495057;
+  --scry-button-selected-bg: #003d80;
+  --card-view-overlay-bg: rgba(0, 0, 0, 0.9);
+  --card-view-bg: #3a3a3a;
+  --card-view-border: #666666;
+  --card-view-close-bg: #5a6268;
+  --card-view-close-text: #ffffff;
+  --card-view-close-hover-bg: #495057;
+  --saved-deck-list-bg: #3a3a3a;
+  --saved-deck-list-border: #555555;
+  --saved-deck-item-hover-bg: #444444;
+  --saved-deck-item-text: #4dabf7;
+  --fullscreen-button-bg: #5a6268;
+  --fullscreen-button-hover-bg: #495057;
+  --counter-plus-bg: rgba(50, 150, 50, 0.8);
+  --counter-minus-bg: rgba(150, 50, 50, 0.8);
+  --counter-text: #ffffff;
+  --result-popup-overlay-bg: rgba(0, 0, 0, 0.7);
+  --result-popup-bg: #3a3a3a;
+  --result-popup-border: #666666;
+  --result-popup-text: #e0e0e0;
+  --result-popup-close-bg: #5a6268;
+  --result-popup-close-text: #ffffff;
+  --result-popup-close-hover-bg: #495057;
+  --life-text-color: #61dafb; /* Lighter blue for dark theme life */
+  --import-overlay-bg: rgba(0, 0, 0, 0.85);
+  --import-modal-bg: #2c2c2c;
+  --import-status-error-text: #f8d7da;
+  --import-status-success-text: #d4edda;
+  --textarea-bg: var(--input-bg);
+  --textarea-border: var(--input-border);
+  --textarea-text: var(--input-text);
+}
+
+/* --- General Layout & Typography --- */
+body {
+  font-family: sans-serif;
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  grid-template-rows: auto auto auto 1fr;
+  gap: 20px;
+  max-width: 1400px;
+  margin: 20px auto;
+  padding: 15px;
+  background-color: var(--body-bg);
+  color: var(--text-color-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.header-container {
+  grid-column: 1 / -1;
+  grid-row: 1 / 2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  margin-bottom: 15px;
+}
+
+h1 {
+  text-align: center;
+  color: var(--text-color-primary);
+  margin: 0;
+}
+
+h2 {
+  text-align: center;
+  color: var(--text-color-primary);
+  margin-bottom: 15px;
+  margin-top: 0;
+  flex-grow: 1;
+}
+
+h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: var(--text-color-secondary);
+  font-size: 1em;
+  padding: 0 5px;
+}
+
+h4 {
+  margin: 5px 0;
+  font-size: 0.9em;
+  color: var(--text-color-muted);
+  text-align: center;
+  border-bottom: 1px solid var(--border-color-light);
+  padding-bottom: 3px;
+  width: 100%;
+}
+
+/* --- Theme Switch --- */
+.theme-switch-wrapper {
+  display: flex;
+  align-items: center;
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.theme-switch {
+  display: inline-block;
+  height: 24px;
+  position: relative;
+  width: 44px;
+}
+
+.theme-switch input {
+  display: none;
+}
+
+.slider {
+  background-color: var(--slider-bg);
+  bottom: 0;
+  cursor: pointer;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  transition: 0.4s;
+  border-radius: 24px;
+}
+
+.slider:before {
+  background-color: var(--slider-knob-bg);
+  bottom: 3px;
+  content: "";
+  height: 18px;
+  left: 3px;
+  position: absolute;
+  transition: 0.4s;
+  width: 18px;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: var(--slider-checked-bg);
+}
+
+input:checked + .slider:before {
+  transform: translateX(20px);
+}
+
+/* --- Section Layout --- */
+.search-section,
+.deck-section,
+.actions-section,
+.test-hand-section {
+  background-color: var(--section-bg);
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px var(--shadow-color);
+  display: flex;
+  flex-direction: column;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.search-section {
+  grid-column: 1 / 2;
+  grid-row: 2 / 3;
+  position: relative;
+}
+
+.actions-section {
+  grid-column: 1 / 2;
+  grid-row: 3 / 4;
+}
+
+.deck-section {
+  grid-column: 2 / 3;
+  grid-row: 2 / 4;
+}
+
+.test-hand-section {
+  grid-column: 1 / -1;
+  grid-row: 4 / 5;
+  min-height: 750px;
+}
+
+/* --- Search Section --- */
+#searchInput {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid var(--input-border);
+  border-radius: 4px;
+  box-sizing: border-box;
+  background-color: var(--input-bg);
+  color: var(--input-text);
+}
+
+#searchResults {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0 0;
+  max-height: 180px;
+  overflow-y: auto;
+  border: 1px solid var(--border-color-light);
+  border-radius: 4px;
+  background-color: var(--section-bg);
+  z-index: 10;
+  box-shadow: 0 4px 6px var(--shadow-color);
+}
+
+#searchResults li {
+  padding: 5px 10px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border-color-light);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#searchResults li:last-child {
+  border-bottom: none;
+}
+
+#searchResults li:hover {
+  background-color: var(--search-result-hover-bg);
+}
+
+.search-result-image {
+  width: 30px;
+  height: auto;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.search-result-name {
+  font-size: 0.9em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#searchResults:empty {
+  border: none;
+  box-shadow: none;
+  max-height: 0;
+  margin-top: 0;
+}
+
+/* --- Deck Section --- */
+#deckList {
+  list-style: none;
+  padding: 0;
+  margin-top: 10px;
+  max-height: 500px;
+  overflow-y: auto;
+  flex-grow: 1;
+}
+
+#deckList li {
+  padding: 8px 5px;
+  border-bottom: 1px solid var(--border-color-light);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+#deckList li:last-child {
+  border-bottom: none;
+}
+
+.card-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.card-image {
+  width: 60px;
+  height: auto;
+  border-radius: 3px;
+  vertical-align: middle;
+  flex-shrink: 0;
+  cursor: default;
+}
+
+.card-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card-controls {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.card-quantity input {
+  width: 40px;
+  text-align: center;
+  padding: 4px;
+  border: 1px solid var(--input-border);
+  border-radius: 3px;
+  background-color: var(--input-bg);
+  color: var(--input-text);
+}
+
+#deckCount {
+  text-align: right;
+  font-weight: 700;
+  margin-top: 15px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-color-light);
+}
+
+/* --- Actions Section --- */
+.actions-section .action-button {
+  display: block;
+  width: 100%;
+}
+.actions-section .deck-action {
+  /* Ensure deck actions have consistent margin */
+  margin-bottom: 5px;
+}
+
+#savedDecksListContainer {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid var(--border-color-light);
+}
+
+#savedDecksListContainer h3 {
+  text-align: center;
+  margin-bottom: 10px;
+  font-size: 1em;
+  color: var(--text-color-secondary);
+}
+
+#savedDecksList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 150px;
+  overflow-y: auto;
+  border: 1px solid var(--saved-deck-list-border);
+  border-radius: 4px;
+  background-color: var(--saved-deck-list-bg);
+  margin-bottom: 10px;
+}
+
+#savedDecksList li {
+  padding: 8px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border-color-light);
+  color: var(--saved-deck-item-text);
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+#savedDecksList li:last-child {
+  border-bottom: none;
+}
+
+#savedDecksList li:hover {
+  background-color: var(--saved-deck-item-hover-bg);
+}
+
+#savedDecksList li.no-decks {
+  font-style: italic;
+  color: var(--text-color-muted);
+  cursor: default;
+  text-align: center;
+}
+
+#savedDecksList li.no-decks:hover {
+  background-color: transparent;
+}
+
+/* --- Test Hand Section --- */
+.test-hand-section .section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  position: relative;
+  flex-wrap: wrap;
+}
+
+#fullscreenTestAreaButton {
+  padding: 5px 10px;
+  background-color: var(--fullscreen-button-bg);
+  color: var(--button-text);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  font-size: 0.85em;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+#fullscreenTestAreaButton:hover {
+  background-color: var(--fullscreen-button-hover-bg);
+}
+
+.test-hand-section.fullscreen-mode {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 20000;
+  margin: 0;
+  padding: 15px;
+  box-sizing: border-box;
+  border-radius: 0;
+  overflow-y: auto;
+}
+
+.test-hand-section.fullscreen-mode .play-area-container {
+  height: calc(100vh - 180px);
+}
+
+.test-hand-section.fullscreen-mode .battlefield-and-side-zones {
+  min-height: 0;
+  flex-grow: 1;
+}
+
+.test-controls {
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px; /* Add gap for spacing between control groups */
+}
+
+.test-controls .action-button,
+.life-counter-controls button {
+  display: inline-block;
+  width: auto;
+  margin-right: 5px; /* Reduced margin */
+}
+
+.scry-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-right: 5px;
+}
+
+#scryCountInput {
+  width: 45px;
+  padding: 8px 5px;
+  text-align: center;
+  border: 1px solid var(--input-border);
+  border-radius: 4px;
+  background-color: var(--input-bg);
+  color: var(--input-text);
+  font-size: 0.9em;
+  margin-bottom: 0; /* Adjusted margin */
+  margin-right: 0;
+}
+
+/* --- Life Counter --- */
+.life-counter-controls {
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--body-bg); /* Slightly different bg */
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color-light);
+  height: 28px;
+}
+
+.life-counter-controls span {
+  font-weight: bold;
+  color: var(--life-text-color);
+  font-size: 1.15em;
+  margin: 0 8px;
+  min-width: 30px;
+  text-align: center;
+}
+
+.life-counter-controls button {
+  padding: 3px 8px; /* Smaller padding */
+  font-size: 1em;
+  line-height: 1;
+  margin: 0 2px; /* Add slight margin between buttons */
+  margin-bottom: 0; /* Reset margin from parent */
+  min-width: 25px;
+}
+
+#increaseLifeButton {
+  background-color: var(--button-life-bg);
+}
+#increaseLifeButton:hover {
+  background-color: var(--button-life-bg-hover);
+}
+#decreaseLifeButton {
+  background-color: var(--button-life-minus-bg);
+}
+#decreaseLifeButton:hover {
+  background-color: var(--button-life-minus-bg-hover);
+}
+
+#testHandStatus {
+  flex-grow: 1;
+  margin-left: 10px;
+  margin-top: 0;
+  min-height: initial;
+  margin-bottom: 5px;
+  font-size: 0.9em;
+  color: var(--text-color-muted);
+  text-align: right; /* Align status to the right */
+}
+
+/* --- Play Area --- */
+.play-area-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 10px;
+  border-top: 1px solid var(--border-color-light);
+  padding-top: 15px;
+  flex-grow: 1;
+  overflow: hidden;
+}
+
+.battlefield-and-side-zones {
+  display: flex;
+  gap: 15px;
+  flex-grow: 1;
+  min-height: 400px;
+}
+
+.battlefield-zone {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--battlefield-bg);
+  border: 1px solid var(--battlefield-border);
+  border-radius: 5px;
+  padding: 10px;
+  overflow: hidden;
+}
+
+#generalZone {
+  flex-grow: 1;
+  border-radius: 4px;
+  padding: 10px 5px 5px 5px;
+  position: relative;
+  min-height: 350px;
+  overflow: auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 5px;
+  background-color: var(--zone-general-bg);
+  border: 1px dashed var(--zone-general-border);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.side-zones {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex-shrink: 0;
+  width: 140px;
+}
+
+#graveyardZone,
+#exileZone {
+  flex-basis: 50%;
+  flex-grow: 1;
+  border-radius: 4px;
+  padding: 5px;
+  position: relative;
+  min-height: 200px;
+  max-height: 200px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  background-color: var(--zone-side-bg);
+  border: 1px dashed var(--zone-side-border);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+#graveyardZone h4,
+#exileZone h4 {
+  margin-bottom: 5px;
+  font-size: 0.85em;
+  width: auto;
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+#testHandContainer {
+  flex-shrink: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 15px 10px;
+  background-color: var(--hand-container-bg);
+  border: 1px solid var(--border-color-medium);
+  border-radius: 5px;
+  min-height: 120px;
+  overflow-y: auto;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+/* --- Card Styles (Hand, Battlefield, Side Zones) --- */
+.hand-card {
+  width: 100px;
+  height: auto;
+  border-radius: 4px;
+  box-shadow: 1px 1px 3px var(--shadow-color);
+  cursor: pointer; /* Change to 'grab' if needed */
+  transition: transform 0.2s ease, box-shadow 0.2s ease, margin-left 0.2s ease,
+    margin-right 0.2s ease; /* Added margin transitions */
+  overflow: hidden;
+  position: relative; /* Needed for z-index during drag */
+  margin: 0; /* Reset margin for easier shifting */
+}
+
+/* Style for card being dragged */
+.hand-card.dragging {
+  opacity: 0.4;
+  cursor: grabbing;
+  z-index: 100; /* Ensure dragged card is on top */
+}
+
+/* Style for cards shifting aside */
+.hand-card.shift-right {
+  margin-left: var(--hand-shift-amount);
+  transition: margin-left 0.2s ease;
+}
+
+.hand-card.shift-left {
+  margin-right: var(--hand-shift-amount);
+  transition: margin-right 0.2s ease;
+}
+
+.hand-card:hover {
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: var(--hand-card-hover-shadow);
+}
+
+.hand-card img {
+  display: block;
+  width: 100%;
+  height: auto;
+  pointer-events: none;
+}
+
+.battlefield-card {
+  position: absolute;
+  width: 110px;
+  height: auto;
+  border-radius: 4px;
+  box-shadow: 1px 1px 3px var(--shadow-color-heavy);
+  cursor: grab;
+  user-select: none;
+  transition: box-shadow 0.2s ease, transform 0.2s ease-in-out,
+    left 0.1s ease-out, top 0.1s ease-out;
+  transform-origin: center center;
+  background-color: var(--section-bg);
+  z-index: 1;
+}
+
+.battlefield-card.tapped {
+  transform: rotate(90deg);
+}
+
+.battlefield-card:active {
+  cursor: grabbing;
+  box-shadow: 2px 2px 6px var(--shadow-color-heavy);
+  z-index: 1000;
+  transition: box-shadow 0.2s ease, transform 0.2s ease-in-out;
+}
+
+.battlefield-card img {
+  width: 100%;
+  height: auto;
+  display: block;
+  pointer-events: none;
+  border-radius: 4px;
+}
+
+.deck-action.action-button {
+  margin-bottom: 5px;
+}
+
+.battlefield-card .card-counters {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+  pointer-events: none;
+}
+
+.counter-display {
+  color: var(--counter-text);
+  font-size: 0.7em;
+  font-weight: bold;
+  padding: 1px 3px;
+  border-radius: 3px;
+  line-height: 1;
+  min-width: 15px;
+  text-align: center;
+}
+
+.counter-display.plus-one {
+  background-color: var(--counter-plus-bg);
+}
+
+.counter-display.minus-one {
+  background-color: var(--counter-minus-bg);
+}
+
+/* Class for general dragging (can be removed if hand-card.dragging is sufficient) */
+.dragging {
+  opacity: 0.4;
+}
+
+.side-zone-card {
+  width: 50px;
+  height: auto;
+  border-radius: 3px;
+  margin-bottom: 3px;
+  cursor: default;
+  box-shadow: 0 1px 2px var(--shadow-color);
+  position: relative;
+}
+
+.side-zone-card img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 3px;
+}
+
+/* --- Deck Search Area --- */
+#deckSearchArea {
+  display: none;
+  padding: 10px;
+  border: 1px dashed var(--border-color-medium);
+  border-radius: 4px;
+  margin-top: 10px;
+  background-color: var(--zone-side-bg);
+  max-height: 300px;
+  overflow-y: auto;
+  position: relative;
+}
+
+#deckSearchArea p {
+  margin: 0 0 10px 0;
+  font-size: 0.9em;
+  color: var(--text-color-muted);
+  text-align: center;
+}
+
+#closeSearchAreaButton {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  font-size: 0.8em;
+  padding: 3px 8px;
+  margin-top: 0;
+  z-index: 15;
+}
+
+#deckSearchResults {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  overflow-y: visible;
+  max-height: none;
+  border: none;
+  box-shadow: none;
+}
+
+#deckSearchResults li {
+  padding: 0;
+  border: none;
+  cursor: pointer;
+  width: 65px;
+  border-radius: 4px;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  background-color: var(--hand-card-bg);
+  border: 1px solid var(--hand-card-border);
+  box-shadow: 1px 1px 3px var(--shadow-color);
+}
+
+#deckSearchResults li:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: var(--hand-card-hover-shadow);
+}
+
+#deckSearchResults li img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 3px;
+}
+
+/* --- Buttons --- */
+.action-button,
+.delete-card-btn,
+#drawHandButton,
+#drawNextCardButton,
+#shuffleDeckButton,
+#searchDeckButton,
+#scryButton,
+#untapAllButton,
+#flipCoinButton,
+#rollDieButton {
+  padding: 9px 15px;
+  background-color: var(--button-bg);
+  color: var(--button-text);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  font-size: 0.9em;
+}
+
+.action-button:hover,
+.delete-card-btn:hover,
+#drawHandButton:hover,
+#drawNextCardButton:hover,
+#shuffleDeckButton:hover,
+#searchDeckButton:hover,
+#scryButton:hover,
+#untapAllButton:hover,
+#flipCoinButton:hover,
+#rollDieButton:hover {
+  background-color: var(--button-bg-hover);
+}
+
+.action-button:disabled,
+#drawNextCardButton:disabled,
+#shuffleDeckButton:disabled,
+#searchDeckButton:disabled,
+#scryButton:disabled,
+#untapAllButton:disabled {
+  background-color: var(--button-disabled-bg);
+  color: var(--button-disabled-text);
+  cursor: not-allowed;
+}
+
+.delete-card-btn {
+  background-color: var(--button-delete-bg);
+  color: var(--button-delete-text);
+  padding: 4px 8px;
+  font-size: 0.8em;
+  line-height: 1;
+  margin-bottom: 0;
+}
+
+.delete-card-btn:hover {
+  background-color: var(--button-delete-bg-hover);
+}
+
+/* --- Status Messages --- */
+#status,
+#deckActionStatus,
+#currentDeckNameStatus {
+  margin-top: 10px;
+  font-style: italic;
+  color: var(--text-color-muted);
+  min-height: 1.2em;
+  font-size: 0.9em;
+}
+
+#currentDeckNameStatus {
+  font-weight: bold;
+  font-style: normal;
+  color: var(--text-color-secondary);
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.loading::after {
+  content: " Loading...";
+  display: inline-block;
+  margin-left: 5px;
+  font-style: italic;
+  color: var(--text-color-muted);
+  font-size: 0.9em;
+}
+
+/* --- Context Menu --- */
+#cardContextMenu {
+  position: absolute;
+  display: none;
+  background-color: var(--context-menu-bg);
+  border: 1px solid var(--context-menu-border);
+  border-radius: 4px;
+  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+  padding: 5px 0;
+  z-index: 20001;
+  min-width: 150px;
+}
+
+#cardContextMenu ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+#cardContextMenu li {
+  padding: 6px 12px;
+  cursor: pointer;
+  color: var(--context-menu-text);
+  font-size: 0.9em;
+  white-space: nowrap;
+}
+
+#cardContextMenu li:hover:not(.disabled):not(.hidden) {
+  background-color: var(--context-menu-hover-bg);
+}
+
+#cardContextMenu li.disabled {
+  color: var(--context-menu-disabled-text);
+  cursor: not-allowed;
+  background-color: transparent;
+}
+
+#cardContextMenu li.hidden {
+  display: none;
+}
+
+/* --- Scry Modal --- */
+#scryOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--scry-overlay-bg);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 20020;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+#scryModal {
+  background-color: var(--scry-modal-bg);
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  max-width: 90%;
+  max-height: 90%;
+  overflow-y: auto;
+  text-align: center;
+}
+
+#scryModal h3 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: var(--text-color-primary);
+}
+
+#scryCardContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  justify-content: center;
+  margin-bottom: 25px;
+}
+
+.scry-card-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  background-color: var(--scry-card-bg);
+  border: 1px solid var(--scry-card-border);
+  border-radius: 6px;
+  cursor: default;
+}
+
+.scry-card-item img {
+  width: 100px;
+  height: auto;
+  border-radius: 4px;
+  margin-bottom: 5px;
+  pointer-events: none;
+}
+
+.scry-card-item .scry-choice-buttons button {
+  padding: 5px 10px;
+  font-size: 0.8em;
+  margin: 0 4px;
+  cursor: pointer;
+  border-radius: 3px;
+  border: none;
+  background-color: var(--scry-button-bg);
+  color: var(--scry-button-text);
+  transition: background-color 0.2s ease;
+}
+
+.scry-card-item .scry-choice-buttons button:hover:not(:disabled) {
+  background-color: var(--scry-button-hover-bg);
+}
+
+.scry-card-item .scry-choice-buttons button:disabled {
+  background-color: var(--button-disabled-bg);
+  color: var(--button-disabled-text);
+  cursor: not-allowed;
+}
+
+/* --- Card View Popup --- */
+#cardViewPopupOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--card-view-overlay-bg);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 20002;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+#cardViewPopupContent {
+  position: relative;
+  min-width: 20vw;
+  max-width: 20vw;
+  max-height: 90vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--card-view-bg);
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--card-view-border);
+  box-shadow: 0 5px 20px var(--shadow-color-heavy);
+}
+
+#cardViewImage {
+  display: block;
+  width: 100%;
+  max-height: calc(90vh - 60px);
+  height: auto;
+  border-radius: 25px;
+  object-fit: contain;
+}
+
+#closeCardViewPopupButton {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  background-color: var(--card-view-close-bg);
+  color: var(--card-view-close-text);
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  font-size: 18px;
+  line-height: 30px;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  transition: background-color 0.2s ease;
+}
+
+#closeCardViewPopupButton:hover {
+  background-color: var(--card-view-close-hover-bg);
+}
+
+/* --- Result Popup (Coin Flip/Die Roll) --- */
+#resultPopupOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--result-popup-overlay-bg);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 20003;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+#resultPopupContent {
+  position: relative;
+  background-color: var(--result-popup-bg);
+  padding: 30px 40px;
+  border-radius: 8px;
+  border: 1px solid var(--result-popup-border);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  min-width: 200px;
+}
+
+#resultPopupText {
+  font-size: 1.2em;
+  font-weight: bold;
+  color: var(--result-popup-text);
+}
+
+#closeResultPopupButton {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background-color: var(--result-popup-close-bg);
+  color: var(--result-popup-close-text);
+  border: none;
+  border-radius: 50%;
+  width: 25px;
+  height: 25px;
+  font-size: 16px;
+  line-height: 25px;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.2s ease;
+}
+
+#closeResultPopupButton:hover {
+  background-color: var(--result-popup-close-hover-bg);
+}
+
+/* --- Import Deck Popup --- */
+#importDeckPopupOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--import-overlay-bg);
+  display: none; /* Initially hidden */
+  justify-content: center;
+  align-items: center;
+  z-index: 20010; /* Ensure it's above most things but below fullscreen */
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+#importDeckPopupContent {
+  background-color: var(--import-modal-bg);
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  width: 90%;
+  max-width: 550px; /* Limit width */
+  max-height: 90%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+#importDeckPopupContent h3 {
+  text-align: center;
+  margin-top: 0;
+  color: var(--text-color-primary);
+}
+
+#importDeckPopupContent label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+  font-size: 0.9em;
+  color: var(--text-color-secondary);
+}
+
+#importDeckPopupContent input[type="text"],
+#importDeckPopupContent textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--input-border);
+  border-radius: 4px;
+  box-sizing: border-box;
+  background-color: var(--textarea-bg);
+  color: var(--textarea-text);
+  font-size: 0.95em;
+}
+
+#importDeckPopupContent textarea {
+  min-height: 400px;
+  resize: vertical; /* Allow vertical resizing */
+}
+
+#importDeckPopupContent .import-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+#importDeckPopupContent #saveImportedDeckButton {
+  background-color: var(--button-bg);
+  color: var(--button-text);
+}
+#importDeckPopupContent #saveImportedDeckButton:hover:not(:disabled) {
+  background-color: var(--button-bg-hover);
+}
+
+#importDeckPopupContent #closeImportDeckPopupButton {
+  background-color: var(--scry-button-bg); /* Use a secondary color */
+  color: var(--button-text);
+}
+#importDeckPopupContent #closeImportDeckPopupButton:hover {
+  background-color: var(--scry-button-hover-bg);
+}
+
+#importDeckStatus {
+  font-size: 0.9em;
+  min-height: 1.2em;
+  text-align: center;
+  word-wrap: break-word;
+  white-space: pre-wrap; /* Allow line breaks in status */
+}
+
+#importDeckStatus.error {
+  color: var(--import-status-error-text);
+  font-weight: bold;
+}
+
+#importDeckStatus.success {
+  color: var(--import-status-success-text);
+  font-weight: bold;
+}

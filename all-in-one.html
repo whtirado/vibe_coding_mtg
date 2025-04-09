@@ -1,0 +1,5023 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simple MTG Deck Builder (w/ Play Area)</title>
+    <style>
+      /* --- CSS Variables --- */
+      :root {
+        --body-bg: #f0f2f5;
+        --section-bg: #ffffff;
+        --text-color-primary: #333333;
+        --text-color-secondary: #444444;
+        --text-color-muted: #555555;
+        --text-color-link: #007bff;
+        --border-color-light: #eeeeee;
+        --border-color-medium: #cccccc;
+        --border-color-dark: #aaaaaa;
+        --button-bg: #007bff;
+        --button-text: #ffffff;
+        --button-bg-hover: #0056b3;
+        --button-disabled-bg: #cccccc;
+        --button-disabled-text: #666666;
+        --button-delete-bg: #dc3545;
+        --button-delete-text: #ffffff;
+        --button-delete-bg-hover: #c82333;
+        --button-life-bg: #28a745; /* Green for life increase */
+        --button-life-bg-hover: #218838;
+        --button-life-minus-bg: #dc3545; /* Red for life decrease */
+        --button-life-minus-bg-hover: #c82333;
+        --input-bg: #ffffff;
+        --input-border: #cccccc;
+        --input-text: #333333;
+        --list-item-hover-bg: #f0f8ff;
+        --search-result-hover-bg: #f0f0f0;
+        --battlefield-bg: #e0e0e0;
+        --battlefield-border: #cccccc;
+        --zone-general-bg: #e9f5e9;
+        --zone-general-border: #9ccc9c;
+        --zone-side-bg: #f0f0f0;
+        --zone-side-border: #aaaaaa;
+        --hand-container-bg: #f9f9f9;
+        --hand-card-bg: #ffffff;
+        --hand-card-border: #dddddd;
+        --hand-card-hover-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        --shadow-color: rgba(0, 0, 0, 0.1);
+        --shadow-color-heavy: rgba(0, 0, 0, 0.3);
+        --slider-bg: #ccc;
+        --slider-knob-bg: white;
+        --slider-checked-bg: #007bff;
+        --context-menu-bg: #ffffff;
+        --context-menu-border: #cccccc;
+        --context-menu-text: #333333;
+        --context-menu-hover-bg: #f0f0f0;
+        --context-menu-disabled-text: #aaaaaa;
+        --scry-overlay-bg: rgba(0, 0, 0, 0.75);
+        --scry-modal-bg: #ffffff;
+        --scry-card-bg: #f9f9f9;
+        --scry-card-border: #dddddd;
+        --scry-button-bg: #6c757d;
+        --scry-button-text: #ffffff;
+        --scry-button-hover-bg: #5a6268;
+        --scry-button-selected-bg: #0056b3;
+        --card-view-overlay-bg: rgba(0, 0, 0, 0.8);
+        --card-view-bg: #ffffff;
+        --card-view-border: #cccccc;
+        --card-view-close-bg: #6c757d;
+        --card-view-close-text: #ffffff;
+        --card-view-close-hover-bg: #5a6268;
+        --saved-deck-list-bg: #f8f9fa;
+        --saved-deck-list-border: #dee2e6;
+        --saved-deck-item-hover-bg: #e9ecef;
+        --saved-deck-item-text: #0056b3;
+        --fullscreen-button-bg: #6c757d;
+        --fullscreen-button-hover-bg: #5a6268;
+        --counter-plus-bg: rgba(30, 120, 30, 0.8);
+        --counter-minus-bg: rgba(120, 30, 30, 0.8);
+        --counter-text: #ffffff;
+        --result-popup-overlay-bg: rgba(0, 0, 0, 0.6);
+        --result-popup-bg: #ffffff;
+        --result-popup-border: #cccccc;
+        --result-popup-text: #333333;
+        --result-popup-close-bg: #6c757d;
+        --result-popup-close-text: #ffffff;
+        --result-popup-close-hover-bg: #5a6268;
+        --life-text-color: #004085; /* Slightly darker blue for life */
+        --import-overlay-bg: rgba(0, 0, 0, 0.75);
+        --import-modal-bg: #ffffff;
+        --import-status-error-text: #dc3545;
+        --import-status-success-text: #28a745;
+        --textarea-bg: var(--input-bg);
+        --textarea-border: var(--input-border);
+        --textarea-text: var(--input-text);
+        --hand-shift-amount: 75px; /* How much cards shift */
+      }
+
+      body[data-theme="dark"] {
+        --body-bg: #1a1a1a;
+        --section-bg: #2c2c2c;
+        --text-color-primary: #e0e0e0;
+        --text-color-secondary: #cccccc;
+        --text-color-muted: #aaaaaa;
+        --text-color-link: #4dabf7;
+        --border-color-light: #444444;
+        --border-color-medium: #666666;
+        --border-color-dark: #888888;
+        --button-bg: #0056b3;
+        --button-text: #ffffff;
+        --button-bg-hover: #003d80;
+        --button-disabled-bg: #555555;
+        --button-disabled-text: #aaaaaa;
+        --button-delete-bg: #a02c38;
+        --button-delete-text: #ffffff;
+        --button-delete-bg-hover: #80232e;
+        --button-life-bg: #218838; /* Dark theme green */
+        --button-life-bg-hover: #1e7e34;
+        --button-life-minus-bg: #a02c38; /* Dark theme red */
+        --button-life-minus-bg-hover: #80232e;
+        --input-bg: #3a3a3a;
+        --input-border: #666666;
+        --input-text: #e0e0e0;
+        --list-item-hover-bg: #3a4a5a;
+        --search-result-hover-bg: #444444;
+        --battlefield-bg: #3a3a3a;
+        --battlefield-border: #666666;
+        --zone-general-bg: #2a4a2a;
+        --zone-general-border: #5c8c5c;
+        --zone-side-bg: #444444;
+        --zone-side-border: #777777;
+        --hand-container-bg: #252525;
+        --hand-card-bg: #383838;
+        --hand-card-border: #505050;
+        --hand-card-hover-shadow: 0 2px 8px rgba(255, 255, 255, 0.15);
+        --shadow-color: rgba(255, 255, 255, 0.05);
+        --shadow-color-heavy: rgba(255, 255, 255, 0.15);
+        --slider-bg: #555;
+        --slider-knob-bg: #bbb;
+        --slider-checked-bg: #0056b3;
+        --context-menu-bg: #3a3a3a;
+        --context-menu-border: #666666;
+        --context-menu-text: #e0e0e0;
+        --context-menu-hover-bg: #444444;
+        --context-menu-disabled-text: #888888;
+        --scry-overlay-bg: rgba(0, 0, 0, 0.85);
+        --scry-modal-bg: #2c2c2c;
+        --scry-card-bg: #383838;
+        --scry-card-border: #505050;
+        --scry-button-bg: #5a6268;
+        --scry-button-text: #ffffff;
+        --scry-button-hover-bg: #495057;
+        --scry-button-selected-bg: #003d80;
+        --card-view-overlay-bg: rgba(0, 0, 0, 0.9);
+        --card-view-bg: #3a3a3a;
+        --card-view-border: #666666;
+        --card-view-close-bg: #5a6268;
+        --card-view-close-text: #ffffff;
+        --card-view-close-hover-bg: #495057;
+        --saved-deck-list-bg: #3a3a3a;
+        --saved-deck-list-border: #555555;
+        --saved-deck-item-hover-bg: #444444;
+        --saved-deck-item-text: #4dabf7;
+        --fullscreen-button-bg: #5a6268;
+        --fullscreen-button-hover-bg: #495057;
+        --counter-plus-bg: rgba(50, 150, 50, 0.8);
+        --counter-minus-bg: rgba(150, 50, 50, 0.8);
+        --counter-text: #ffffff;
+        --result-popup-overlay-bg: rgba(0, 0, 0, 0.7);
+        --result-popup-bg: #3a3a3a;
+        --result-popup-border: #666666;
+        --result-popup-text: #e0e0e0;
+        --result-popup-close-bg: #5a6268;
+        --result-popup-close-text: #ffffff;
+        --result-popup-close-hover-bg: #495057;
+        --life-text-color: #61dafb; /* Lighter blue for dark theme life */
+        --import-overlay-bg: rgba(0, 0, 0, 0.85);
+        --import-modal-bg: #2c2c2c;
+        --import-status-error-text: #f8d7da;
+        --import-status-success-text: #d4edda;
+        --textarea-bg: var(--input-bg);
+        --textarea-border: var(--input-border);
+        --textarea-text: var(--input-text);
+      }
+
+      /* --- General Layout & Typography --- */
+      body {
+        font-family: sans-serif;
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        grid-template-rows: auto auto auto 1fr;
+        gap: 20px;
+        max-width: 1400px;
+        margin: 20px auto;
+        padding: 15px;
+        background-color: var(--body-bg);
+        color: var(--text-color-primary);
+        transition: background-color 0.3s ease, color 0.3s ease;
+      }
+
+      .header-container {
+        grid-column: 1 / -1;
+        grid-row: 1 / 2;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        margin-bottom: 15px;
+      }
+
+      h1 {
+        text-align: center;
+        color: var(--text-color-primary);
+        margin: 0;
+      }
+
+      h2 {
+        text-align: center;
+        color: var(--text-color-primary);
+        margin-bottom: 15px;
+        margin-top: 0;
+        flex-grow: 1;
+      }
+
+      h3 {
+        margin-top: 0;
+        margin-bottom: 10px;
+        color: var(--text-color-secondary);
+        font-size: 1em;
+        padding: 0 5px;
+      }
+
+      h4 {
+        margin: 5px 0;
+        font-size: 0.9em;
+        color: var(--text-color-muted);
+        text-align: center;
+        border-bottom: 1px solid var(--border-color-light);
+        padding-bottom: 3px;
+        width: 100%;
+      }
+
+      /* --- Theme Switch --- */
+      .theme-switch-wrapper {
+        display: flex;
+        align-items: center;
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+      }
+
+      .theme-switch {
+        display: inline-block;
+        height: 24px;
+        position: relative;
+        width: 44px;
+      }
+
+      .theme-switch input {
+        display: none;
+      }
+
+      .slider {
+        background-color: var(--slider-bg);
+        bottom: 0;
+        cursor: pointer;
+        left: 0;
+        position: absolute;
+        right: 0;
+        top: 0;
+        transition: 0.4s;
+        border-radius: 24px;
+      }
+
+      .slider:before {
+        background-color: var(--slider-knob-bg);
+        bottom: 3px;
+        content: "";
+        height: 18px;
+        left: 3px;
+        position: absolute;
+        transition: 0.4s;
+        width: 18px;
+        border-radius: 50%;
+      }
+
+      input:checked + .slider {
+        background-color: var(--slider-checked-bg);
+      }
+
+      input:checked + .slider:before {
+        transform: translateX(20px);
+      }
+
+      /* --- Section Layout --- */
+      .search-section,
+      .deck-section,
+      .actions-section,
+      .test-hand-section {
+        background-color: var(--section-bg);
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px var(--shadow-color);
+        display: flex;
+        flex-direction: column;
+        transition: background-color 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .search-section {
+        grid-column: 1 / 2;
+        grid-row: 2 / 3;
+        position: relative;
+      }
+
+      .actions-section {
+        grid-column: 1 / 2;
+        grid-row: 3 / 4;
+      }
+
+      .deck-section {
+        grid-column: 2 / 3;
+        grid-row: 2 / 4;
+      }
+
+      .test-hand-section {
+        grid-column: 1 / -1;
+        grid-row: 4 / 5;
+        min-height: 750px;
+      }
+
+      /* --- Search Section --- */
+      #searchInput {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 10px;
+        border: 1px solid var(--input-border);
+        border-radius: 4px;
+        box-sizing: border-box;
+        background-color: var(--input-bg);
+        color: var(--input-text);
+      }
+
+      #searchResults {
+        list-style: none;
+        padding: 0;
+        margin: 10px 0 0 0;
+        max-height: 180px;
+        overflow-y: auto;
+        border: 1px solid var(--border-color-light);
+        border-radius: 4px;
+        background-color: var(--section-bg);
+        z-index: 10;
+        box-shadow: 0 4px 6px var(--shadow-color);
+      }
+
+      #searchResults li {
+        padding: 5px 10px;
+        cursor: pointer;
+        border-bottom: 1px solid var(--border-color-light);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      #searchResults li:last-child {
+        border-bottom: none;
+      }
+
+      #searchResults li:hover {
+        background-color: var(--search-result-hover-bg);
+      }
+
+      .search-result-image {
+        width: 30px;
+        height: auto;
+        border-radius: 2px;
+        flex-shrink: 0;
+      }
+
+      .search-result-name {
+        font-size: 0.9em;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      #searchResults:empty {
+        border: none;
+        box-shadow: none;
+        max-height: 0;
+        margin-top: 0;
+      }
+
+      /* --- Deck Section --- */
+      #deckList {
+        list-style: none;
+        padding: 0;
+        margin-top: 10px;
+        max-height: 500px;
+        overflow-y: auto;
+        flex-grow: 1;
+      }
+
+      #deckList li {
+        padding: 8px 5px;
+        border-bottom: 1px solid var(--border-color-light);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+      }
+
+      #deckList li:last-child {
+        border-bottom: none;
+      }
+
+      .card-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-grow: 1;
+        min-width: 0;
+      }
+
+      .card-image {
+        width: 60px;
+        height: auto;
+        border-radius: 3px;
+        vertical-align: middle;
+        flex-shrink: 0;
+        cursor: default;
+      }
+
+      .card-name {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .card-controls {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        flex-shrink: 0;
+      }
+
+      .card-quantity input {
+        width: 40px;
+        text-align: center;
+        padding: 4px;
+        border: 1px solid var(--input-border);
+        border-radius: 3px;
+        background-color: var(--input-bg);
+        color: var(--input-text);
+      }
+
+      #deckCount {
+        text-align: right;
+        font-weight: 700;
+        margin-top: 15px;
+        padding-top: 10px;
+        border-top: 1px solid var(--border-color-light);
+      }
+
+      /* --- Actions Section --- */
+      .actions-section .action-button {
+        display: block;
+        width: 100%;
+      }
+      .actions-section .deck-action {
+        /* Ensure deck actions have consistent margin */
+        margin-bottom: 5px;
+      }
+
+      #savedDecksListContainer {
+        margin-top: 20px;
+        padding-top: 15px;
+        border-top: 1px solid var(--border-color-light);
+      }
+
+      #savedDecksListContainer h3 {
+        text-align: center;
+        margin-bottom: 10px;
+        font-size: 1em;
+        color: var(--text-color-secondary);
+      }
+
+      #savedDecksList {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        max-height: 150px;
+        overflow-y: auto;
+        border: 1px solid var(--saved-deck-list-border);
+        border-radius: 4px;
+        background-color: var(--saved-deck-list-bg);
+        margin-bottom: 10px;
+      }
+
+      #savedDecksList li {
+        padding: 8px 12px;
+        cursor: pointer;
+        border-bottom: 1px solid var(--border-color-light);
+        color: var(--saved-deck-item-text);
+        font-weight: 500;
+        transition: background-color 0.2s ease;
+      }
+
+      #savedDecksList li:last-child {
+        border-bottom: none;
+      }
+
+      #savedDecksList li:hover {
+        background-color: var(--saved-deck-item-hover-bg);
+      }
+
+      #savedDecksList li.no-decks {
+        font-style: italic;
+        color: var(--text-color-muted);
+        cursor: default;
+        text-align: center;
+      }
+
+      #savedDecksList li.no-decks:hover {
+        background-color: transparent;
+      }
+
+      /* --- Test Hand Section --- */
+      .test-hand-section .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        position: relative;
+        flex-wrap: wrap;
+      }
+
+      #fullscreenTestAreaButton {
+        padding: 5px 10px;
+        background-color: var(--fullscreen-button-bg);
+        color: var(--button-text);
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+        font-size: 0.85em;
+        position: absolute;
+        right: 0;
+        top: 0;
+      }
+
+      #fullscreenTestAreaButton:hover {
+        background-color: var(--fullscreen-button-hover-bg);
+      }
+
+      .test-hand-section.fullscreen-mode {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 20000;
+        margin: 0;
+        padding: 15px;
+        box-sizing: border-box;
+        border-radius: 0;
+        overflow-y: auto;
+      }
+
+      .test-hand-section.fullscreen-mode .play-area-container {
+        height: calc(100vh - 180px);
+      }
+
+      .test-hand-section.fullscreen-mode .battlefield-and-side-zones {
+        min-height: 0;
+        flex-grow: 1;
+      }
+
+      .test-controls {
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 5px; /* Add gap for spacing between control groups */
+      }
+
+      .test-controls .action-button,
+      .life-counter-controls button {
+        display: inline-block;
+        width: auto;
+        margin-right: 5px; /* Reduced margin */
+      }
+
+      .scry-control {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        margin-right: 5px;
+      }
+
+      #scryCountInput {
+        width: 45px;
+        padding: 8px 5px;
+        text-align: center;
+        border: 1px solid var(--input-border);
+        border-radius: 4px;
+        background-color: var(--input-bg);
+        color: var(--input-text);
+        font-size: 0.9em;
+        margin-bottom: 0; /* Adjusted margin */
+        margin-right: 0;
+      }
+
+      /* --- Life Counter --- */
+      .life-counter-controls {
+        display: inline-flex;
+        align-items: center;
+        background-color: var(--body-bg); /* Slightly different bg */
+        padding: 3px 8px;
+        border-radius: 4px;
+        border: 1px solid var(--border-color-light);
+        height: 28px;
+      }
+
+      .life-counter-controls span {
+        font-weight: bold;
+        color: var(--life-text-color);
+        font-size: 1.15em;
+        margin: 0 8px;
+        min-width: 30px;
+        text-align: center;
+      }
+
+      .life-counter-controls button {
+        padding: 3px 8px; /* Smaller padding */
+        font-size: 1em;
+        line-height: 1;
+        margin: 0 2px; /* Add slight margin between buttons */
+        margin-bottom: 0; /* Reset margin from parent */
+        min-width: 25px;
+      }
+
+      #increaseLifeButton {
+        background-color: var(--button-life-bg);
+      }
+      #increaseLifeButton:hover {
+        background-color: var(--button-life-bg-hover);
+      }
+      #decreaseLifeButton {
+        background-color: var(--button-life-minus-bg);
+      }
+      #decreaseLifeButton:hover {
+        background-color: var(--button-life-minus-bg-hover);
+      }
+
+      #testHandStatus {
+        flex-grow: 1;
+        margin-left: 10px;
+        margin-top: 0;
+        min-height: initial;
+        margin-bottom: 5px;
+        font-size: 0.9em;
+        color: var(--text-color-muted);
+        text-align: right; /* Align status to the right */
+      }
+
+      /* --- Play Area --- */
+      .play-area-container {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        margin-top: 10px;
+        border-top: 1px solid var(--border-color-light);
+        padding-top: 15px;
+        flex-grow: 1;
+        overflow: hidden;
+      }
+
+      .battlefield-and-side-zones {
+        display: flex;
+        gap: 15px;
+        flex-grow: 1;
+        min-height: 400px;
+      }
+
+      .battlefield-zone {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        background-color: var(--battlefield-bg);
+        border: 1px solid var(--battlefield-border);
+        border-radius: 5px;
+        padding: 10px;
+        overflow: hidden;
+      }
+
+      #generalZone {
+        flex-grow: 1;
+        border-radius: 4px;
+        padding: 10px 5px 5px 5px;
+        position: relative;
+        min-height: 350px;
+        overflow: auto;
+        display: flex;
+        flex-wrap: wrap;
+        align-content: flex-start;
+        gap: 5px;
+        background-color: var(--zone-general-bg);
+        border: 1px dashed var(--zone-general-border);
+        transition: background-color 0.3s ease, border-color 0.3s ease;
+      }
+
+      .side-zones {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        flex-shrink: 0;
+        width: 140px;
+      }
+
+      #graveyardZone,
+      #exileZone {
+        flex-basis: 50%;
+        flex-grow: 1;
+        border-radius: 4px;
+        padding: 5px;
+        position: relative;
+        min-height: 200px;
+        max-height: 200px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+        background-color: var(--zone-side-bg);
+        border: 1px dashed var(--zone-side-border);
+        transition: background-color 0.3s ease, border-color 0.3s ease;
+      }
+
+      #graveyardZone h4,
+      #exileZone h4 {
+        margin-bottom: 5px;
+        font-size: 0.85em;
+        width: auto;
+        border-bottom: none;
+        padding-bottom: 0;
+      }
+
+      #testHandContainer {
+        flex-shrink: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 15px 10px;
+        background-color: var(--hand-container-bg);
+        border: 1px solid var(--border-color-medium);
+        border-radius: 5px;
+        min-height: 120px;
+        overflow-y: auto;
+        transition: background-color 0.3s ease, border-color 0.3s ease;
+      }
+
+      /* --- Card Styles (Hand, Battlefield, Side Zones) --- */
+      .hand-card {
+        width: 100px;
+        height: auto;
+        border-radius: 4px;
+        box-shadow: 1px 1px 3px var(--shadow-color);
+        cursor: pointer; /* Change to 'grab' if needed */
+        transition: transform 0.2s ease, box-shadow 0.2s ease,
+          margin-left 0.2s ease, margin-right 0.2s ease; /* Added margin transitions */
+        overflow: hidden;
+        position: relative; /* Needed for z-index during drag */
+        margin: 0; /* Reset margin for easier shifting */
+      }
+
+      /* Style for card being dragged */
+      .hand-card.dragging {
+        opacity: 0.4;
+        cursor: grabbing;
+        z-index: 100; /* Ensure dragged card is on top */
+      }
+
+      /* Style for cards shifting aside */
+      .hand-card.shift-right {
+        margin-left: var(--hand-shift-amount);
+        transition: margin-left 0.2s ease;
+      }
+
+      .hand-card.shift-left {
+        margin-right: var(--hand-shift-amount);
+        transition: margin-right 0.2s ease;
+      }
+
+      .hand-card:hover {
+        transform: translateY(-3px) scale(1.03);
+        box-shadow: var(--hand-card-hover-shadow);
+      }
+
+      .hand-card img {
+        display: block;
+        width: 100%;
+        height: auto;
+        pointer-events: none;
+      }
+
+      .battlefield-card {
+        position: absolute;
+        width: 110px;
+        height: auto;
+        border-radius: 4px;
+        box-shadow: 1px 1px 3px var(--shadow-color-heavy);
+        cursor: grab;
+        user-select: none;
+        transition: box-shadow 0.2s ease, transform 0.2s ease-in-out,
+          left 0.1s ease-out, top 0.1s ease-out;
+        transform-origin: center center;
+        background-color: var(--section-bg);
+        z-index: 1;
+      }
+
+      .battlefield-card.tapped {
+        transform: rotate(90deg);
+      }
+
+      .battlefield-card:active {
+        cursor: grabbing;
+        box-shadow: 2px 2px 6px var(--shadow-color-heavy);
+        z-index: 1000;
+        transition: box-shadow 0.2s ease, transform 0.2s ease-in-out;
+      }
+
+      .battlefield-card img {
+        width: 100%;
+        height: auto;
+        display: block;
+        pointer-events: none;
+        border-radius: 4px;
+      }
+
+      .deck-action.action-button {
+        margin-bottom: 5px;
+      }
+
+      .battlefield-card .card-counters {
+        position: absolute;
+        bottom: 2px;
+        right: 2px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 1px;
+        pointer-events: none;
+      }
+
+      .counter-display {
+        color: var(--counter-text);
+        font-size: 0.7em;
+        font-weight: bold;
+        padding: 1px 3px;
+        border-radius: 3px;
+        line-height: 1;
+        min-width: 15px;
+        text-align: center;
+      }
+
+      .counter-display.plus-one {
+        background-color: var(--counter-plus-bg);
+      }
+
+      .counter-display.minus-one {
+        background-color: var(--counter-minus-bg);
+      }
+
+      /* Class for general dragging (can be removed if hand-card.dragging is sufficient) */
+      .dragging {
+        opacity: 0.4;
+      }
+
+      .side-zone-card {
+        width: 50px;
+        height: auto;
+        border-radius: 3px;
+        margin-bottom: 3px;
+        cursor: default;
+        box-shadow: 0 1px 2px var(--shadow-color);
+        position: relative;
+      }
+
+      .side-zone-card img {
+        display: block;
+        width: 100%;
+        height: auto;
+        border-radius: 3px;
+      }
+
+      /* --- Deck Search Area --- */
+      #deckSearchArea {
+        display: none;
+        padding: 10px;
+        border: 1px dashed var(--border-color-medium);
+        border-radius: 4px;
+        margin-top: 10px;
+        background-color: var(--zone-side-bg);
+        max-height: 300px;
+        overflow-y: auto;
+        position: relative;
+      }
+
+      #deckSearchArea p {
+        margin: 0 0 10px 0;
+        font-size: 0.9em;
+        color: var(--text-color-muted);
+        text-align: center;
+      }
+
+      #closeSearchAreaButton {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        font-size: 0.8em;
+        padding: 3px 8px;
+        margin-top: 0;
+        z-index: 15;
+      }
+
+      #deckSearchResults {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: center;
+        overflow-y: visible;
+        max-height: none;
+        border: none;
+        box-shadow: none;
+      }
+
+      #deckSearchResults li {
+        padding: 0;
+        border: none;
+        cursor: pointer;
+        width: 65px;
+        border-radius: 4px;
+        overflow: hidden;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        background-color: var(--hand-card-bg);
+        border: 1px solid var(--hand-card-border);
+        box-shadow: 1px 1px 3px var(--shadow-color);
+      }
+
+      #deckSearchResults li:hover {
+        transform: translateY(-2px) scale(1.03);
+        box-shadow: var(--hand-card-hover-shadow);
+      }
+
+      #deckSearchResults li img {
+        display: block;
+        width: 100%;
+        height: auto;
+        border-radius: 3px;
+      }
+
+      /* --- Buttons --- */
+      .action-button,
+      .delete-card-btn,
+      #drawHandButton,
+      #drawNextCardButton,
+      #shuffleDeckButton,
+      #searchDeckButton,
+      #scryButton,
+      #untapAllButton,
+      #flipCoinButton,
+      #rollDieButton {
+        padding: 9px 15px;
+        background-color: var(--button-bg);
+        color: var(--button-text);
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+        font-size: 0.9em;
+      }
+
+      .action-button:hover,
+      .delete-card-btn:hover,
+      #drawHandButton:hover,
+      #drawNextCardButton:hover,
+      #shuffleDeckButton:hover,
+      #searchDeckButton:hover,
+      #scryButton:hover,
+      #untapAllButton:hover,
+      #flipCoinButton:hover,
+      #rollDieButton:hover {
+        background-color: var(--button-bg-hover);
+      }
+
+      .action-button:disabled,
+      #drawNextCardButton:disabled,
+      #shuffleDeckButton:disabled,
+      #searchDeckButton:disabled,
+      #scryButton:disabled,
+      #untapAllButton:disabled {
+        background-color: var(--button-disabled-bg);
+        color: var(--button-disabled-text);
+        cursor: not-allowed;
+      }
+
+      .delete-card-btn {
+        background-color: var(--button-delete-bg);
+        color: var(--button-delete-text);
+        padding: 4px 8px;
+        font-size: 0.8em;
+        line-height: 1;
+        margin-bottom: 0;
+      }
+
+      .delete-card-btn:hover {
+        background-color: var(--button-delete-bg-hover);
+      }
+
+      /* --- Status Messages --- */
+      #status,
+      #deckActionStatus,
+      #currentDeckNameStatus {
+        margin-top: 10px;
+        font-style: italic;
+        color: var(--text-color-muted);
+        min-height: 1.2em;
+        font-size: 0.9em;
+      }
+
+      #currentDeckNameStatus {
+        font-weight: bold;
+        font-style: normal;
+        color: var(--text-color-secondary);
+        text-align: center;
+        margin-bottom: 10px;
+      }
+
+      .loading::after {
+        content: " Loading...";
+        display: inline-block;
+        margin-left: 5px;
+        font-style: italic;
+        color: var(--text-color-muted);
+        font-size: 0.9em;
+      }
+
+      /* --- Context Menu --- */
+      #cardContextMenu {
+        position: absolute;
+        display: none;
+        background-color: var(--context-menu-bg);
+        border: 1px solid var(--context-menu-border);
+        border-radius: 4px;
+        box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+        padding: 5px 0;
+        z-index: 20001;
+        min-width: 150px;
+      }
+
+      #cardContextMenu ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      #cardContextMenu li {
+        padding: 6px 12px;
+        cursor: pointer;
+        color: var(--context-menu-text);
+        font-size: 0.9em;
+        white-space: nowrap;
+      }
+
+      #cardContextMenu li:hover:not(.disabled):not(.hidden) {
+        background-color: var(--context-menu-hover-bg);
+      }
+
+      #cardContextMenu li.disabled {
+        color: var(--context-menu-disabled-text);
+        cursor: not-allowed;
+        background-color: transparent;
+      }
+
+      #cardContextMenu li.hidden {
+        display: none;
+      }
+
+      /* --- Scry Modal --- */
+      #scryOverlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: var(--scry-overlay-bg);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 20020;
+        padding: 20px;
+        box-sizing: border-box;
+      }
+
+      #scryModal {
+        background-color: var(--scry-modal-bg);
+        padding: 25px;
+        border-radius: 8px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        max-width: 90%;
+        max-height: 90%;
+        overflow-y: auto;
+        text-align: center;
+      }
+
+      #scryModal h3 {
+        margin-top: 0;
+        margin-bottom: 20px;
+        color: var(--text-color-primary);
+      }
+
+      #scryCardContainer {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        justify-content: center;
+        margin-bottom: 25px;
+      }
+
+      .scry-card-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        padding: 10px;
+        background-color: var(--scry-card-bg);
+        border: 1px solid var(--scry-card-border);
+        border-radius: 6px;
+        cursor: default;
+      }
+
+      .scry-card-item img {
+        width: 100px;
+        height: auto;
+        border-radius: 4px;
+        margin-bottom: 5px;
+        pointer-events: none;
+      }
+
+      .scry-card-item .scry-choice-buttons button {
+        padding: 5px 10px;
+        font-size: 0.8em;
+        margin: 0 4px;
+        cursor: pointer;
+        border-radius: 3px;
+        border: none;
+        background-color: var(--scry-button-bg);
+        color: var(--scry-button-text);
+        transition: background-color 0.2s ease;
+      }
+
+      .scry-card-item .scry-choice-buttons button:hover:not(:disabled) {
+        background-color: var(--scry-button-hover-bg);
+      }
+
+      .scry-card-item .scry-choice-buttons button:disabled {
+        background-color: var(--button-disabled-bg);
+        color: var(--button-disabled-text);
+        cursor: not-allowed;
+      }
+
+      /* --- Card View Popup --- */
+      #cardViewPopupOverlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: var(--card-view-overlay-bg);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 20002;
+        padding: 20px;
+        box-sizing: border-box;
+      }
+
+      #cardViewPopupContent {
+        position: relative;
+        min-width: 20vw;
+        max-width: 20vw;
+        max-height: 90vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: var(--card-view-bg);
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid var(--card-view-border);
+        box-shadow: 0 5px 20px var(--shadow-color-heavy);
+      }
+
+      #cardViewImage {
+        display: block;
+        width: 100%;
+        max-height: calc(90vh - 60px);
+        height: auto;
+        border-radius: 25px;
+        object-fit: contain;
+      }
+
+      #closeCardViewPopupButton {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        background-color: var(--card-view-close-bg);
+        color: var(--card-view-close-text);
+        border: none;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        font-size: 18px;
+        line-height: 30px;
+        text-align: center;
+        cursor: pointer;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        transition: background-color 0.2s ease;
+      }
+
+      #closeCardViewPopupButton:hover {
+        background-color: var(--card-view-close-hover-bg);
+      }
+
+      /* --- Result Popup (Coin Flip/Die Roll) --- */
+      #resultPopupOverlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: var(--result-popup-overlay-bg);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 20003;
+        padding: 20px;
+        box-sizing: border-box;
+      }
+
+      #resultPopupContent {
+        position: relative;
+        background-color: var(--result-popup-bg);
+        padding: 30px 40px;
+        border-radius: 8px;
+        border: 1px solid var(--result-popup-border);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        text-align: center;
+        min-width: 200px;
+      }
+
+      #resultPopupText {
+        font-size: 1.2em;
+        font-weight: bold;
+        color: var(--result-popup-text);
+      }
+
+      #closeResultPopupButton {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        background-color: var(--result-popup-close-bg);
+        color: var(--result-popup-close-text);
+        border: none;
+        border-radius: 50%;
+        width: 25px;
+        height: 25px;
+        font-size: 16px;
+        line-height: 25px;
+        text-align: center;
+        cursor: pointer;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        transition: background-color 0.2s ease;
+      }
+
+      #closeResultPopupButton:hover {
+        background-color: var(--result-popup-close-hover-bg);
+      }
+
+      /* --- Import Deck Popup --- */
+      #importDeckPopupOverlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: var(--import-overlay-bg);
+        display: none; /* Initially hidden */
+        justify-content: center;
+        align-items: center;
+        z-index: 20010; /* Ensure it's above most things but below fullscreen */
+        padding: 20px;
+        box-sizing: border-box;
+      }
+
+      #importDeckPopupContent {
+        background-color: var(--import-modal-bg);
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        width: 90%;
+        max-width: 550px; /* Limit width */
+        max-height: 90%;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      #importDeckPopupContent h3 {
+        text-align: center;
+        margin-top: 0;
+        color: var(--text-color-primary);
+      }
+
+      #importDeckPopupContent label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 500;
+        font-size: 0.9em;
+        color: var(--text-color-secondary);
+      }
+
+      #importDeckPopupContent input[type="text"],
+      #importDeckPopupContent textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid var(--input-border);
+        border-radius: 4px;
+        box-sizing: border-box;
+        background-color: var(--textarea-bg);
+        color: var(--textarea-text);
+        font-size: 0.95em;
+      }
+
+      #importDeckPopupContent textarea {
+        min-height: 400px;
+        resize: vertical; /* Allow vertical resizing */
+      }
+
+      #importDeckPopupContent .import-buttons {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 10px;
+      }
+
+      #importDeckPopupContent #saveImportedDeckButton {
+        background-color: var(--button-bg);
+        color: var(--button-text);
+      }
+      #importDeckPopupContent #saveImportedDeckButton:hover:not(:disabled) {
+        background-color: var(--button-bg-hover);
+      }
+
+      #importDeckPopupContent #closeImportDeckPopupButton {
+        background-color: var(--scry-button-bg); /* Use a secondary color */
+        color: var(--button-text);
+      }
+      #importDeckPopupContent #closeImportDeckPopupButton:hover {
+        background-color: var(--scry-button-hover-bg);
+      }
+
+      #importDeckStatus {
+        font-size: 0.9em;
+        min-height: 1.2em;
+        text-align: center;
+        word-wrap: break-word;
+        white-space: pre-wrap; /* Allow line breaks in status */
+      }
+
+      #importDeckStatus.error {
+        color: var(--import-status-error-text);
+        font-weight: bold;
+      }
+
+      #importDeckStatus.success {
+        color: var(--import-status-success-text);
+        font-weight: bold;
+      }
+    </style>
+    <script
+      src="https://code.jquery.com/jquery-3.7.1.min.js"
+      integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+      crossorigin="anonymous"
+    ></script>
+  </head>
+  <body data-theme="light">
+    <!-- Header Section -->
+    <div class="header-container">
+      <h1>Simple MTG Deck Builder</h1>
+      <div class="theme-switch-wrapper">
+        <label class="theme-switch" for="themeToggleCheckbox">
+          <input type="checkbox" id="themeToggleCheckbox" />
+          <span class="slider round"></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Card Search Section -->
+    <div class="search-section">
+      <h2>Card Search</h2>
+      <input
+        type="text"
+        id="searchInput"
+        placeholder="Start typing card name..."
+        autocomplete="off"
+      />
+      <ul id="searchResults"></ul>
+      <div id="status">Type at least 3 characters for suggestions.</div>
+    </div>
+
+    <!-- Deck Actions Section -->
+    <div class="actions-section">
+      <h2>Deck Actions</h2>
+      <div id="currentDeckNameStatus">No Deck Loaded / Unsaved Deck</div>
+      <button id="saveDeckButton" class="deck-action action-button">
+        Save Current Deck As...
+      </button>
+      <button id="importDeckButton" class="deck-action action-button">
+        Import Deck
+      </button>
+      <button id="clearDeckButton" class="deck-action action-button">
+        Clear Current Deck
+      </button>
+
+      <div id="savedDecksListContainer">
+        <h3>Saved Decks (Click to Load)</h3>
+        <ul id="savedDecksList">
+          <li class="no-decks">No saved decks found.</li>
+        </ul>
+      </div>
+
+      <button id="deleteSavedDeckButton" class="action-button">
+        Delete Current Loaded Deck
+      </button>
+      <div id="deckActionStatus"></div>
+    </div>
+
+    <!-- Current Deck Section -->
+    <div class="deck-section">
+      <h2>Current Deck (<span id="deckTotalCount">0</span> cards)</h2>
+      <ul id="deckList"></ul>
+      <div id="deckCount">Total: <span id="deckTotalCountBottom">0</span></div>
+    </div>
+
+    <!-- Test Area Section -->
+    <div class="test-hand-section" id="testAreaSection" style="display: none">
+      <div class="section-header">
+        <h2>Test Area</h2>
+        <button id="fullscreenTestAreaButton">Fullscreen</button>
+      </div>
+      <div class="test-controls">
+        <button id="drawHandButton" class="action-button">Draw New Hand</button>
+        <button id="drawNextCardButton" class="action-button" disabled>
+          Draw Next Card
+        </button>
+        <button id="shuffleDeckButton" class="action-button" disabled>
+          Shuffle Library
+        </button>
+        <button id="searchDeckButton" class="action-button" disabled>
+          Search Library
+        </button>
+        <div class="scry-control">
+          <button id="scryButton" class="action-button" disabled>Scry</button>
+          <input type="number" id="scryCountInput" value="1" min="1" max="10" />
+        </div>
+        <button id="untapAllButton" class="action-button" style="display: none">
+          Untap All
+        </button>
+        <button id="flipCoinButton" class="action-button">Flip Coin</button>
+        <button id="rollDieButton" class="action-button">Roll d6</button>
+
+        <!-- Life Counter -->
+        <div class="life-counter-controls">
+          <span>Life Points</span>
+          <button id="decreaseLifeButton">-</button>
+          <span id="lifeTotalDisplay">20</span>
+          <button id="increaseLifeButton">+</button>
+        </div>
+        <!-- End Life Counter -->
+      </div>
+
+      <div>
+        <span id="testHandStatus"></span>
+      </div>
+
+      <!-- Library Search Area (Initially Hidden) -->
+      <div id="deckSearchArea">
+        <p>Right-click a card in the library for actions:</p>
+        <ul id="deckSearchResults"></ul>
+        <button id="closeSearchAreaButton" class="action-button">
+          Close Search
+        </button>
+      </div>
+
+      <!-- Play Area Container -->
+      <div class="play-area-container">
+        <div class="battlefield-and-side-zones">
+          <!-- Battlefield Zone -->
+          <div class="battlefield-zone" id="battlefieldDisplayContainer">
+            <div id="generalZone"><h4>General Battlefield</h4></div>
+          </div>
+          <!-- Side Zones (Graveyard, Exile) -->
+          <div class="side-zones">
+            <div id="graveyardZone">
+              <h4>Graveyard (<span id="graveyardCount">0</span>)</h4>
+            </div>
+            <div id="exileZone">
+              <h4>Exile (<span id="exileCount">0</span>)</h4>
+            </div>
+          </div>
+        </div>
+        <!-- Hand Zone -->
+        <div id="testHandContainer"></div>
+      </div>
+    </div>
+
+    <!-- Card Context Menu (Initially Hidden) -->
+    <div id="cardContextMenu">
+      <ul>
+        <li data-action="toggleTap">Tap/Untap</li>
+        <li data-action="viewCard">View Card</li>
+        <li data-action="addPlusOneCounter">Add +1/+1 Counter</li>
+        <li data-action="removePlusOneCounter">Remove +1/+1 Counter</li>
+        <li data-action="addMinusOneCounter">Add -1/-1 Counter</li>
+        <li data-action="removeMinusOneCounter">Remove -1/-1 Counter</li>
+        <li data-action="toHand">Move to Hand</li>
+        <li data-action="toBattlefield">Move to Battlefield</li>
+        <li data-action="toGraveyard">Move to Graveyard</li>
+        <li data-action="toExile">Move to Exile</li>
+        <li data-action="toLibraryTop">Move to Library (Top)</li>
+        <li data-action="toLibraryBottom">Move to Library (Bottom)</li>
+      </ul>
+    </div>
+
+    <!-- Scry Modal Overlay (Initially Hidden) -->
+    <div id="scryOverlay">
+      <div id="scryModal">
+        <h3 id="scryModalTitle">Scry X</h3>
+        <div id="scryCardContainer"></div>
+      </div>
+    </div>
+
+    <!-- Card View Popup Overlay (Initially Hidden) -->
+    <div id="cardViewPopupOverlay">
+      <div id="cardViewPopupContent">
+        <img id="cardViewImage" src="" alt="Card Image" />
+        <button id="closeCardViewPopupButton">×</button>
+      </div>
+    </div>
+
+    <!-- Result Popup Overlay (Initially Hidden) -->
+    <div id="resultPopupOverlay">
+      <div id="resultPopupContent">
+        <p id="resultPopupText"></p>
+        <button id="closeResultPopupButton">×</button>
+      </div>
+    </div>
+
+    <!-- Import Deck Popup Overlay (Initially Hidden) -->
+    <div id="importDeckPopupOverlay">
+      <div id="importDeckPopupContent">
+        <h3>Import Deck</h3>
+        <div>
+          <label for="importDeckNameInput">Deck Name:</label>
+          <input
+            type="text"
+            id="importDeckNameInput"
+            placeholder="Enter a name for the deck"
+          />
+        </div>
+        <div>
+          <label for="importDeckListTextarea">Paste Decklist:</label>
+          <textarea
+            id="importDeckListTextarea"
+            rows="15"
+            placeholder="Example Format:
+4x Card Name
+3 Card Name
+1 Card Name // Optional Comment
+..."
+          ></textarea>
+        </div>
+        <div id="importDeckStatus"></div>
+        <div class="import-buttons">
+          <button id="saveImportedDeckButton" class="action-button">
+            Save Imported Deck
+          </button>
+          <button id="closeImportDeckPopupButton" class="action-button">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      "use strict";
+
+      /* --- DOM Element References --- */
+      const searchInput = document.getElementById("searchInput");
+      const searchResults = document.getElementById("searchResults");
+      const statusDiv = document.getElementById("status");
+      const deckList = document.getElementById("deckList");
+      const deckTotalCountSpan = document.getElementById("deckTotalCount");
+      const deckTotalCountBottomSpan = document.getElementById(
+        "deckTotalCountBottom"
+      );
+      const saveDeckButton = document.getElementById("saveDeckButton");
+      const importDeckButton = document.getElementById("importDeckButton"); // Added
+      const deleteSavedDeckButton = document.getElementById(
+        "deleteSavedDeckButton"
+      );
+      const clearDeckButton = document.getElementById("clearDeckButton");
+      const deckActionStatus = document.getElementById("deckActionStatus");
+      const currentDeckNameStatus = document.getElementById(
+        "currentDeckNameStatus"
+      );
+      const savedDecksList = document.getElementById("savedDecksList");
+      const drawHandButton = document.getElementById("drawHandButton");
+      const drawNextCardButton = document.getElementById("drawNextCardButton");
+      const shuffleDeckButton = document.getElementById("shuffleDeckButton");
+      const searchDeckButton = document.getElementById("searchDeckButton");
+      const scryButton = document.getElementById("scryButton");
+      const scryCountInput = document.getElementById("scryCountInput");
+      const untapAllButton = document.getElementById("untapAllButton");
+      const flipCoinButton = document.getElementById("flipCoinButton");
+      const rollDieButton = document.getElementById("rollDieButton");
+      const testHandStatus = document.getElementById("testHandStatus");
+      const testAreaSection = document.getElementById("testAreaSection");
+      const fullscreenTestAreaButton = document.getElementById(
+        "fullscreenTestAreaButton"
+      );
+      const battlefieldDisplayContainer = document.getElementById(
+        "battlefieldDisplayContainer"
+      );
+      const generalZone = document.getElementById("generalZone");
+      const graveyardZone = document.getElementById("graveyardZone");
+      const exileZone = document.getElementById("exileZone");
+      const graveyardCountSpan = document.getElementById("graveyardCount");
+      const exileCountSpan = document.getElementById("exileCount");
+      const testHandContainer = document.getElementById("testHandContainer");
+      const themeToggle = document.getElementById("themeToggleCheckbox");
+      const deckSearchArea = document.getElementById("deckSearchArea");
+      const deckSearchResults = document.getElementById("deckSearchResults");
+      const closeSearchAreaButton = document.getElementById(
+        "closeSearchAreaButton"
+      );
+      const cardContextMenu = document.getElementById("cardContextMenu");
+      const scryOverlay = document.getElementById("scryOverlay");
+      const scryModal = document.getElementById("scryModal");
+      const scryModalTitle = document.getElementById("scryModalTitle");
+      const scryCardContainer = document.getElementById("scryCardContainer");
+      const cardViewPopupOverlay = document.getElementById(
+        "cardViewPopupOverlay"
+      );
+      const cardViewImage = document.getElementById("cardViewImage");
+      const closeCardViewPopupButton = document.getElementById(
+        "closeCardViewPopupButton"
+      );
+      const resultPopupOverlay = document.getElementById("resultPopupOverlay");
+      const resultPopupContent = document.getElementById("resultPopupContent");
+      const resultPopupText = document.getElementById("resultPopupText");
+      const closeResultPopupButton = document.getElementById(
+        "closeResultPopupButton"
+      );
+      // Life Counter Elements
+      const lifeTotalDisplay = document.getElementById("lifeTotalDisplay");
+      const increaseLifeButton = document.getElementById("increaseLifeButton");
+      const decreaseLifeButton = document.getElementById("decreaseLifeButton");
+      // Import Deck Popup Elements (Added)
+      const importDeckPopupOverlay = document.getElementById(
+        "importDeckPopupOverlay"
+      );
+      const importDeckPopupContent = document.getElementById(
+        "importDeckPopupContent"
+      );
+      const importDeckNameInput = document.getElementById(
+        "importDeckNameInput"
+      );
+      const importDeckListTextarea = document.getElementById(
+        "importDeckListTextarea"
+      );
+      const saveImportedDeckButton = document.getElementById(
+        "saveImportedDeckButton"
+      );
+      const closeImportDeckPopupButton = document.getElementById(
+        "closeImportDeckPopupButton"
+      );
+      const importDeckStatus = document.getElementById("importDeckStatus");
+
+      /* --- Constants --- */
+      const MULTI_DECK_STORAGE_KEY = "mtgDeckBuilderMultiDeckStorageV1";
+      const THEME_STORAGE_KEY = "mtgThemePreference";
+      const MIN_SEARCH_LENGTH = 3;
+      const DEBOUNCE_DELAY = 350;
+      const STATUS_CLEAR_DELAY = 4000;
+      const STARTING_HAND_SIZE = 7;
+      const STARTING_LIFE_TOTAL = 20;
+      const SCRYFALL_API_DELAY = 75; // ms delay for Scryfall API politeness
+
+      /* --- Application State --- */
+      let currentDeck =
+        {}; /* Stores the main deck list { cardName: { quantity, imageUrl, normalImageUrl } } */
+      let currentLoadedDeckName =
+        null; /* Name of the currently loaded deck from local storage */
+      let searchAbortController =
+        null; /* Controller to abort ongoing Scryfall API requests */
+      let currentHand =
+        []; /* Array of card objects currently in the player's hand */
+      let currentBattlefield =
+        {}; /* Object storing cards on the battlefield { battlefieldId: cardData } */
+      let currentLibrary =
+        []; /* Array of card objects representing the deck's library */
+      let currentGraveyard = []; /* Array of card objects in the graveyard */
+      let currentExile = []; /* Array of card objects in exile */
+      let handCardIdCounter = 0; /* Counter for generating unique hand card IDs */
+      let battlefieldCardIdCounter = 0; /* Counter for generating unique battlefield card IDs */
+      let graveyardCardIdCounter = 0; /* Counter for generating unique graveyard card IDs */
+      let exileCardIdCounter = 0; /* Counter for generating unique exile card IDs */
+      let currentPlayerLife = STARTING_LIFE_TOTAL; /* Player's life total */
+      let dragInfo = {
+        /* State for drag-and-drop operations */ cardId: null,
+        sourceZone: null,
+        offsetX: 0,
+        offsetY: 0,
+        element: null, // Store the actual dragged element
+      };
+      let contextMenuVisible = false; /* Flag indicating if the context menu is open */
+      let contextMenuTarget = {
+        /* State for the card targeted by the context menu */ cardId: null,
+        cardData: null,
+        sourceZone: null,
+        libraryIndex: null,
+      };
+      let scryingState = {
+        /* State for the scry operation */ active: false,
+        cards: [],
+        expectedCount: 0,
+        resolvedCount: 0,
+        toBottom: [],
+      };
+      let isFullscreen = false; /* Flag indicating if the test area is in fullscreen mode */
+      let isImporting = false; // Flag to prevent multiple import saves at once
+
+      /* --- Utility Functions --- */
+
+      /**
+       * Debounce function to limit the rate at which a function can fire.
+       * @param {Function} func - The function to debounce.
+       * @param {number} wait - The debounce delay in milliseconds.
+       * @returns {Function} The debounced function.
+       */
+      function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+          const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+          };
+          clearTimeout(timeout);
+          timeout = setTimeout(later, wait);
+        };
+      }
+
+      /**
+       * Updates the status message displayed below the search input.
+       * @param {string} message - The message to display.
+       * @param {boolean} [isLoading=false] - Whether to show a loading indicator.
+       */
+      function updateStatus(message, isLoading = false) {
+        statusDiv.textContent = message;
+        statusDiv.classList.toggle("loading", isLoading);
+      }
+
+      /**
+       * Clears the search status message.
+       */
+      function clearStatus() {
+        updateStatus("");
+      }
+
+      /**
+       * Removes the loading indicator from the search status.
+       */
+      function removeLoadingIndicator() {
+        statusDiv.classList.remove("loading");
+      }
+
+      /**
+       * Updates the status message related to deck actions (save, load, clear).
+       * Message automatically clears after a delay.
+       * @param {string} message - The message to display.
+       */
+      function updateDeckActionStatus(message) {
+        deckActionStatus.textContent = message;
+        setTimeout(() => {
+          if (deckActionStatus.textContent === message)
+            deckActionStatus.textContent = "";
+        }, STATUS_CLEAR_DELAY);
+      }
+
+      /**
+       * Updates the status message inside the import popup.
+       * @param {string} message - The message to display.
+       * @param {'info' | 'error' | 'success'} [type='info'] - The type of message (for styling).
+       */
+      function updateImportStatus(message, type = "info") {
+        importDeckStatus.textContent = message;
+        importDeckStatus.classList.remove("error", "success");
+        if (type === "error") {
+          importDeckStatus.classList.add("error");
+        } else if (type === "success") {
+          importDeckStatus.classList.add("success");
+        }
+      }
+
+      /**
+       * Updates the display showing the name of the currently loaded/edited deck.
+       * Also enables/disables the delete button based on whether a deck is loaded.
+       * @param {string|null} deckName - The name of the loaded deck, or null if none.
+       */
+      function updateCurrentDeckNameStatus(deckName) {
+        if (deckName) {
+          const safeDeckName = escapeHtml(deckName);
+          currentDeckNameStatus.textContent = `Editing: ${safeDeckName}`;
+          deleteSavedDeckButton.textContent = `Delete Deck: "${safeDeckName}"`;
+          deleteSavedDeckButton.disabled = false;
+        } else {
+          currentDeckNameStatus.textContent = "No Deck Loaded / Unsaved Deck";
+          deleteSavedDeckButton.textContent = "Delete Current Loaded Deck";
+          deleteSavedDeckButton.disabled = true;
+        }
+      }
+
+      /**
+       * Escapes HTML special characters in a string to prevent XSS.
+       * @param {string|null|undefined} unsafe - The potentially unsafe string.
+       * @returns {string} The escaped string.
+       */
+      function escapeHtml(unsafe) {
+        if (unsafe === null || unsafe === undefined) return "";
+        return unsafe
+          .toString()
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      /**
+       * Shuffles an array in place using the Fisher-Yates algorithm.
+       * @param {Array<any>} array - The array to shuffle.
+       */
+      function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [array[i], array[j]] = [array[j], array[i]];
+        }
+      }
+
+      /**
+       * Simple delay function using Promises.
+       * @param {number} ms - Milliseconds to wait.
+       * @returns {Promise<void>}
+       */
+      function sleep(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      }
+
+      /* --- Scryfall API Interaction --- */
+
+      /**
+       * Performs a live search using the Scryfall API based on user input.
+       * Handles API errors and displays results or status messages.
+       * Uses an AbortController to cancel previous requests.
+       * @param {string} query - The search query string.
+       */
+      async function performLiveSearch(query) {
+        if (searchAbortController) {
+          searchAbortController.abort();
+        }
+        searchAbortController = new AbortController();
+        const signal = searchAbortController.signal;
+        searchResults.innerHTML = "";
+
+        if (!query || query.length < MIN_SEARCH_LENGTH) {
+          searchResults.style.display = "none";
+          updateStatus(
+            `Type at least ${MIN_SEARCH_LENGTH} characters for suggestions.`
+          );
+          return;
+        }
+
+        updateStatus("Searching...", true);
+        const apiUrl = `https://api.scryfall.com/cards/search?q=${encodeURIComponent(
+          query
+        )}&unique=cards&order=name&include_extras=false&include_variations=false`;
+
+        try {
+          await sleep(SCRYFALL_API_DELAY); // Add delay before fetch
+          const response = await fetch(apiUrl, { signal });
+          if (!response.ok) {
+            if (response.status === 404) {
+              updateStatus(`No cards found matching "${escapeHtml(query)}".`);
+            } else if (response.status === 400) {
+              updateStatus(`Invalid search query. Try different terms.`);
+            } else {
+              throw new Error(`API Error: ${response.status}`);
+            }
+            searchResults.style.display = "none";
+            return;
+          }
+          const data = await response.json();
+          displaySearchResults(data.data.slice(0, 15)); /* Limit results */
+        } catch (error) {
+          if (error.name === "AbortError") {
+            console.log("Search fetch aborted");
+            return;
+          }
+          console.error("Search Error:", error);
+          updateStatus(`Error searching cards: ${escapeHtml(error.message)}`);
+          searchResults.style.display = "none";
+        } finally {
+          removeLoadingIndicator();
+          searchAbortController = null;
+        }
+      }
+
+      /**
+       * Debounced version of the live search function.
+       */
+      const debouncedLiveSearch = debounce(performLiveSearch, DEBOUNCE_DELAY);
+
+      /**
+       * Displays the card search results in the UI.
+       * @param {Array<object>} cards - An array of card objects from the Scryfall API.
+       */
+      function displaySearchResults(cards) {
+        searchResults.innerHTML = "";
+        if (!cards || cards.length === 0) {
+          searchResults.style.display = "none";
+          return;
+        }
+        updateStatus(`${cards.length} result(s) shown. Click to add.`);
+        searchResults.style.display = "block";
+
+        cards.forEach((card) => {
+          const li = document.createElement("li");
+          const smallImageUrl =
+            card.image_uris?.small || card.image_uris?.normal || "";
+          const normalImageUrl = card.image_uris?.normal || smallImageUrl;
+          const cardName = card.name || "Unknown Card";
+
+          li.innerHTML = `<img src="${escapeHtml(
+            smallImageUrl
+          )}" alt="${escapeHtml(
+            cardName
+          )}" class="search-result-image" loading="lazy"><span class="search-result-name">${escapeHtml(
+            cardName
+          )}</span>`;
+          li.dataset.cardname = cardName;
+          li.dataset.imageurl = smallImageUrl;
+          li.dataset.normalimageurl = normalImageUrl;
+          searchResults.appendChild(li);
+        });
+      }
+
+      /* --- Deck Management Functions --- */
+
+      /**
+       * Renders the current deck list in the UI.
+       * Calculates and displays the total card count.
+       * Enables/disables the draw hand button based on deck size.
+       */
+      function renderDeck() {
+        deckList.innerHTML = "";
+        let totalCards = 0;
+        const sortedCardNames = Object.keys(currentDeck).sort();
+
+        sortedCardNames.forEach((cardName) => {
+          const cardInfo = currentDeck[cardName];
+          if (!cardInfo || cardInfo.quantity <= 0) {
+            if (cardInfo)
+              delete currentDeck[cardName]; /* Clean up invalid entries */
+            return;
+          }
+          totalCards += cardInfo.quantity;
+          const li = document.createElement("li");
+          const smallImageUrl = cardInfo.imageUrl || "";
+          const normalImageUrl = cardInfo.normalImageUrl || smallImageUrl;
+          const safeCardName = escapeHtml(cardName);
+
+          li.innerHTML = `
+            <div class="card-info">
+              <img src="${escapeHtml(
+                smallImageUrl
+              )}" alt="${safeCardName}" class="card-image" loading="lazy" data-normal-src="${escapeHtml(
+            normalImageUrl
+          )}">
+              <span class="card-name" title="${safeCardName}">${safeCardName}</span>
+            </div>
+            <div class="card-controls">
+              <span class="card-quantity">
+                <input type="number" min="1" value="${
+                  cardInfo.quantity
+                }" data-cardname="${safeCardName}" class="quantity-input">
+              </span>
+              <button class="delete-card-btn" data-cardname="${safeCardName}">X</button>
+            </div>`;
+          deckList.appendChild(li);
+        });
+
+        deckTotalCountSpan.textContent = totalCards;
+        deckTotalCountBottomSpan.textContent = totalCards;
+        drawHandButton.disabled = totalCards < STARTING_HAND_SIZE;
+      }
+
+      /**
+       * Adds a card to the current deck or increments its quantity.
+       * @param {string} cardName - The name of the card.
+       * @param {string} smallImageUrl - The URL for the small card image.
+       * @param {string} normalImageUrl - The URL for the normal card image.
+       */
+      function addCardToDeck(cardName, smallImageUrl, normalImageUrl) {
+        if (!cardName) {
+          console.error("Attempted to add card with no name.");
+          updateDeckActionStatus("Error: Cannot add card without a name.");
+          return;
+        }
+        const existingCard = currentDeck[cardName];
+        const safeCardName = escapeHtml(cardName);
+
+        if (existingCard) {
+          existingCard.quantity++;
+          updateDeckActionStatus(
+            `Incremented "${safeCardName}" to ${existingCard.quantity}.`
+          );
+        } else {
+          const safeSmallUrl =
+            typeof smallImageUrl === "string" ? smallImageUrl : "";
+          const safeNormalUrl =
+            typeof normalImageUrl === "string" ? normalImageUrl : safeSmallUrl;
+          if (!safeSmallUrl)
+            console.warn(`Missing image URL for card: ${safeCardName}.`);
+
+          currentDeck[cardName] = {
+            quantity: 1,
+            imageUrl: safeSmallUrl,
+            normalImageUrl: safeNormalUrl,
+          };
+          updateDeckActionStatus(`Added "${safeCardName}" to deck.`);
+        }
+        renderDeck();
+        searchInput.value = "";
+        searchResults.innerHTML = "";
+        searchResults.style.display = "none";
+        clearStatus();
+      }
+
+      /**
+       * Updates the quantity of a specific card in the deck.
+       * Removes the card if the quantity becomes zero or less.
+       * @param {string} cardName - The name of the card to update.
+       * @param {string|number} newQuantity - The new quantity for the card.
+       */
+      function updateCardQuantity(cardName, newQuantity) {
+        const quantity = parseInt(newQuantity, 10);
+        const cardInfo = currentDeck[cardName];
+        if (!cardInfo) return;
+
+        const safeCardName = escapeHtml(cardName);
+        if (isNaN(quantity) || quantity <= 0) {
+          deleteCardFromDeck(cardName);
+          updateDeckActionStatus(
+            `Removed "${safeCardName}" (quantity set to 0 or less).`
+          );
+        } else {
+          cardInfo.quantity = quantity;
+          updateDeckActionStatus(
+            `Updated "${safeCardName}" quantity to ${quantity}.`
+          );
+          renderDeck();
+        }
+      }
+
+      /**
+       * Removes a card completely from the current deck.
+       * @param {string} cardName - The name of the card to remove.
+       */
+      function deleteCardFromDeck(cardName) {
+        if (currentDeck[cardName]) {
+          const safeCardName = escapeHtml(cardName);
+          delete currentDeck[cardName];
+          updateDeckActionStatus(`Removed "${safeCardName}" from deck.`);
+          renderDeck();
+        }
+      }
+
+      /**
+       * Clears the entire current deck and resets the test area.
+       * Prompts the user for confirmation.
+       */
+      function clearDeck() {
+        if (
+          confirm(
+            "Are you sure you want to clear the current deck? This also clears the test area. This cannot be undone unless saved."
+          )
+        ) {
+          currentDeck = {};
+          currentLoadedDeckName = null;
+          updateDeckActionStatus("Deck cleared.");
+          updateCurrentDeckNameStatus(null);
+          renderDeck();
+          clearTestArea();
+          testAreaSection.style.display = "none";
+        }
+      }
+
+      /* --- Local Storage (Deck Saving/Loading) --- */
+
+      /**
+       * Retrieves all saved decks from local storage.
+       * Performs basic validation on the retrieved data structure.
+       * @returns {object} An object containing saved decks { deckName: deckData }.
+       */
+      function getSavedDecks() {
+        const savedData = localStorage.getItem(MULTI_DECK_STORAGE_KEY);
+        let decks = {};
+        if (savedData) {
+          try {
+            const parsedData = JSON.parse(savedData);
+            /* Basic validation: ensure it's a non-null object */
+            if (
+              typeof parsedData === "object" &&
+              parsedData !== null &&
+              !Array.isArray(parsedData)
+            ) {
+              decks = parsedData;
+            } else {
+              console.warn(
+                "Invalid data type found in multi-deck storage:",
+                parsedData
+              );
+              localStorage.removeItem(
+                MULTI_DECK_STORAGE_KEY
+              ); /* Clear invalid data */
+            }
+          } catch (error) {
+            console.error("Error parsing saved decks:", error);
+            localStorage.removeItem(
+              MULTI_DECK_STORAGE_KEY
+            ); /* Clear corrupted data */
+          }
+        }
+        return decks;
+      }
+
+      /**
+       * Renders the list of saved decks in the UI.
+       */
+      function renderSavedDecksList() {
+        const savedDecks = getSavedDecks();
+        const deckNames = Object.keys(savedDecks).sort();
+        savedDecksList.innerHTML = "";
+
+        if (deckNames.length === 0) {
+          const li = document.createElement("li");
+          li.textContent = "No saved decks found.";
+          li.classList.add("no-decks");
+          savedDecksList.appendChild(li);
+        } else {
+          deckNames.forEach((name) => {
+            const li = document.createElement("li");
+            li.textContent = escapeHtml(name);
+            li.dataset.deckName = name;
+            savedDecksList.appendChild(li);
+          });
+        }
+      }
+
+      /**
+       * Saves the current deck to local storage.
+       * Prompts the user for a deck name and handles overwriting existing decks.
+       */
+      function saveDeck() {
+        const deckName = prompt(
+          "Enter a name for this deck:",
+          currentLoadedDeckName || ""
+        );
+        if (!deckName || deckName.trim() === "") {
+          updateDeckActionStatus("Save cancelled: Deck name cannot be empty.");
+          return;
+        }
+        const trimmedDeckName = deckName.trim();
+        const savedDecks = getSavedDecks();
+
+        if (
+          savedDecks[trimmedDeckName] &&
+          !confirm(
+            `A deck named "${escapeHtml(
+              trimmedDeckName
+            )}" already exists. Overwrite it?`
+          )
+        ) {
+          updateDeckActionStatus("Save cancelled.");
+          return;
+        }
+
+        /* Create a deep copy to avoid modifying the saved data if currentDeck changes later */
+        savedDecks[trimmedDeckName] = JSON.parse(JSON.stringify(currentDeck));
+
+        try {
+          localStorage.setItem(
+            MULTI_DECK_STORAGE_KEY,
+            JSON.stringify(savedDecks)
+          );
+          currentLoadedDeckName = trimmedDeckName;
+          updateDeckActionStatus(
+            `Deck "${escapeHtml(trimmedDeckName)}" saved successfully!`
+          );
+          updateCurrentDeckNameStatus(trimmedDeckName);
+          renderSavedDecksList();
+        } catch (error) {
+          console.error("Error saving deck:", error);
+          updateDeckActionStatus(
+            "Error saving deck. LocalStorage might be full or disabled."
+          );
+        }
+      }
+
+      /**
+       * Loads a deck from local storage by its name.
+       * Performs validation on the loaded deck data structure.
+       * Updates the current deck and UI.
+       * @param {string} deckName - The name of the deck to load.
+       */
+      function loadDeckByName(deckName) {
+        const savedDecks = getSavedDecks();
+        const deckData = savedDecks[deckName];
+
+        if (deckData) {
+          let isValid = true;
+          const validatedDeck = {};
+          /* Validate the structure of the loaded deck data */
+          for (const cardName in deckData) {
+            if (typeof cardName !== "string" || cardName.trim() === "") {
+              isValid = false;
+              console.warn("Invalid card name found in loaded deck:", cardName);
+              break;
+            }
+            const entry = deckData[cardName];
+            if (
+              typeof entry !== "object" ||
+              entry === null ||
+              typeof entry.quantity !== "number" ||
+              !Number.isInteger(entry.quantity) ||
+              entry.quantity <= 0 ||
+              typeof entry.imageUrl !== "string" ||
+              (entry.hasOwnProperty("normalImageUrl") &&
+                typeof entry.normalImageUrl !== "string")
+            ) {
+              /* Attempt to fix missing normalImageUrl */
+              if (typeof entry.imageUrl === "string" && !entry.normalImageUrl) {
+                entry.normalImageUrl = entry.imageUrl;
+              } else {
+                isValid = false;
+                console.warn(
+                  "Invalid card data structure for:",
+                  cardName,
+                  entry
+                );
+                break;
+              }
+            }
+            validatedDeck[cardName] = {
+              quantity: entry.quantity,
+              imageUrl: entry.imageUrl,
+              normalImageUrl: entry.normalImageUrl || entry.imageUrl,
+            };
+          }
+
+          if (isValid) {
+            currentDeck = validatedDeck;
+            currentLoadedDeckName = deckName;
+            updateDeckActionStatus(
+              `Deck "${escapeHtml(deckName)}" loaded successfully!`
+            );
+            updateCurrentDeckNameStatus(deckName);
+            clearTestArea(); /* Reset play area when loading a new deck */
+            renderDeck();
+            drawHandButton.disabled =
+              Object.values(currentDeck).reduce(
+                (sum, card) => sum + card.quantity,
+                0
+              ) < STARTING_HAND_SIZE;
+            disableDrawNextButton();
+            disableShuffleButton();
+            disableSearchButton();
+            disableScryButton();
+            hideDeckSearchArea();
+            testAreaSection.style.display = "block"; /* Show test area */
+            updateLifeDisplay(); // Ensure life total is displayed correctly
+          } else {
+            updateDeckActionStatus(
+              `Failed to load deck "${escapeHtml(
+                deckName
+              )}": Invalid data format found.`
+            );
+            console.warn(
+              "Invalid deck structure found in loaded deck data:",
+              deckData
+            );
+          }
+        } else {
+          updateDeckActionStatus(`Deck "${escapeHtml(deckName)}" not found.`);
+          renderSavedDecksList(); /* Refresh list in case it was deleted elsewhere */
+        }
+      }
+
+      /**
+       * Deletes the currently loaded deck from local storage.
+       * Prompts the user for confirmation.
+       */
+      function deleteSavedDeck() {
+        const deckNameToDelete = currentLoadedDeckName;
+
+        if (!deckNameToDelete) {
+          updateDeckActionStatus(
+            "Please load the deck you wish to delete first."
+          );
+          return;
+        }
+
+        const savedDecks = getSavedDecks();
+
+        if (!savedDecks[deckNameToDelete]) {
+          updateDeckActionStatus(
+            `Error: Loaded deck "${escapeHtml(
+              deckNameToDelete
+            )}" not found in storage.`
+          );
+          currentLoadedDeckName = null; /* Reset state */
+          updateCurrentDeckNameStatus(null);
+          renderSavedDecksList();
+          return;
+        }
+
+        if (
+          confirm(
+            `Are you sure you want to permanently delete the deck "${escapeHtml(
+              deckNameToDelete
+            )}"? This cannot be undone.`
+          )
+        ) {
+          delete savedDecks[deckNameToDelete];
+          try {
+            localStorage.setItem(
+              MULTI_DECK_STORAGE_KEY,
+              JSON.stringify(savedDecks)
+            );
+            updateDeckActionStatus(
+              `Deck "${escapeHtml(deckNameToDelete)}" deleted.`
+            );
+            clearDeck(); /* Clear the currently loaded deck from UI */
+            renderSavedDecksList();
+          } catch (error) {
+            console.error("Error deleting deck:", error);
+            updateDeckActionStatus(
+              "Error deleting deck. LocalStorage might be full or disabled."
+            );
+          }
+        } else {
+          updateDeckActionStatus("Delete cancelled.");
+        }
+      }
+
+      /* --- Life Point Management --- */
+
+      /**
+       * Updates the life total display in the UI.
+       */
+      function updateLifeDisplay() {
+        lifeTotalDisplay.textContent = currentPlayerLife;
+      }
+
+      /**
+       * Increases the player's life total by 1.
+       */
+      function increaseLife() {
+        currentPlayerLife++;
+        updateLifeDisplay();
+      }
+
+      /**
+       * Decreases the player's life total by 1.
+       */
+      function decreaseLife() {
+        currentPlayerLife--;
+        updateLifeDisplay();
+      }
+
+      /* --- Test Area / Play Simulation Functions --- */
+
+      /**
+       * Updates the display of +1/+1 and -1/-1 counters on a battlefield card element.
+       * @param {HTMLElement} cardElement - The DOM element representing the card on the battlefield.
+       * @param {object} counters - The counters object ({ plusOne: number, minusOne: number }).
+       */
+      function updateCardCountersDisplay(cardElement, counters) {
+        const countersDiv = cardElement.querySelector(".card-counters");
+        if (!countersDiv) return;
+        countersDiv.innerHTML = ""; /* Clear existing counters */
+
+        if (counters?.plusOne > 0) {
+          const plusOneSpan = document.createElement("span");
+          plusOneSpan.classList.add("counter-display", "plus-one");
+          plusOneSpan.textContent = `+${counters.plusOne}/+${counters.plusOne}`;
+          countersDiv.appendChild(plusOneSpan);
+        }
+        if (counters?.minusOne > 0) {
+          const minusOneSpan = document.createElement("span");
+          minusOneSpan.classList.add("counter-display", "minus-one");
+          minusOneSpan.textContent = `-${counters.minusOne}/-${counters.minusOne}`;
+          countersDiv.appendChild(minusOneSpan);
+        }
+      }
+
+      /**
+       * Renders the cards currently on the battlefield in the UI.
+       */
+      function displayBattlefield() {
+        /* Clear existing battlefield cards, keeping the title */
+        while (generalZone.children.length > 1) {
+          generalZone.removeChild(generalZone.lastChild);
+        }
+
+        Object.entries(currentBattlefield).forEach(([id, card]) => {
+          if (card.zone === "general") {
+            const cardDiv = document.createElement("div");
+            cardDiv.classList.add("battlefield-card");
+            cardDiv.dataset.battlefieldId = id;
+            cardDiv.draggable = true;
+            const posX = typeof card.x === "number" ? card.x : 10;
+            const posY = typeof card.y === "number" ? card.y : 10;
+            cardDiv.style.left = `${posX}px`;
+            cardDiv.style.top = `${posY}px`;
+            cardDiv.classList.toggle("tapped", card.isTapped);
+
+            const smallImageUrl = card.imageUrl || "";
+            const normalImageUrl = card.normalImageUrl || smallImageUrl;
+            const safeCardName = escapeHtml(card.name || "Unknown Card");
+            cardDiv.innerHTML = `<img src="${escapeHtml(
+              smallImageUrl
+            )}" alt="${safeCardName}" title="${safeCardName}" data-normal-src="${escapeHtml(
+              normalImageUrl
+            )}">`;
+
+            /* Add container for counters */
+            const cardCountersDiv = document.createElement("div");
+            cardCountersDiv.classList.add("card-counters");
+            cardDiv.appendChild(cardCountersDiv);
+            updateCardCountersDisplay(cardDiv, card.counters);
+
+            cardDiv.addEventListener("dragstart", handleBattlefieldDragStart);
+            cardDiv.addEventListener("dragend", handleDragEnd);
+            generalZone.appendChild(cardDiv);
+          }
+        });
+        updateUntapAllButtonVisibility();
+      }
+
+      /**
+       * Renders the cards currently in the hand zone in the UI.
+       */
+      function displayHand() {
+        const fragment = document.createDocumentFragment();
+        currentHand.forEach((card) => {
+          const cardDiv = document.createElement("div");
+          cardDiv.classList.add("hand-card");
+          cardDiv.dataset.handId = card.handId;
+          cardDiv.draggable = true; // Make hand cards draggable
+          const displayImageUrl = card.imageUrl || "";
+          const normalImageUrl = card.normalImageUrl || displayImageUrl;
+          const safeCardName = escapeHtml(card.name || "Unknown Card");
+
+          cardDiv.innerHTML = `<img src="${escapeHtml(
+            displayImageUrl
+          )}" alt="${safeCardName}" title="${safeCardName}" loading="lazy" data-normal-src="${escapeHtml(
+            normalImageUrl
+          )}">`;
+
+          // Event listeners for individual cards (play, drag start/end)
+          cardDiv.addEventListener("click", handlePlayCardFromHand);
+          cardDiv.addEventListener("dragstart", handleHandDragStart);
+          cardDiv.addEventListener("dragend", handleDragEnd);
+
+          fragment.appendChild(cardDiv);
+        });
+        testHandContainer.innerHTML = ""; // Clear previous hand
+        testHandContainer.appendChild(fragment); // Append new hand
+        updateTestStatus(); // Update counts
+      }
+
+      /**
+       * Renders the cards in the graveyard and exile zones.
+       */
+      function displaySideZones() {
+        /* Helper to clear a zone while keeping the H4 title */
+        const clearZone = (zone, countSpan) => {
+          while (zone.children.length > 1) {
+            if (zone.lastChild.nodeName !== "H4") {
+              zone.removeChild(zone.lastChild);
+            } else {
+              break; /* Stop when only the H4 remains */
+            }
+          }
+          countSpan.textContent = "0";
+        };
+
+        clearZone(graveyardZone, graveyardCountSpan);
+        clearZone(exileZone, exileCountSpan);
+
+        currentGraveyard.forEach((card) => {
+          const cardDiv = document.createElement("div");
+          cardDiv.classList.add("side-zone-card");
+          cardDiv.dataset.gyId = card.gyId;
+          const displayImageUrl = card.imageUrl || "";
+          const normalImageUrl = card.normalImageUrl || displayImageUrl;
+          const safeCardName = escapeHtml(card.name || "Unknown Card");
+          cardDiv.innerHTML = `<img src="${escapeHtml(
+            displayImageUrl
+          )}" alt="${safeCardName}" title="${safeCardName}" loading="lazy" data-normal-src="${escapeHtml(
+            normalImageUrl
+          )}">`;
+          graveyardZone.appendChild(cardDiv);
+        });
+
+        currentExile.forEach((card) => {
+          const cardDiv = document.createElement("div");
+          cardDiv.classList.add("side-zone-card");
+          cardDiv.dataset.exileId = card.exileId;
+          const displayImageUrl = card.imageUrl || "";
+          const normalImageUrl = card.normalImageUrl || displayImageUrl;
+          const safeCardName = escapeHtml(card.name || "Unknown Card");
+          cardDiv.innerHTML = `<img src="${escapeHtml(
+            displayImageUrl
+          )}" alt="${safeCardName}" title="${safeCardName}" loading="lazy" data-normal-src="${escapeHtml(
+            normalImageUrl
+          )}">`;
+          exileZone.appendChild(cardDiv);
+        });
+
+        updateTestStatus(); /* Update counts */
+      }
+
+      /**
+       * Shows or hides the "Untap All" button based on whether any cards on the battlefield are tapped.
+       */
+      function updateUntapAllButtonVisibility() {
+        let tappedCardExists = false;
+        for (const id in currentBattlefield) {
+          if (
+            currentBattlefield[id].zone === "general" &&
+            currentBattlefield[id].isTapped
+          ) {
+            tappedCardExists = true;
+            break;
+          }
+        }
+        untapAllButton.style.display = tappedCardExists
+          ? "inline-block"
+          : "none";
+      }
+
+      /**
+       * Updates the status text in the test area (card counts, messages) and enables/disables relevant buttons.
+       * @param {string} [message=""] - An optional message to prepend to the status.
+       */
+      function updateTestStatus(message = "") {
+        const handCount = currentHand.length;
+        const libraryCount = currentLibrary.length;
+        const gyCount = currentGraveyard.length;
+        const exileCount = currentExile.length;
+
+        graveyardCountSpan.textContent = gyCount;
+        exileCountSpan.textContent = exileCount;
+
+        let statusText = message ? `${message} ` : "";
+        statusText += `Hand: ${handCount}, Library: ${libraryCount}, GY: ${gyCount}, Exile: ${exileCount}.`;
+
+        const libraryAvailable = libraryCount > 0;
+
+        /* Only modify button states if not currently scrying */
+        if (!scryingState.active) {
+          drawNextCardButton.disabled = !libraryAvailable;
+          shuffleDeckButton.disabled = libraryCount <= 1;
+          searchDeckButton.disabled = !libraryAvailable;
+          scryButton.disabled = !libraryAvailable;
+          scryCountInput.disabled = !libraryAvailable;
+          if (libraryAvailable) {
+            scryCountInput.max = libraryCount;
+            if (parseInt(scryCountInput.value, 10) > libraryCount) {
+              scryCountInput.value =
+                libraryCount; /* Adjust if value exceeds max */
+            }
+          } else {
+            scryCountInput.max = 1;
+            scryCountInput.value = 1;
+          }
+        }
+
+        if (!libraryAvailable && !scryingState.active) {
+          statusText += " Library is empty.";
+        }
+        testHandStatus.textContent = statusText;
+        updateUntapAllButtonVisibility();
+        updateLifeDisplay(); // Keep life display updated
+      }
+
+      /**
+       * Draws the initial starting hand from the current deck.
+       * Shuffles the deck, sets up the library and hand state, and updates the UI.
+       * Resets life total.
+       */
+      function drawTestHand() {
+        clearTestArea(); /* Reset everything before drawing */
+        const deckArray = [];
+        /* Create a flat array representing the deck */
+        for (const cardName in currentDeck) {
+          const cardInfo = currentDeck[cardName];
+          if (cardInfo && cardInfo.quantity > 0) {
+            for (let i = 0; i < cardInfo.quantity; i++)
+              deckArray.push({
+                name: cardName,
+                imageUrl: cardInfo.imageUrl,
+                normalImageUrl: cardInfo.normalImageUrl,
+              });
+          }
+        }
+
+        const deckSize = deckArray.length;
+        if (deckSize < STARTING_HAND_SIZE) {
+          updateTestStatus(
+            `Cannot draw hand: Deck only has ${deckSize} cards (needs at least ${STARTING_HAND_SIZE}).`
+          );
+          disableDrawNextButton();
+          disableShuffleButton();
+          disableSearchButton();
+          disableScryButton();
+          displayHand();
+          displayBattlefield();
+          displaySideZones();
+          testAreaSection.style.display =
+            "none"; /* Hide test area if deck too small */
+          currentPlayerLife = STARTING_LIFE_TOTAL; // Reset life even if draw fails
+          updateLifeDisplay();
+          return;
+        }
+
+        testAreaSection.style.display =
+          "block"; /* Ensure test area is visible */
+        shuffleArray(deckArray);
+
+        const hand = deckArray.slice(0, STARTING_HAND_SIZE);
+        currentHand = hand.map((card) => ({
+          handId: `h-${handCardIdCounter++}`,
+          name: card.name,
+          imageUrl: card.imageUrl,
+          normalImageUrl: card.normalImageUrl,
+        }));
+        currentLibrary = deckArray.slice(STARTING_HAND_SIZE);
+        currentPlayerLife = STARTING_LIFE_TOTAL; // Reset life total for new game
+
+        displayHand();
+        displayBattlefield();
+        displaySideZones();
+        updateTestStatus(`Drew ${STARTING_HAND_SIZE} cards.`);
+        enableDrawNextButton();
+        enableShuffleButton();
+        enableSearchButton();
+        enableScryButton();
+        hideDeckSearchArea();
+        updateUntapAllButtonVisibility();
+        updateLifeDisplay(); // Display initial life
+      }
+
+      /**
+       * Draws the next card from the library and adds it to the hand.
+       */
+      function drawNextCard() {
+        if (currentLibrary.length === 0) {
+          updateTestStatus("Cannot draw: Library is empty.");
+          disableDrawNextButton();
+          disableShuffleButton();
+          disableSearchButton();
+          disableScryButton();
+          return;
+        }
+        const nextCard = currentLibrary.shift();
+        currentHand.push({
+          handId: `h-${handCardIdCounter++}`,
+          name: nextCard.name,
+          imageUrl: nextCard.imageUrl,
+          normalImageUrl: nextCard.normalImageUrl,
+        });
+        displayHand();
+        updateTestStatus(`Drew ${escapeHtml(nextCard.name)}.`);
+
+        /* If library search is open, refresh it */
+        if (deckSearchArea.style.display === "block") {
+          displayLibraryForSearch();
+        }
+        updateTestStatus(); /* Update counts and button states */
+      }
+
+      /**
+       * Shuffles the current library.
+       */
+      function shuffleLibrary() {
+        if (currentLibrary.length > 1) {
+          shuffleArray(currentLibrary);
+          updateTestStatus("Library shuffled.");
+          /* If library search is open, refresh it */
+          if (deckSearchArea.style.display === "block") {
+            displayLibraryForSearch();
+          }
+        } else {
+          updateTestStatus("Cannot shuffle: Library has 1 or 0 cards.");
+        }
+      }
+
+      /* --- Button State Management --- */
+      function enableDrawNextButton() {
+        drawNextCardButton.disabled =
+          currentLibrary.length === 0 || scryingState.active;
+      }
+      function disableDrawNextButton() {
+        drawNextCardButton.disabled = true;
+      }
+      function enableShuffleButton() {
+        shuffleDeckButton.disabled =
+          currentLibrary.length <= 1 || scryingState.active;
+      }
+      function disableShuffleButton() {
+        shuffleDeckButton.disabled = true;
+      }
+      function enableSearchButton() {
+        searchDeckButton.disabled =
+          currentLibrary.length === 0 || scryingState.active;
+      }
+      function disableSearchButton() {
+        searchDeckButton.disabled = true;
+      }
+      function enableScryButton() {
+        const libraryAvailable = currentLibrary.length > 0;
+        scryButton.disabled = !libraryAvailable || scryingState.active;
+        scryCountInput.disabled = !libraryAvailable || scryingState.active;
+        if (libraryAvailable) {
+          scryCountInput.max = currentLibrary.length;
+        } else {
+          scryCountInput.max = 1;
+        }
+      }
+      function disableScryButton() {
+        scryButton.disabled = true;
+        scryCountInput.disabled = true;
+      }
+
+      /**
+       * Resets the entire test area state (hand, battlefield, library, etc.) and UI.
+       * Resets life total.
+       */
+      function clearTestArea() {
+        currentHand = [];
+        currentBattlefield = {};
+        currentLibrary = [];
+        currentGraveyard = [];
+        currentExile = [];
+        currentPlayerLife = STARTING_LIFE_TOTAL; // Reset life on clear
+        handCardIdCounter = 0;
+        battlefieldCardIdCounter = 0;
+        graveyardCardIdCounter = 0;
+        exileCardIdCounter = 0;
+        dragInfo = {
+          cardId: null,
+          sourceZone: null,
+          offsetX: 0,
+          offsetY: 0,
+          element: null,
+        };
+
+        /* Clear UI elements safely */
+        if (testHandContainer) testHandContainer.innerHTML = "";
+        if (generalZone) {
+          while (generalZone.children.length > 1) {
+            generalZone.removeChild(generalZone.lastChild);
+          }
+        }
+        if (graveyardZone) {
+          while (graveyardZone.children.length > 1) {
+            if (graveyardZone.lastChild.nodeName !== "H4") {
+              graveyardZone.removeChild(graveyardZone.lastChild);
+            } else break;
+          }
+        }
+        if (exileZone) {
+          while (exileZone.children.length > 1) {
+            if (exileZone.lastChild.nodeName !== "H4") {
+              exileZone.removeChild(exileZone.lastChild);
+            } else break;
+          }
+        }
+
+        if (testHandStatus) testHandStatus.textContent = "";
+        if (graveyardCountSpan) graveyardCountSpan.textContent = "0";
+        if (exileCountSpan) exileCountSpan.textContent = "0";
+
+        disableDrawNextButton();
+        disableShuffleButton();
+        disableSearchButton();
+        disableScryButton();
+        hideDeckSearchArea();
+        hideContextMenu();
+        hideCardViewPopup();
+        hideResultPopup();
+        hideImportDeckPopup(); // Also hide import popup
+        cancelScry(); /* Ensure any active scry is cancelled */
+        updateUntapAllButtonVisibility();
+        updateLifeDisplay(); // Update life display after reset
+      }
+
+      /**
+       * Handles clicking a card in the hand to play it to the battlefield.
+       * @param {Event} event - The click event object.
+       */
+      function handlePlayCardFromHand(event) {
+        // Prevent playing card if it was part of a drag operation that just finished
+        if (event.detail === 0) {
+          // This can happen after dragend in some browsers
+          return;
+        }
+
+        const cardDiv = event.currentTarget;
+        const handId = cardDiv.dataset.handId;
+        const cardIndex = currentHand.findIndex(
+          (card) => card.handId === handId
+        );
+
+        if (cardIndex > -1) {
+          const [cardToPlay] = currentHand.splice(cardIndex, 1);
+          const battlefieldId = `bf-${battlefieldCardIdCounter++}`;
+          /* Place card near top-left with slight random offset */
+          const initialX = 10 + Math.floor(Math.random() * 10);
+          const initialY = 10 + Math.floor(Math.random() * 10);
+
+          currentBattlefield[battlefieldId] = {
+            name: cardToPlay.name,
+            imageUrl: cardToPlay.imageUrl,
+            normalImageUrl: cardToPlay.normalImageUrl,
+            zone: "general",
+            isTapped: false,
+            x: initialX,
+            y: initialY,
+            counters: { plusOne: 0, minusOne: 0 },
+          };
+          displayHand();
+          displayBattlefield();
+          updateTestStatus(`Played ${escapeHtml(cardToPlay.name)}.`);
+        }
+      }
+
+      /* --- Drag and Drop Functionality --- */
+
+      /**
+       * Handles the start of dragging a card from the hand.
+       * @param {DragEvent} event - The dragstart event object.
+       */
+      function handleHandDragStart(event) {
+        if (scryingState.active) {
+          event.preventDefault();
+          return;
+        }
+        const cardElement = event.currentTarget;
+        const handId = cardElement.dataset.handId;
+        const cardIndex = currentHand.findIndex(
+          (card) => card.handId === handId
+        );
+
+        if (cardIndex > -1) {
+          dragInfo.cardId = handId;
+          dragInfo.sourceZone = "hand";
+          dragInfo.element = cardElement; // Store the element being dragged
+          // Don't calculate offset for hand reordering, not needed.
+          // dragInfo.offsetX = event.offsetX;
+          // dragInfo.offsetY = event.offsetY;
+
+          event.dataTransfer.setData("text/plain", handId);
+          event.dataTransfer.effectAllowed = "move";
+
+          // Add dragging class slightly later for visual feedback
+          setTimeout(() => {
+            cardElement.classList.add("dragging");
+          }, 0);
+          event.stopPropagation();
+          hideContextMenu();
+          hideCardViewPopup();
+          hideResultPopup();
+        } else {
+          event.preventDefault(); // Prevent dragging if card not found
+        }
+      }
+
+      /**
+       * Handles the start of dragging a card from the battlefield.
+       * Calculates the correct offset, accounting for tapped rotation.
+       * @param {DragEvent} event - The dragstart event object.
+       */
+      function handleBattlefieldDragStart(event) {
+        if (scryingState.active) {
+          event.preventDefault();
+          return;
+        }
+        const cardElement = event.target.closest(".battlefield-card");
+        if (!cardElement || !cardElement.dataset.battlefieldId) return;
+
+        const cardId = cardElement.dataset.battlefieldId;
+        if (
+          !currentBattlefield[cardId] ||
+          currentBattlefield[cardId].zone !== "general"
+        ) {
+          event.preventDefault(); /* Prevent dragging if card not found or not in general zone */
+          return;
+        }
+
+        dragInfo.cardId = cardId;
+        dragInfo.sourceZone = "battlefield";
+        dragInfo.element = cardElement; // Store element
+        const rect = cardElement.getBoundingClientRect();
+        const isTapped = currentBattlefield[cardId].isTapped;
+        const clientX = event.clientX;
+        const clientY = event.clientY;
+
+        /* Calculate offset relative to the card's top-left corner, considering rotation */
+        if (isTapped) {
+          const centerX = rect.left + rect.width / 2;
+          const centerY = rect.top + rect.height / 2;
+          /* Vector from center to click point */
+          const rotatedOffsetX = clientX - centerX;
+          const rotatedOffsetY = clientY - centerY;
+          /* Distance and angle from center */
+          const clickDist = Math.sqrt(
+            rotatedOffsetX ** 2 + rotatedOffsetY ** 2
+          );
+          const clickAngle = Math.atan2(rotatedOffsetY, rotatedOffsetX);
+          /* Rotate click point back 90 degrees clockwise to find original relative position */
+          const originalAngle = clickAngle + Math.PI / 2;
+          const originalOffsetX = clickDist * Math.cos(originalAngle);
+          const originalOffsetY = clickDist * Math.sin(originalAngle);
+          /* Calculate offset from top-left of the *untapped* card dimensions */
+          const untapppedWidth = rect.height; /* Swapped dimensions */
+          const untapppedHeight = rect.width;
+          dragInfo.offsetX = untapppedWidth / 2 + originalOffsetX;
+          dragInfo.offsetY = untapppedHeight / 2 + originalOffsetY;
+        } else {
+          /* Simple offset for untapped cards */
+          dragInfo.offsetX = clientX - rect.left;
+          dragInfo.offsetY = clientY - rect.top;
+        }
+
+        event.dataTransfer.setData("text/plain", cardId);
+        event.dataTransfer.effectAllowed = "move";
+        setTimeout(() => {
+          cardElement.classList.add("dragging");
+        }, 0);
+        event.stopPropagation();
+        hideContextMenu();
+        hideCardViewPopup();
+        hideResultPopup();
+      }
+
+      /**
+       * Handles the end of any drag operation (cleans up state and visuals).
+       * @param {DragEvent} event - The dragend event object.
+       */
+      function handleDragEnd(event) {
+        // Clear visual feedback (dragging class, shifting classes)
+        if (dragInfo.element) {
+          dragInfo.element.classList.remove("dragging");
+        }
+        // Remove shifting classes from all hand cards
+        testHandContainer.querySelectorAll(".hand-card").forEach((cardEl) => {
+          cardEl.classList.remove("shift-left", "shift-right");
+        });
+
+        // Reset drag info
+        dragInfo = {
+          cardId: null,
+          sourceZone: null,
+          offsetX: 0,
+          offsetY: 0,
+          element: null,
+        };
+      }
+
+      /**
+       * Handles the dragover event on drop zones (allows dropping).
+       * @param {DragEvent} event - The dragover event object.
+       */
+      function handleDragOver(event) {
+        event.preventDefault(); /* Necessary to allow dropping */
+        event.dataTransfer.dropEffect = "move";
+      }
+
+      /**
+       * Finds the element being hovered over during hand reordering.
+       * @param {DragEvent} event - The dragover event.
+       * @returns {HTMLElement | null} The element after which to insert, or null.
+       */
+      function getHandDragAfterElement(container, x) {
+        const draggableElements = [
+          ...container.querySelectorAll(".hand-card:not(.dragging)"),
+        ];
+
+        return draggableElements.reduce(
+          (closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = x - box.left - box.width / 2; // Find midpoint of card
+            if (offset < 0 && offset > closest.offset) {
+              return { offset: offset, element: child };
+            } else {
+              return closest;
+            }
+          },
+          { offset: Number.NEGATIVE_INFINITY }
+        ).element;
+      }
+
+      /**
+       * Handles drag over the hand container for reordering.
+       * @param {DragEvent} event
+       */
+      function handleHandDragOver(event) {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "move"; // Indicate valid drop target
+
+        if (!dragInfo.element || dragInfo.sourceZone !== "hand") {
+          return; // Only handle hand-to-hand drags
+        }
+
+        const afterElement = getHandDragAfterElement(
+          testHandContainer,
+          event.clientX
+        );
+        const draggableElements = [
+          ...testHandContainer.querySelectorAll(".hand-card:not(.dragging)"),
+        ];
+
+        draggableElements.forEach((el) => {
+          el.classList.remove("shift-left", "shift-right");
+        });
+
+        if (afterElement == null) {
+          // If dragging past the end, shift the last element
+          if (draggableElements.length > 0) {
+            draggableElements[draggableElements.length - 1].classList.add(
+              "shift-left"
+            );
+          }
+        } else {
+          // Shift the element we're inserting before
+          afterElement.classList.add("shift-right");
+        }
+      }
+
+      /**
+       * Handles drag leave from the hand container.
+       * @param {DragEvent} event
+       */
+      function handleHandDragLeave(event) {
+        // If the mouse leaves the container, remove shifting classes
+        if (event.target === testHandContainer) {
+          testHandContainer.querySelectorAll(".hand-card").forEach((cardEl) => {
+            cardEl.classList.remove("shift-left", "shift-right");
+          });
+        }
+      }
+
+      /**
+       * Handles dropping a card onto the hand container for reordering.
+       * @param {DragEvent} event
+       */
+      function handleHandDrop(event) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        if (dragInfo.sourceZone !== "hand" || !dragInfo.cardId) {
+          console.warn("Attempted to drop non-hand card into hand?");
+          return; // Only allow hand-to-hand drops here
+        }
+
+        const draggedHandId = dragInfo.cardId;
+        const draggedCardIndex = currentHand.findIndex(
+          (c) => c.handId === draggedHandId
+        );
+
+        if (draggedCardIndex === -1) {
+          console.error("Could not find dragged card in currentHand array.");
+          handleDragEnd(event); // Clean up visuals
+          return;
+        }
+
+        // Remove the card from its original position in the array
+        const [draggedCardData] = currentHand.splice(draggedCardIndex, 1);
+
+        // Find where to insert it
+        const afterElement = getHandDragAfterElement(
+          testHandContainer,
+          event.clientX
+        );
+
+        if (afterElement == null) {
+          // Dropped at the end
+          currentHand.push(draggedCardData);
+        } else {
+          // Dropped before 'afterElement'
+          const afterElementId = afterElement.dataset.handId;
+          const targetIndex = currentHand.findIndex(
+            (c) => c.handId === afterElementId
+          );
+          if (targetIndex !== -1) {
+            currentHand.splice(targetIndex, 0, draggedCardData);
+          } else {
+            // Fallback: add to end if target index not found (shouldn't happen)
+            console.warn(
+              "Target element for drop not found in array, adding to end."
+            );
+            currentHand.push(draggedCardData);
+          }
+        }
+
+        // Clean up shift classes explicitly before re-rendering
+        testHandContainer.querySelectorAll(".hand-card").forEach((cardEl) => {
+          cardEl.classList.remove("shift-left", "shift-right");
+        });
+
+        // Re-render the hand with the new order
+        displayHand();
+        updateTestStatus("Reordered hand.");
+
+        // Full cleanup happens in handleDragEnd which fires after drop
+      }
+
+      /**
+       * Handles the drop event on valid drop zones (battlefield, graveyard, exile).
+       * Moves the card between zones based on the source and target.
+       * Skips if drop target is hand (handled by handleHandDrop).
+       * @param {DragEvent} event - The drop event object.
+       */
+      function handleDrop(event) {
+        const targetZoneElement = event.currentTarget;
+        const dropZoneId = targetZoneElement.id;
+
+        // Ignore drops onto the hand container itself (handled by handleHandDrop)
+        if (dropZoneId === "testHandContainer") {
+          return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+        hideContextMenu();
+        hideCardViewPopup();
+        hideResultPopup();
+
+        const draggedCardId = dragInfo.cardId;
+        const sourceZone = dragInfo.sourceZone;
+
+        if (!draggedCardId || !sourceZone) return; /* No valid drag info */
+        // Prevent dropping hand cards onto themselves during reorder attempt
+        if (sourceZone === "hand" && dropZoneId === "testHandContainer") return;
+
+        /* --- Drop on Graveyard or Exile --- */
+        if (dropZoneId === "graveyardZone" || dropZoneId === "exileZone") {
+          let cardData = null;
+          let cardRemoved = false;
+
+          /* Remove card from source zone */
+          if (
+            sourceZone === "battlefield" &&
+            currentBattlefield[draggedCardId]
+          ) {
+            cardData = { ...currentBattlefield[draggedCardId] };
+            delete currentBattlefield[draggedCardId];
+            cardRemoved = true;
+          } else if (sourceZone === "hand") {
+            const index = currentHand.findIndex(
+              (c) => c.handId === draggedCardId
+            );
+            if (index > -1) {
+              [cardData] = currentHand.splice(index, 1);
+              cardRemoved = true;
+            }
+          }
+
+          /* Add card to target zone */
+          if (cardRemoved && cardData) {
+            /* Clean up properties not needed in side zones */
+            delete cardData.x;
+            delete cardData.y;
+            delete cardData.zone;
+            delete cardData.isTapped;
+            delete cardData.counters;
+            delete cardData.handId; /* Remove handId if it came from hand */
+            delete cardData.battlefieldId; /* Remove battlefieldId if it came from battlefield */
+
+            if (dropZoneId === "graveyardZone") {
+              cardData.gyId = `gy-${graveyardCardIdCounter++}`;
+              currentGraveyard.push(cardData);
+              updateTestStatus(
+                `Moved ${escapeHtml(cardData.name)} to Graveyard.`
+              );
+            } else {
+              /* Exile Zone */
+              cardData.exileId = `ex-${exileCardIdCounter++}`;
+              currentExile.push(cardData);
+              updateTestStatus(`Moved ${escapeHtml(cardData.name)} to Exile.`);
+            }
+            /* Update UI */
+            displayBattlefield();
+            displayHand();
+            displaySideZones();
+            updateUntapAllButtonVisibility();
+          }
+        } else if (dropZoneId === "generalZone") {
+          /* --- Drop on Battlefield --- */
+          const zoneRect = targetZoneElement.getBoundingClientRect();
+          let cardData = null;
+          let cardMoved = false;
+
+          /* Card came from Hand */
+          if (sourceZone === "hand") {
+            const cardIndex = currentHand.findIndex(
+              (card) => card.handId === draggedCardId
+            );
+            if (cardIndex > -1) {
+              [cardData] = currentHand.splice(cardIndex, 1);
+              const battlefieldId = `bf-${battlefieldCardIdCounter++}`;
+              const cardWidth = 110; /* Approximate battlefield card width */
+              const cardHeight = 154; /* Approximate battlefield card height */
+
+              /* Calculate drop position relative to the zone, centered under cursor */
+              let newX = event.clientX - zoneRect.left - dragInfo.offsetX;
+              let newY = event.clientY - zoneRect.top - dragInfo.offsetY;
+
+              /* Clamp position within zone boundaries */
+              newX = Math.max(
+                0,
+                Math.min(newX, targetZoneElement.clientWidth - cardWidth - 5)
+              );
+              newY = Math.max(
+                0,
+                Math.min(newY, targetZoneElement.clientHeight - cardHeight - 5)
+              );
+
+              currentBattlefield[battlefieldId] = {
+                name: cardData.name,
+                imageUrl: cardData.imageUrl,
+                normalImageUrl: cardData.normalImageUrl,
+                zone: "general",
+                isTapped: false,
+                x: newX,
+                y: newY,
+                counters: { plusOne: 0, minusOne: 0 },
+              };
+              /* No need for handId on battlefield */
+
+              updateTestStatus(
+                `Played ${escapeHtml(cardData.name)} from hand.`
+              );
+              cardMoved = true;
+              displayHand();
+              displayBattlefield();
+            }
+          } else if (
+            /* Card came from Battlefield (repositioning) */
+            sourceZone === "battlefield" &&
+            currentBattlefield[draggedCardId]
+          ) {
+            cardData = currentBattlefield[draggedCardId];
+            const cardElement = generalZone.querySelector(
+              `[data-battlefield-id="${draggedCardId}"]`
+            );
+            if (cardElement) {
+              const cardStyle = window.getComputedStyle(cardElement);
+              const cardWidth = parseFloat(cardStyle.width);
+              const cardHeight = parseFloat(cardStyle.height);
+
+              /* Calculate new top-left based on drop point and drag offset */
+              let newX = event.clientX - zoneRect.left - dragInfo.offsetX;
+              let newY = event.clientY - zoneRect.top - dragInfo.offsetY;
+
+              /* Clamp position within zone boundaries */
+              newX = Math.max(
+                0,
+                Math.min(newX, targetZoneElement.clientWidth - cardWidth - 5)
+              );
+              newY = Math.max(
+                0,
+                Math.min(newY, targetZoneElement.clientHeight - cardHeight - 5)
+              );
+
+              /* Update state and element style */
+              cardData.x = newX;
+              cardData.y = newY;
+              cardElement.style.left = `${newX}px`;
+              cardElement.style.top = `${newY}px`;
+
+              updateTestStatus(
+                `Moved ${escapeHtml(cardData.name)} on battlefield.`
+              );
+              cardMoved = true;
+              /* No need to call displayBattlefield() here, just moved the element */
+              /* However, calling it ensures consistency if other state changed */
+              displayBattlefield();
+            } else {
+              console.error(
+                "Could not find dragged battlefield card element on drop."
+              );
+              displayBattlefield(); /* Refresh to ensure consistency */
+            }
+          }
+
+          if (!cardMoved) {
+            console.warn(
+              "Drop on battlefield failed, card not found in source:",
+              sourceZone,
+              draggedCardId
+            );
+            /* Refresh UI in case of inconsistent state */
+            displayBattlefield();
+            displayHand();
+          }
+        } else {
+          console.warn("Drop occurred on unexpected element:", dropZoneId);
+          /* Refresh UI */
+          displayBattlefield();
+          displayHand();
+        }
+
+        // Reset drag info *after* drop logic (handled by dragend)
+      }
+
+      /* --- Library Search Functionality --- */
+
+      /**
+       * Toggles the visibility of the library search area.
+       */
+      function toggleDeckSearchArea() {
+        if (scryingState.active) return; /* Don't allow search during scry */
+        if (
+          deckSearchArea.style.display === "none" ||
+          !deckSearchArea.style.display
+        ) {
+          deckSearchArea.style.display = "block";
+          displayLibraryForSearch();
+          updateTestStatus("Viewing library...");
+        } else {
+          hideDeckSearchArea();
+        }
+      }
+
+      /**
+       * Hides the library search area and clears its contents.
+       */
+      function hideDeckSearchArea() {
+        deckSearchArea.style.display = "none";
+        deckSearchResults.innerHTML = "";
+        updateTestStatus(); /* Reset status message */
+      }
+
+      /**
+       * Displays the contents of the current library in the search area UI, sorted alphabetically.
+       */
+      function displayLibraryForSearch() {
+        deckSearchResults.innerHTML = "";
+        if (currentLibrary.length === 0) {
+          deckSearchResults.innerHTML = "<li>Library is empty.</li>";
+          return;
+        }
+        /* Sort a copy for display, keep original library order intact */
+        const sortedLibrary = [...currentLibrary].sort((a, b) =>
+          a.name.localeCompare(b.name)
+        );
+
+        sortedLibrary.forEach((card) => {
+          /* Find the original index in the unsorted library to allow actions on the correct card */
+          const originalIndex = currentLibrary.findIndex((c) => c === card);
+          if (originalIndex === -1 && currentLibrary.includes(card)) {
+            /* This might happen with duplicate objects, though unlikely with current setup */
+            console.warn(
+              "Potential duplicate card object issue in library search display:",
+              card.name
+            );
+            /* Fallback: find first matching name (less reliable if multiple copies have different object refs) */
+            // originalIndex = currentLibrary.findIndex(c => c.name === card.name);
+          }
+
+          const li = document.createElement("li");
+          li.classList.add("library-search-card");
+          const displayImageUrl = card.imageUrl || "";
+          const normalImageUrl = card.normalImageUrl || displayImageUrl;
+          li.innerHTML = `<img src="${escapeHtml(
+            displayImageUrl
+          )}" alt="${escapeHtml(card.name)}" title="${escapeHtml(
+            card.name
+          )}" loading="lazy" data-normal-src="${escapeHtml(normalImageUrl)}">`;
+
+          /* Store necessary data for context menu actions */
+          li.dataset.libraryIndex = originalIndex;
+          li.dataset.cardname = card.name;
+          li.dataset.imageurl = card.imageUrl;
+          li.dataset.normalimageurl = card.normalImageUrl;
+
+          deckSearchResults.appendChild(li);
+        });
+      }
+
+      /* --- Theme Management --- */
+
+      /**
+       * Sets the color theme (light/dark) and saves the preference to local storage.
+       * @param {'light' | 'dark'} themeName - The name of the theme to apply.
+       */
+      function setTheme(themeName) {
+        localStorage.setItem(THEME_STORAGE_KEY, themeName);
+        document.body.setAttribute("data-theme", themeName);
+        themeToggle.checked = themeName === "dark";
+      }
+
+      /**
+       * Toggles the color theme based on the theme switch checkbox state.
+       */
+      function toggleTheme() {
+        setTheme(themeToggle.checked ? "dark" : "light");
+      }
+
+      /**
+       * Loads the preferred theme from local storage or detects the system preference.
+       */
+      function loadTheme() {
+        const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+        const prefersDark =
+          window.matchMedia &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+        if (storedTheme === "light" || storedTheme === "dark") {
+          setTheme(storedTheme);
+        } else if (prefersDark) {
+          setTheme("dark");
+        } else {
+          setTheme("light"); /* Default to light */
+        }
+      }
+
+      /* --- Context Menu Functionality --- */
+
+      /**
+       * Shows the context menu for a clicked card element.
+       * @param {MouseEvent} event - The contextmenu event object.
+       * @param {HTMLElement} cardElement - The card element that was right-clicked.
+       */
+      function showContextMenu(event, cardElement) {
+        /* Prevent context menu during scry unless clicking a scry card */
+        if (
+          scryingState.active &&
+          !cardElement.classList.contains("scry-card-item")
+        ) {
+          event.preventDefault();
+          return;
+        }
+        event.preventDefault();
+        hideContextMenu(); /* Hide any existing menu */
+        hideCardViewPopup();
+        hideResultPopup();
+
+        let cardId = null;
+        let sourceZone = null;
+        let cardData = null;
+        let libraryIndex = null;
+        const cardRect = cardElement.getBoundingClientRect();
+
+        /* Determine card source and data based on element class/dataset */
+        if (cardElement.classList.contains("battlefield-card")) {
+          sourceZone = "battlefield";
+          cardId = cardElement.dataset.battlefieldId;
+          if (currentBattlefield[cardId])
+            cardData = { ...currentBattlefield[cardId] };
+        } else if (cardElement.classList.contains("side-zone-card")) {
+          const parentZone = cardElement.closest("#graveyardZone, #exileZone");
+          if (parentZone?.id === "graveyardZone") {
+            sourceZone = "graveyard";
+            cardId = cardElement.dataset.gyId;
+            const foundCard = currentGraveyard.find((c) => c.gyId === cardId);
+            if (foundCard) cardData = { ...foundCard };
+          } else if (parentZone?.id === "exileZone") {
+            sourceZone = "exile";
+            cardId = cardElement.dataset.exileId;
+            const foundCard = currentExile.find((c) => c.exileId === cardId);
+            if (foundCard) cardData = { ...foundCard };
+          }
+        } else if (cardElement.classList.contains("hand-card")) {
+          sourceZone = "hand";
+          cardId = cardElement.dataset.handId;
+          const foundCard = currentHand.find((c) => c.handId === cardId);
+          if (foundCard) cardData = { ...foundCard };
+        } else if (cardElement.classList.contains("library-search-card")) {
+          sourceZone = "library";
+          libraryIndex = parseInt(cardElement.dataset.libraryIndex, 10);
+          if (
+            !isNaN(libraryIndex) &&
+            libraryIndex >= 0 &&
+            libraryIndex < currentLibrary.length
+          ) {
+            /* Ensure index is valid before accessing */
+            if (currentLibrary[libraryIndex]) {
+              cardData = { ...currentLibrary[libraryIndex] };
+              cardId = `lib-${libraryIndex}`; /* Create a temporary ID for context */
+            } else {
+              console.error(
+                `Invalid library index access: ${libraryIndex} out of ${currentLibrary.length}`
+              );
+              return; /* Don't show menu if data is inconsistent */
+            }
+          }
+        } else if (cardElement.classList.contains("scry-card-item")) {
+          sourceZone = "scry";
+          cardId = cardElement.dataset.scryTempId;
+          const foundCard = scryingState.cards.find(
+            (c) => c.scryTempId === cardId
+          );
+          if (foundCard)
+            cardData = {
+              /* Only need basic info for view action */ name: foundCard.name,
+              imageUrl: foundCard.imageUrl,
+              normalImageUrl: foundCard.normalImageUrl,
+            };
+        }
+
+        if (!cardId || !sourceZone || !cardData) {
+          console.error(
+            "Could not identify card for context menu.",
+            cardElement
+          );
+          return;
+        }
+
+        /* Store target info and update menu items */
+        contextMenuTarget = { cardId, cardData, sourceZone, libraryIndex };
+        updateContextMenuItems(sourceZone, cardData);
+        positionContextMenu(cardRect);
+        cardContextMenu.style.display = "block";
+        contextMenuVisible = true;
+      }
+
+      /**
+       * Hides the context menu and resets its target state.
+       */
+      function hideContextMenu() {
+        cardContextMenu.style.display = "none";
+        contextMenuVisible = false;
+        contextMenuTarget = {
+          cardId: null,
+          cardData: null,
+          sourceZone: null,
+          libraryIndex: null,
+        };
+      }
+
+      /**
+       * Positions the context menu near the clicked card, ensuring it stays within the viewport.
+       * Adjusts behavior based on fullscreen mode.
+       * @param {DOMRect} cardRect - The bounding rectangle of the clicked card element.
+       */
+      function positionContextMenu(cardRect) {
+        const menuWidth = cardContextMenu.offsetWidth;
+        const menuHeight = cardContextMenu.offsetHeight;
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        const buffer = 5; /* Small buffer from edges */
+        let idealTop, idealLeft, minLeft, maxLeft, minTop, maxTop;
+
+        if (isFullscreen) {
+          /* Fullscreen coordinates are relative to viewport */
+          minLeft = buffer;
+          maxLeft = viewportWidth - buffer;
+          minTop = buffer;
+          maxTop = viewportHeight - buffer;
+
+          /* Try placing above the card first */
+          idealTop = cardRect.top - menuHeight - buffer;
+          idealLeft = cardRect.left;
+
+          /* If above doesn't fit, place below */
+          if (idealTop < minTop) {
+            idealTop = cardRect.bottom + buffer;
+          }
+          /* If right edge overflows, align right edges */
+          if (idealLeft + menuWidth > maxLeft) {
+            idealLeft = cardRect.right - menuWidth;
+          }
+
+          /* Clamp within viewport boundaries */
+          idealLeft = Math.max(minLeft, idealLeft);
+          idealTop = Math.max(minTop, idealTop);
+
+          /* Final check for bottom/right overflow after adjustments */
+          if (idealTop + menuHeight > maxTop) {
+            idealTop = maxTop - menuHeight;
+            idealTop = Math.max(
+              minTop,
+              idealTop
+            ); /* Ensure it doesn't go off top */
+          }
+          if (idealLeft + menuWidth > maxLeft) {
+            idealLeft = maxLeft - menuWidth;
+            idealLeft = Math.max(
+              minLeft,
+              idealLeft
+            ); /* Ensure it doesn't go off left */
+          }
+        } else {
+          /* Non-fullscreen coordinates need scroll offset */
+          const scrollX = window.scrollX;
+          const scrollY = window.scrollY;
+          minLeft = scrollX + buffer;
+          maxLeft = viewportWidth + scrollX - buffer;
+          minTop = scrollY + buffer;
+          maxTop = viewportHeight + scrollY - buffer;
+
+          /* Try placing above the card first */
+          idealTop = cardRect.top + scrollY - menuHeight - buffer;
+          idealLeft = cardRect.left + scrollX;
+
+          /* Adjustments similar to fullscreen, but with scroll offsets */
+          if (idealTop < minTop) {
+            idealTop = cardRect.bottom + scrollY + buffer;
+          }
+          if (idealLeft + menuWidth > maxLeft) {
+            idealLeft = cardRect.right + scrollX - menuWidth;
+          }
+
+          idealLeft = Math.max(minLeft, idealLeft);
+          idealTop = Math.max(minTop, idealTop);
+
+          if (idealTop + menuHeight > maxTop) {
+            idealTop = maxTop - menuHeight;
+            idealTop = Math.max(minTop, idealTop);
+          }
+          if (idealLeft + menuWidth > maxLeft) {
+            idealLeft = maxLeft - menuWidth;
+            idealLeft = Math.max(minLeft, idealLeft);
+          }
+        }
+
+        cardContextMenu.style.left = `${idealLeft}px`;
+        cardContextMenu.style.top = `${idealTop}px`;
+      }
+
+      /**
+       * Updates the context menu items (enabling/disabling/hiding) based on the card's source zone and state.
+       * @param {'battlefield' | 'hand' | 'graveyard' | 'exile' | 'library' | 'scry'} sourceZone - The zone the card is currently in.
+       * @param {object} cardData - The data object for the card.
+       */
+      function updateContextMenuItems(sourceZone, cardData) {
+        const items = cardContextMenu.querySelectorAll("li");
+        items.forEach((item) => {
+          const action = item.dataset.action;
+          item.classList.remove("disabled", "hidden");
+
+          /* Special handling for Scry zone (only View Card allowed) */
+          if (sourceZone === "scry") {
+            if (action !== "viewCard") {
+              item.classList.add("hidden");
+            }
+            return; /* Skip other checks for scry zone */
+          }
+
+          /* Disable moving to the current zone */
+          if (
+            (action === "toBattlefield" && sourceZone === "battlefield") ||
+            (action === "toGraveyard" && sourceZone === "graveyard") ||
+            (action === "toExile" && sourceZone === "exile") ||
+            (action === "toHand" && sourceZone === "hand") ||
+            ((action === "toLibraryTop" || action === "toLibraryBottom") &&
+              sourceZone === "library")
+          ) {
+            item.classList.add("disabled");
+          }
+
+          /* Tap/Untap only for battlefield */
+          if (action === "toggleTap") {
+            if (sourceZone === "battlefield") {
+              item.textContent = cardData?.isTapped ? "Untap" : "Tap";
+            } else {
+              item.classList.add("hidden");
+            }
+          }
+
+          /* Counter actions only for battlefield */
+          if (action.includes("Counter")) {
+            if (sourceZone !== "battlefield") {
+              item.classList.add("hidden");
+            } else {
+              /* Disable removing counters if none exist */
+              if (action === "removePlusOneCounter") {
+                if (!cardData?.counters?.plusOne > 0) {
+                  item.classList.add("disabled");
+                }
+              }
+              if (action === "removeMinusOneCounter") {
+                if (!cardData?.counters?.minusOne > 0) {
+                  item.classList.add("disabled");
+                }
+              }
+            }
+          }
+        });
+      }
+
+      /**
+       * Handles clicks on context menu items, performing the selected action.
+       * @param {Event} event - The click event object.
+       */
+      function handleContextMenuAction(event) {
+        const targetLi = event.target.closest("li");
+        /* Ensure a valid, enabled menu item was clicked and target data exists */
+        if (
+          !targetLi ||
+          targetLi.classList.contains("disabled") ||
+          targetLi.classList.contains("hidden") ||
+          !contextMenuTarget.cardId
+        ) {
+          hideContextMenu();
+          return;
+        }
+
+        const action = targetLi.dataset.action;
+        const { cardId, cardData, sourceZone, libraryIndex } =
+          contextMenuTarget;
+
+        if (!cardData) {
+          console.error("Missing card data for context menu action.");
+          hideContextMenu();
+          return;
+        }
+
+        /* --- Handle "View Card" Action --- */
+        if (action === "viewCard") {
+          const imageUrl = cardData.normalImageUrl || cardData.imageUrl;
+          showCardViewPopup(imageUrl);
+          hideContextMenu();
+          return;
+        }
+
+        /* --- Prevent other actions if source is Scry --- */
+        if (sourceZone === "scry") {
+          hideContextMenu();
+          return;
+        }
+
+        /* --- Handle Tap/Untap Action --- */
+        if (action === "toggleTap") {
+          if (sourceZone === "battlefield" && currentBattlefield[cardId]) {
+            const card = currentBattlefield[cardId];
+            card.isTapped = !card.isTapped;
+            const cardElement = generalZone.querySelector(
+              `.battlefield-card[data-battlefield-id="${cardId}"]`
+            );
+            if (cardElement) {
+              cardElement.classList.toggle("tapped", card.isTapped);
+              /* Adjust position slightly if untapping near edge (due to rotation change) */
+              if (!card.isTapped) {
+                const cardStyle = window.getComputedStyle(cardElement);
+                const cardWidth = parseFloat(cardStyle.width);
+                const cardHeight = parseFloat(cardStyle.height);
+                let currentX = parseFloat(cardElement.style.left);
+                let currentY = parseFloat(cardElement.style.top);
+                let newX = Math.max(
+                  0,
+                  Math.min(currentX, generalZone.clientWidth - cardWidth - 5)
+                );
+                let newY = Math.max(
+                  0,
+                  Math.min(currentY, generalZone.clientHeight - cardHeight - 5)
+                );
+                if (newX !== currentX || newY !== currentY) {
+                  cardElement.style.left = `${newX}px`;
+                  cardElement.style.top = `${newY}px`;
+                  card.x = newX;
+                  card.y = newY;
+                }
+              }
+            }
+            updateTestStatus(
+              `${card.isTapped ? "Tapped" : "Untapped"} ${escapeHtml(
+                cardData.name
+              )}.`
+            );
+            updateUntapAllButtonVisibility();
+          } else {
+            console.error(
+              "Cannot toggle tap: Card not found on battlefield or invalid zone."
+            );
+          }
+          hideContextMenu();
+          return; /* Tap action finished */
+        }
+
+        /* --- Handle Counter Actions --- */
+        if (action.includes("Counter")) {
+          if (sourceZone === "battlefield" && currentBattlefield[cardId]) {
+            const card = currentBattlefield[cardId];
+            if (!card.counters) card.counters = { plusOne: 0, minusOne: 0 };
+            let statusMsg = "";
+
+            switch (action) {
+              case "addPlusOneCounter":
+                card.counters.plusOne++;
+                statusMsg = `Added +1/+1 counter to ${escapeHtml(
+                  cardData.name
+                )}.`;
+                break;
+              case "removePlusOneCounter":
+                if (card.counters.plusOne > 0) {
+                  card.counters.plusOne--;
+                  statusMsg = `Removed +1/+1 counter from ${escapeHtml(
+                    cardData.name
+                  )}.`;
+                } else {
+                  statusMsg = `No +1/+1 counters to remove from ${escapeHtml(
+                    cardData.name
+                  )}.`;
+                }
+                break;
+              case "addMinusOneCounter":
+                card.counters.minusOne++;
+                statusMsg = `Added -1/-1 counter to ${escapeHtml(
+                  cardData.name
+                )}.`;
+                break;
+              case "removeMinusOneCounter":
+                if (card.counters.minusOne > 0) {
+                  card.counters.minusOne--;
+                  statusMsg = `Removed -1/-1 counter from ${escapeHtml(
+                    cardData.name
+                  )}.`;
+                } else {
+                  statusMsg = `No -1/-1 counters to remove from ${escapeHtml(
+                    cardData.name
+                  )}.`;
+                }
+                break;
+            }
+
+            /* Update counter display on the card element */
+            const cardElement = generalZone.querySelector(
+              `.battlefield-card[data-battlefield-id="${cardId}"]`
+            );
+            if (cardElement) {
+              updateCardCountersDisplay(cardElement, card.counters);
+            }
+            updateTestStatus(statusMsg);
+          } else {
+            console.error("Cannot modify counters: Card not on battlefield.");
+          }
+          hideContextMenu();
+          return; /* Counter action finished */
+        }
+
+        /* --- Handle Zone Change Actions --- */
+        let cardRemoved = false;
+        let cardToMove = null;
+        let statusMsg = "";
+
+        /* 1. Remove card from source zone */
+        if (sourceZone === "battlefield") {
+          if (currentBattlefield[cardId]) {
+            cardToMove = { ...currentBattlefield[cardId] };
+            delete currentBattlefield[cardId];
+            cardRemoved = true;
+          }
+        } else if (sourceZone === "graveyard") {
+          const index = currentGraveyard.findIndex((c) => c.gyId === cardId);
+          if (index > -1) {
+            [cardToMove] = currentGraveyard.splice(index, 1);
+            cardRemoved = true;
+          }
+        } else if (sourceZone === "exile") {
+          const index = currentExile.findIndex((c) => c.exileId === cardId);
+          if (index > -1) {
+            [cardToMove] = currentExile.splice(index, 1);
+            cardRemoved = true;
+          }
+        } else if (sourceZone === "hand") {
+          const index = currentHand.findIndex((c) => c.handId === cardId);
+          if (index > -1) {
+            [cardToMove] = currentHand.splice(index, 1);
+            cardRemoved = true;
+          }
+        } else if (sourceZone === "library") {
+          if (
+            libraryIndex !== null &&
+            libraryIndex >= 0 &&
+            libraryIndex < currentLibrary.length
+          ) {
+            if (currentLibrary[libraryIndex]) {
+              [cardToMove] = currentLibrary.splice(libraryIndex, 1);
+              cardRemoved = true;
+            } else {
+              console.error(
+                `Context menu action error: Invalid library index access: ${libraryIndex} out of ${currentLibrary.length}`
+              );
+            }
+          }
+        }
+
+        /* If removal failed, stop */
+        if (!cardRemoved || !cardToMove) {
+          console.error(
+            "Failed to remove card from source zone:",
+            sourceZone,
+            cardId,
+            libraryIndex
+          );
+          hideContextMenu();
+          if (deckSearchArea.style.display === "block") {
+            displayLibraryForSearch(); /* Refresh search if open */
+          }
+          updateTestStatus();
+          return;
+        }
+
+        /* 2. Prepare card data for the new zone (remove irrelevant properties) */
+        const cleanCardData = {
+          name: cardToMove.name,
+          imageUrl: cardToMove.imageUrl,
+          normalImageUrl: cardToMove.normalImageUrl,
+        };
+        statusMsg = `Moved ${escapeHtml(cleanCardData.name)}`;
+        let libraryAction = false; /* Flag if library was modified */
+
+        /* 3. Add card to the destination zone */
+        switch (action) {
+          case "toHand":
+            cleanCardData.handId = `h-${handCardIdCounter++}`;
+            currentHand.push(cleanCardData);
+            statusMsg += " to Hand.";
+            break;
+          case "toBattlefield":
+            const bfId = `bf-${battlefieldCardIdCounter++}`;
+            cleanCardData.x = 10 + Math.floor(Math.random() * 10);
+            cleanCardData.y = 10 + Math.floor(Math.random() * 10);
+            cleanCardData.zone = "general";
+            cleanCardData.isTapped = false;
+            cleanCardData.counters = { plusOne: 0, minusOne: 0 };
+            currentBattlefield[bfId] = cleanCardData;
+            statusMsg += " to Battlefield.";
+            break;
+          case "toGraveyard":
+            cleanCardData.gyId = `gy-${graveyardCardIdCounter++}`;
+            currentGraveyard.push(cleanCardData);
+            statusMsg += " to Graveyard.";
+            break;
+          case "toExile":
+            cleanCardData.exileId = `ex-${exileCardIdCounter++}`;
+            currentExile.push(cleanCardData);
+            statusMsg += " to Exile.";
+            break;
+          case "toLibraryTop":
+            currentLibrary.unshift(cleanCardData);
+            statusMsg += " to top of Library.";
+            libraryAction = true;
+            break;
+          case "toLibraryBottom":
+            currentLibrary.push(cleanCardData);
+            statusMsg += " to bottom of Library.";
+            libraryAction = true;
+            break;
+          default:
+            /* Should not happen, but handle defensively */
+            console.warn("Unknown context menu action:", action);
+            statusMsg = `Error processing action for ${escapeHtml(
+              cleanCardData.name
+            )}.`;
+            /* Attempt to revert by putting the card back */
+            if (sourceZone === "library" && libraryIndex !== null) {
+              currentLibrary.splice(libraryIndex, 0, cardToMove);
+            } else if (sourceZone === "hand") {
+              currentHand.push(cardToMove); /* Simplest revert */
+            } else if (sourceZone === "battlefield") {
+              currentBattlefield[cardId] = cardToMove;
+            } else if (sourceZone === "graveyard") {
+              currentGraveyard.push(cardToMove);
+            } else if (sourceZone === "exile") {
+              currentExile.push(cardToMove);
+            } else {
+              console.error(
+                "Reverting action failed, card may be lost from test area."
+              );
+            }
+            break;
+        }
+
+        /* 4. Update UI */
+        displayBattlefield();
+        displaySideZones();
+        displayHand();
+        updateTestStatus(statusMsg);
+
+        /* Refresh library search if it was involved or is open */
+        if (
+          (libraryAction || sourceZone === "library") &&
+          deckSearchArea.style.display === "block"
+        ) {
+          displayLibraryForSearch();
+        }
+        /* Update library-dependent button states */
+        if (libraryAction || sourceZone === "library") {
+          enableDrawNextButton();
+          enableShuffleButton();
+          enableSearchButton();
+          enableScryButton();
+        }
+        updateUntapAllButtonVisibility();
+        hideContextMenu();
+      }
+
+      /* --- Popups (Card View, Result) --- */
+
+      /**
+       * Shows the large card view popup.
+       * @param {string} imageUrl - The URL of the card image (preferably normal size).
+       */
+      function showCardViewPopup(imageUrl) {
+        if (!imageUrl) {
+          console.warn("Cannot show card view: No image URL provided.");
+          return;
+        }
+        hideResultPopup(); /* Close other popups */
+        hideImportDeckPopup();
+        /* Attempt to get normal size image if small was provided */
+        const normalImageUrl = imageUrl.includes("?")
+          ? imageUrl.split("?")[0]
+          : imageUrl;
+        cardViewImage.src = normalImageUrl.replace("small", "normal");
+        cardViewImage.alt = "Card Image";
+        cardViewPopupOverlay.style.display = "flex";
+      }
+
+      /**
+       * Hides the large card view popup.
+       */
+      function hideCardViewPopup() {
+        cardViewPopupOverlay.style.display = "none";
+        cardViewImage.src = "";
+        cardViewImage.alt = "";
+      }
+
+      /**
+       * Shows a simple popup for results like coin flips or die rolls.
+       * @param {string} message - The message to display in the popup.
+       */
+      function showResultPopup(message) {
+        hideContextMenu(); /* Close other overlays */
+        hideCardViewPopup();
+        hideImportDeckPopup();
+        resultPopupText.textContent = message;
+        resultPopupOverlay.style.display = "flex";
+      }
+
+      /**
+       * Hides the result popup.
+       */
+      function hideResultPopup() {
+        resultPopupOverlay.style.display = "none";
+        resultPopupText.textContent = "";
+      }
+
+      /* --- Scry Functionality --- */
+
+      /**
+       * Initiates the Scry process. Takes cards from the library and displays them in the Scry modal.
+       */
+      function handleScry() {
+        if (scryingState.active) return; /* Already scrying */
+        const count = parseInt(scryCountInput.value, 10);
+        if (isNaN(count) || count <= 0) {
+          updateTestStatus("Invalid scry amount.");
+          return;
+        }
+        const actualCount = Math.min(count, currentLibrary.length);
+        if (actualCount === 0) {
+          updateTestStatus("Library is empty, cannot scry.");
+          return;
+        }
+
+        /* Initialize scry state */
+        scryingState.active = true;
+        scryingState.cards = [];
+        scryingState.expectedCount = actualCount;
+        scryingState.resolvedCount = 0;
+        scryingState.toBottom = [];
+
+        /* Move cards from library to scry state */
+        for (let i = 0; i < actualCount; i++) {
+          const card = currentLibrary.shift();
+          if (card) {
+            card.scryTempId = `scry-${i}`; /* Add temporary ID for tracking */
+            scryingState.cards.push(card);
+          } else {
+            console.error("Attempted to scry undefined card from library.");
+            scryingState.expectedCount--; /* Adjust count if card was invalid */
+          }
+        }
+
+        if (scryingState.expectedCount <= 0) {
+          console.warn("No valid cards found to scry.");
+          cancelScry(); /* Clean up state */
+          return;
+        }
+
+        /* Disable other actions during scry */
+        disableDrawNextButton();
+        disableShuffleButton();
+        disableSearchButton();
+        disableScryButton();
+        untapAllButton.disabled = true;
+
+        displayScryModal(scryingState.expectedCount);
+        updateTestStatus(
+          `Scrying ${scryingState.expectedCount} cards... Choose Top or Bottom for each.`
+        );
+      }
+
+      /**
+       * Displays the Scry modal UI with the cards to be resolved.
+       * @param {number} count - The number of cards being scryed.
+       */
+      function displayScryModal(count) {
+        scryModalTitle.textContent = `Scry ${count}`;
+        scryCardContainer.innerHTML = "";
+
+        scryingState.cards.forEach((card) => {
+          const cardDiv = document.createElement("div");
+          cardDiv.classList.add("scry-card-item");
+          cardDiv.dataset.scryTempId = card.scryTempId;
+
+          const img = document.createElement("img");
+          img.src = escapeHtml(card.imageUrl || "");
+          img.alt = escapeHtml(card.name);
+          img.title = escapeHtml(card.name);
+          img.dataset.normalSrc = escapeHtml(
+            card.normalImageUrl || card.imageUrl || ""
+          );
+          cardDiv.appendChild(img);
+
+          const buttonDiv = document.createElement("div");
+          buttonDiv.classList.add("scry-choice-buttons");
+
+          const topButton = document.createElement("button");
+          topButton.textContent = "Top";
+          topButton.dataset.choice = "top";
+          topButton.addEventListener("click", handleScryChoice);
+
+          const bottomButton = document.createElement("button");
+          bottomButton.textContent = "Bottom";
+          bottomButton.dataset.choice = "bottom";
+          bottomButton.addEventListener("click", handleScryChoice);
+
+          buttonDiv.appendChild(topButton);
+          buttonDiv.appendChild(bottomButton);
+          cardDiv.appendChild(buttonDiv);
+
+          /* Allow context menu (for View Card) on scry items */
+          cardDiv.addEventListener("contextmenu", (event) =>
+            showContextMenu(event, cardDiv)
+          );
+
+          scryCardContainer.appendChild(cardDiv);
+        });
+
+        scryOverlay.style.display = "flex";
+      }
+
+      /**
+       * Handles the user's choice (Top or Bottom) for a single card during Scry.
+       * @param {Event} event - The click event from the Top/Bottom button.
+       */
+      function handleScryChoice(event) {
+        if (!scryingState.active) return;
+        hideContextMenu(); /* Close context menu if open */
+
+        const button = event.target;
+        const choice = button.dataset.choice;
+        const cardItem = button.closest(".scry-card-item");
+        const scryTempId = cardItem.dataset.scryTempId;
+
+        const cardIndex = scryingState.cards.findIndex(
+          (c) => c.scryTempId === scryTempId
+        );
+        if (cardIndex === -1) {
+          console.error("Could not find scry card data for ID:", scryTempId);
+          return;
+        }
+
+        /* Remove card from the active scry list */
+        const [cardData] = scryingState.cards.splice(cardIndex, 1);
+        delete cardData.scryTempId; /* Remove temporary ID */
+
+        let actionMsg = "";
+        if (choice === "top") {
+          /* Put card back on top of library immediately */
+          currentLibrary.unshift(cardData);
+          actionMsg = `Keeping ${escapeHtml(cardData.name)} on top.`;
+        } else {
+          /* Add card to a temporary 'bottom' list */
+          scryingState.toBottom.push(cardData);
+          actionMsg = `Moving ${escapeHtml(cardData.name)} to bottom.`;
+        }
+
+        cardItem.remove(); /* Remove the resolved card from the modal */
+        updateTestStatus(actionMsg);
+
+        scryingState.resolvedCount++;
+
+        /* Check if all cards have been resolved */
+        if (scryingState.resolvedCount === scryingState.expectedCount) {
+          /* Add all cards marked for bottom to the actual bottom of the library */
+          currentLibrary.push(...scryingState.toBottom);
+          scryingState.toBottom = []; /* Clear temporary list */
+          endScrySession();
+        }
+      }
+
+      /**
+       * Cleans up the Scry state and UI after the operation is complete or cancelled.
+       */
+      function endScrySession() {
+        const wasActive = scryingState.active;
+        hideContextMenu();
+        /* Reset scry state */
+        scryingState.active = false;
+        scryingState.cards = [];
+        scryingState.toBottom = [];
+        scryingState.expectedCount = 0;
+        scryingState.resolvedCount = 0;
+
+        /* Hide modal and clear its content */
+        scryOverlay.style.display = "none";
+        scryCardContainer.innerHTML = "";
+
+        /* Re-enable buttons */
+        enableDrawNextButton();
+        enableShuffleButton();
+        enableSearchButton();
+        enableScryButton();
+        untapAllButton.disabled = false;
+
+        /* Update status message */
+        if (wasActive) {
+          let currentStatus = testHandStatus.textContent || "";
+          /* Clean up intermediate scry messages */
+          currentStatus = currentStatus
+            .replace(/Scrying.*Choose.*|Keeping.*top\.|Moving.*bottom\./g, "")
+            .trim();
+          updateTestStatus(currentStatus + " Scry finished.");
+        } else {
+          updateTestStatus(); /* General update if cancelled before starting */
+        }
+
+        /* Refresh library search if open */
+        if (deckSearchArea.style.display === "block") {
+          displayLibraryForSearch();
+        }
+      }
+
+      /**
+       * Cancels an ongoing Scry operation, returning all involved cards to the top of the library.
+       */
+      function cancelScry() {
+        if (scryingState.active) {
+          hideContextMenu();
+          /* Gather all cards currently in scry state or marked for bottom */
+          const cardsToReturn = [
+            ...scryingState.cards,
+            ...scryingState.toBottom,
+          ];
+          cardsToReturn.forEach(
+            (card) => delete card.scryTempId
+          ); /* Clean up temp IDs */
+          /* Return all cards to the top of the library */
+          currentLibrary.unshift(...cardsToReturn);
+
+          updateTestStatus("Scry cancelled. Cards returned to library.");
+          endScrySession(); /* Clean up state and UI */
+        }
+      }
+
+      /* --- Import Deck Functionality --- */ // Added Section
+
+      /**
+       * Shows the import deck popup modal.
+       */
+      function showImportDeckPopup() {
+        importDeckNameInput.value = "";
+        importDeckListTextarea.value = "";
+        updateImportStatus(""); // Clear status
+        saveImportedDeckButton.disabled = false; // Re-enable button
+        isImporting = false; // Reset flag
+        importDeckPopupOverlay.style.display = "flex";
+        importDeckNameInput.focus();
+        hideResultPopup();
+        hideCardViewPopup();
+        hideContextMenu();
+      }
+
+      /**
+       * Hides the import deck popup modal.
+       */
+      function hideImportDeckPopup() {
+        importDeckPopupOverlay.style.display = "none";
+        updateImportStatus(""); // Clear status on close
+      }
+
+      /**
+       * Parses decklist text into card names and quantities.
+       * Supports formats like "4x Card Name" or "4 Card Name".
+       * Ignores lines that look like category headers (e.g., "Creature (20)").
+       * Ignores comments starting with //
+       * @param {string} decklistText - The raw text from the textarea.
+       * @returns {{ deck: { [cardName: string]: number }, errors: string[] }}
+       */
+      function parseDecklist(decklistText) {
+        const lines = decklistText.split("\n");
+        const parsedDeck = {};
+        const errors = [];
+        // Regex to capture "4x Card Name" or "4 Card Name", ignoring leading/trailing spaces and comments
+        const lineRegex = /^\s*(\d+)\s*x?\s+([^/]+)(?:\/\/.*)?$/i;
+        // Regex to identify category headers like "Creature (20)" or just "Lands"
+        const headerRegex = /^\s*([a-zA-Z\s]+)\s*(\(\d+\))?\s*$/;
+
+        lines.forEach((line, index) => {
+          const trimmedLine = line.trim();
+          if (!trimmedLine) return; // Skip empty lines
+
+          // Skip header lines
+          if (headerRegex.test(trimmedLine) && !lineRegex.test(trimmedLine)) {
+            // Check it doesn't ALSO match the card format (e.g., "4 Forest")
+            const headerMatch = trimmedLine.match(headerRegex);
+            // Only consider it a header if it's just words or words + (num)
+            if (headerMatch && !/^\d+/.test(trimmedLine)) {
+              // console.log(`Skipping header: ${trimmedLine}`);
+              return;
+            }
+          }
+
+          const match = trimmedLine.match(lineRegex);
+
+          if (match) {
+            const quantity = parseInt(match[1], 10);
+            // Trim card name and handle potential double spaces, plus basic/snow lands
+            let cardName = match[2].trim().replace(/\s+/g, " ");
+            // Normalize basic land names (optional, but good practice)
+            const basicLands = [
+              "Plains",
+              "Island",
+              "Swamp",
+              "Mountain",
+              "Forest",
+            ];
+            const snowLands = [
+              "Snow-Covered Plains",
+              "Snow-Covered Island",
+              "Snow-Covered Swamp",
+              "Snow-Covered Mountain",
+              "Snow-Covered Forest",
+            ];
+            if (basicLands.includes(cardName)) {
+              // Use the standard capitalization
+            } else if (
+              snowLands.some(
+                (snowName) => snowName.toLowerCase() === cardName.toLowerCase()
+              )
+            ) {
+              cardName = snowLands.find(
+                (snowName) => snowName.toLowerCase() === cardName.toLowerCase()
+              );
+            }
+
+            if (!isNaN(quantity) && quantity > 0 && cardName) {
+              parsedDeck[cardName] = (parsedDeck[cardName] || 0) + quantity;
+            } else {
+              errors.push(
+                `Invalid format on line ${index + 1}: "${trimmedLine}"`
+              );
+            }
+          } else {
+            // Only add error if it's not a header line we already skipped
+            if (!headerRegex.test(trimmedLine) || /^\d+/.test(trimmedLine)) {
+              errors.push(
+                `Could not parse line ${index + 1}: "${trimmedLine}"`
+              );
+            }
+          }
+        });
+
+        return { deck: parsedDeck, errors };
+      }
+
+      /**
+       * Fetches card data (image URLs) from Scryfall for a list of card names/quantities.
+       * Uses the /cards/collection endpoint for efficiency.
+       * @param {{ [cardName: string]: number }} parsedQuantities - Object of card names and quantities.
+       * @returns {Promise<{ importedDeckData: { [cardName: string]: { quantity: number, imageUrl: string, normalImageUrl: string } }, fetchErrors: string[] }>}
+       */
+      async function fetchCardDataForParsedDeck(parsedQuantities) {
+        const importedDeckData = {};
+        const fetchErrors = [];
+        const cardNames = Object.keys(parsedQuantities);
+
+        if (cardNames.length === 0) {
+          return { importedDeckData, fetchErrors };
+        }
+
+        updateImportStatus("Fetching card data from Scryfall...", "info");
+        saveImportedDeckButton.disabled = true; // Disable save while fetching
+
+        // Prepare identifiers for Scryfall API
+        const identifiers = cardNames.map((name) => ({ name }));
+
+        try {
+          // Scryfall API recommends chunks of 75
+          const chunkSize = 75;
+          for (let i = 0; i < identifiers.length; i += chunkSize) {
+            const chunk = identifiers.slice(i, i + chunkSize);
+            await sleep(SCRYFALL_API_DELAY); // Politeness delay
+            const response = await fetch(
+              "https://api.scryfall.com/cards/collection",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ identifiers: chunk }),
+              }
+            );
+
+            if (!response.ok) {
+              throw new Error(
+                `Scryfall API error: ${response.status} ${response.statusText}`
+              );
+            }
+
+            const data = await response.json();
+
+            // Process found cards
+            if (data.data && data.data.length > 0) {
+              data.data.forEach((card) => {
+                const cardName = card.name;
+                // Find original requested name (case-insensitive compare)
+                const originalName = Object.keys(parsedQuantities).find(
+                  (reqName) => reqName.toLowerCase() === cardName.toLowerCase()
+                );
+
+                if (originalName && parsedQuantities[originalName]) {
+                  // Check if it was in our request chunk
+                  const smallImageUrl =
+                    card.image_uris?.small || card.image_uris?.normal || "";
+                  const normalImageUrl =
+                    card.image_uris?.normal || smallImageUrl;
+                  importedDeckData[originalName] = {
+                    // Use original name casing
+                    quantity: parsedQuantities[originalName],
+                    imageUrl: smallImageUrl,
+                    normalImageUrl: normalImageUrl,
+                  };
+                } else {
+                  // This might happen if Scryfall returns a slightly different name match
+                  console.warn(
+                    `Scryfall returned card '${cardName}' not explicitly matched to request chunk.`
+                  );
+                }
+              });
+            }
+
+            // Record not found cards from this chunk
+            if (data.not_found && data.not_found.length > 0) {
+              data.not_found.forEach((notFound) => {
+                // Find the original casing if possible by matching identifier name
+                const originalIdentifier = chunk.find(
+                  (id) =>
+                    id.name?.toLowerCase() === notFound.name?.toLowerCase()
+                );
+                const originalName =
+                  originalIdentifier?.name || notFound.name || "Unknown";
+                fetchErrors.push(
+                  `Card not found: "${escapeHtml(originalName)}"`
+                );
+              });
+            }
+          } // End chunk loop
+        } catch (error) {
+          console.error("Error fetching card data:", error);
+          fetchErrors.push(
+            `Network or API error during fetch: ${error.message}`
+          );
+        } finally {
+          saveImportedDeckButton.disabled = false; // Re-enable save button
+        }
+
+        // Final check: ensure all originally requested cards were accounted for
+        cardNames.forEach((originalName) => {
+          if (
+            !importedDeckData[originalName] &&
+            !fetchErrors.some((err) =>
+              err.includes(`"${escapeHtml(originalName)}"`)
+            )
+          ) {
+            // If not found in results and not already in fetchErrors, add it now
+            fetchErrors.push(`Card not found: "${escapeHtml(originalName)}"`);
+          }
+        });
+
+        return { importedDeckData, fetchErrors };
+      }
+
+      /**
+       * Handles the process of saving the imported deck.
+       * Parses text, fetches card data, validates, and saves to local storage.
+       */
+      async function handleSaveImportedDeck() {
+        if (isImporting) return; // Prevent double clicks
+        isImporting = true;
+        saveImportedDeckButton.disabled = true; // Disable button during processing
+        updateImportStatus("Processing...", "info");
+
+        const deckName = importDeckNameInput.value.trim();
+        const decklistText = importDeckListTextarea.value;
+
+        // --- Basic Validation ---
+        if (!deckName) {
+          updateImportStatus("Error: Deck name cannot be empty.", "error");
+          isImporting = false;
+          saveImportedDeckButton.disabled = false;
+          return;
+        }
+        if (!decklistText.trim()) {
+          updateImportStatus("Error: Decklist cannot be empty.", "error");
+          isImporting = false;
+          saveImportedDeckButton.disabled = false;
+          return;
+        }
+
+        // --- Parse Decklist ---
+        const { deck: parsedQuantities, errors: parseErrors } =
+          parseDecklist(decklistText);
+
+        if (parseErrors.length > 0) {
+          updateImportStatus(
+            `Error parsing decklist:\n${parseErrors.slice(0, 3).join("\n")}${
+              parseErrors.length > 3 ? "\n..." : ""
+            }`,
+            "error"
+          );
+          isImporting = false;
+          saveImportedDeckButton.disabled = false;
+          return;
+        }
+        if (Object.keys(parsedQuantities).length === 0) {
+          updateImportStatus(
+            "Error: No valid card entries found in the decklist.",
+            "error"
+          );
+          isImporting = false;
+          saveImportedDeckButton.disabled = false;
+          return;
+        }
+
+        // --- Fetch Card Data ---
+        const { importedDeckData, fetchErrors } =
+          await fetchCardDataForParsedDeck(parsedQuantities);
+        let statusMessages = [];
+        const foundCardCount = Object.keys(importedDeckData).length;
+        let totalCardsInDeck = 0;
+        Object.values(importedDeckData).forEach(
+          (card) => (totalCardsInDeck += card.quantity)
+        );
+
+        if (fetchErrors.length > 0) {
+          statusMessages.push(
+            `Could not find data for some cards:\n${fetchErrors
+              .slice(0, 3)
+              .join("\n")}${fetchErrors.length > 3 ? "\n..." : ""}`
+          );
+        }
+        if (foundCardCount === 0) {
+          updateImportStatus(
+            `Error: Failed to fetch data for any cards. Check spelling and format. ${statusMessages.join(
+              " "
+            )}`,
+            "error"
+          );
+          isImporting = false;
+          saveImportedDeckButton.disabled = false;
+          return;
+        }
+
+        // --- Save to Local Storage ---
+        const savedDecks = getSavedDecks();
+        const safeDeckName = escapeHtml(deckName);
+
+        if (savedDecks[deckName]) {
+          if (
+            !confirm(
+              `A deck named "${safeDeckName}" already exists. Overwrite it?`
+            )
+          ) {
+            updateImportStatus("Import cancelled.", "info");
+            isImporting = false;
+            saveImportedDeckButton.disabled = false;
+            return;
+          }
+        }
+
+        savedDecks[deckName] = importedDeckData; // Save the fetched data
+
+        try {
+          localStorage.setItem(
+            MULTI_DECK_STORAGE_KEY,
+            JSON.stringify(savedDecks)
+          );
+          let successMsg = `Deck "${safeDeckName}" imported successfully with ${foundCardCount} unique cards (${totalCardsInDeck} total).`;
+          if (statusMessages.length > 0) {
+            successMsg += "\n" + statusMessages.join("\n"); // Add warnings about unfound cards
+          }
+          updateImportStatus(successMsg, "success");
+          renderSavedDecksList(); // Update the list in the main UI
+
+          // Optionally clear fields or close popup after success?
+          // importDeckNameInput.value = '';
+          // importDeckListTextarea.value = '';
+          setTimeout(hideImportDeckPopup, 4000); // Auto-close after showing success/warnings
+        } catch (error) {
+          console.error("Error saving imported deck:", error);
+          updateImportStatus(
+            "Error saving deck to local storage. It might be full.",
+            "error"
+          );
+        } finally {
+          // Ensure flag and button state are reset regardless of outcome
+          isImporting = false;
+          saveImportedDeckButton.disabled = false;
+        }
+      }
+
+      /* --- Miscellaneous Actions (Coin Flip, Die Roll, Fullscreen) --- */
+
+      /**
+       * Simulates a coin flip and displays the result in a popup.
+       */
+      function flipCoin() {
+        const result = Math.random() < 0.5 ? "Heads" : "Tails";
+        showResultPopup(`Coin: ${result}`);
+        updateTestStatus(); /* Update zone counts */
+      }
+
+      /**
+       * Simulates rolling a 6-sided die and displays the result in a popup.
+       */
+      function rollDie() {
+        const result = Math.floor(Math.random() * 6) + 1;
+        showResultPopup(`Dice Roll: ${result}`);
+        updateTestStatus(); /* Update zone counts */
+      }
+
+      /**
+       * Toggles fullscreen mode for the test area section.
+       */
+      function toggleFullscreen() {
+        isFullscreen = !isFullscreen;
+        testAreaSection.classList.toggle("fullscreen-mode", isFullscreen);
+        fullscreenTestAreaButton.textContent = isFullscreen
+          ? "Exit Fullscreen"
+          : "Fullscreen";
+
+        /* Hide/show other elements and adjust body styles for fullscreen */
+        if (isFullscreen) {
+          document.body.style.overflow = "hidden"; /* Prevent scrolling */
+          /* Hide all direct children of body except necessary overlays/menus and the test area */
+          document
+            .querySelectorAll(
+              "body > :not(.test-hand-section):not(#cardContextMenu):not(#scryOverlay):not(#cardViewPopupOverlay):not(#resultPopupOverlay):not(#importDeckPopupOverlay)" // Keep import overlay potentially visible
+            )
+            .forEach((el) => (el.style.display = "none"));
+          /* Ensure header is hidden */
+          document.querySelector(".header-container").style.display = "none";
+          /* Force body to fill viewport */
+          document.body.style.position = "fixed";
+          document.body.style.width = "100%";
+          document.body.style.height = "100%";
+          document.body.style.top = "0";
+          document.body.style.left = "0";
+          document.body.style.margin = "0";
+          document.body.style.padding = "0";
+        } else {
+          /* Restore normal body styles and element visibility */
+          document.body.style.overflow = "";
+          document
+            .querySelectorAll(
+              "body > :not(.test-hand-section):not(#cardContextMenu):not(#scryOverlay):not(#cardViewPopupOverlay):not(#resultPopupOverlay):not(#importDeckPopupOverlay)"
+            )
+            .forEach((el) => (el.style.display = "")); /* Restore display */
+          document.querySelector(".header-container").style.display =
+            "flex"; /* Restore header */
+          document.body.style.position = "";
+          document.body.style.width = "";
+          document.body.style.height = "";
+          document.body.style.top = "";
+          document.body.style.left = "";
+          document.body.style.margin =
+            "20px auto"; /* Restore original margin */
+          document.body.style.padding = "15px"; /* Restore original padding */
+        }
+        /* Close any open popups/menus when toggling fullscreen */
+        hideContextMenu();
+        hideCardViewPopup();
+        hideResultPopup();
+        hideImportDeckPopup(); // Also hide import popup on fullscreen toggle
+      }
+
+      /* --- Event Listeners --- */
+
+      /**
+       * Initializes all event listeners for the application.
+       */
+      function initializeEventListeners() {
+        /* Search Input & Results */
+        searchInput.addEventListener("input", (event) => {
+          debouncedLiveSearch(event.target.value.trim());
+        });
+        searchResults.addEventListener("click", (event) => {
+          const li = event.target.closest("li");
+          if (li?.dataset.cardname) {
+            addCardToDeck(
+              li.dataset.cardname,
+              li.dataset.imageurl,
+              li.dataset.normalimageurl
+            );
+          }
+        });
+        searchInput.addEventListener("keypress", (event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            const firstResult = searchResults.querySelector("li");
+            if (firstResult?.dataset.cardname) {
+              addCardToDeck(
+                firstResult.dataset.cardname,
+                firstResult.dataset.imageurl,
+                firstResult.dataset.normalimageurl
+              );
+            }
+          }
+        });
+
+        /* Deck List Interactions (Event Delegation) */
+        deckList.addEventListener("click", (event) => {
+          if (event.target.classList.contains("delete-card-btn")) {
+            const cardName = event.target.dataset.cardname;
+            if (cardName) {
+              if (
+                confirm(
+                  `Are you sure you want to remove "${escapeHtml(
+                    cardName
+                  )}" from the deck?`
+                )
+              ) {
+                deleteCardFromDeck(cardName);
+              }
+            }
+          } else if (event.target.classList.contains("card-image")) {
+            const normalSrc = event.target.dataset.normalSrc;
+            if (normalSrc) {
+              showCardViewPopup(normalSrc);
+            }
+          }
+        });
+        deckList.addEventListener("change", (event) => {
+          if (event.target.classList.contains("quantity-input")) {
+            const cardName = event.target.dataset.cardname;
+            if (cardName) {
+              updateCardQuantity(cardName, event.target.value);
+            }
+          }
+        });
+
+        /* Deck Action Buttons */
+        saveDeckButton.addEventListener("click", saveDeck);
+        importDeckButton.addEventListener("click", showImportDeckPopup); // Added
+        deleteSavedDeckButton.addEventListener("click", deleteSavedDeck);
+        clearDeckButton.addEventListener("click", clearDeck);
+
+        /* Saved Decks List (Event Delegation) */
+        savedDecksList.addEventListener("click", (event) => {
+          const li = event.target.closest("li");
+          if (li?.dataset.deckName && !li.classList.contains("no-decks")) {
+            loadDeckByName(li.dataset.deckName);
+          }
+        });
+
+        /* Test Area Buttons */
+        drawHandButton.addEventListener("click", drawTestHand);
+        drawNextCardButton.addEventListener("click", drawNextCard);
+        shuffleDeckButton.addEventListener("click", shuffleLibrary);
+        searchDeckButton.addEventListener("click", toggleDeckSearchArea);
+        closeSearchAreaButton.addEventListener("click", hideDeckSearchArea);
+        scryButton.addEventListener("click", handleScry);
+        flipCoinButton.addEventListener("click", flipCoin);
+        rollDieButton.addEventListener("click", rollDie);
+        untapAllButton.addEventListener("click", () => {
+          let untappedCount = 0;
+          for (const id in currentBattlefield) {
+            if (
+              currentBattlefield[id].zone === "general" &&
+              currentBattlefield[id].isTapped
+            ) {
+              currentBattlefield[id].isTapped = false;
+              untappedCount++;
+            }
+          }
+          if (untappedCount > 0) {
+            displayBattlefield();
+            updateTestStatus(`Untapped ${untappedCount} card(s).`);
+          }
+          updateUntapAllButtonVisibility();
+        });
+        fullscreenTestAreaButton.addEventListener("click", toggleFullscreen);
+
+        /* Life Counter Buttons */
+        increaseLifeButton.addEventListener("click", increaseLife);
+        decreaseLifeButton.addEventListener("click", decreaseLife);
+
+        /* Drag and Drop Zone Listeners */
+        [generalZone, graveyardZone, exileZone].forEach((zone) => {
+          zone.addEventListener("dragover", handleDragOver);
+          zone.addEventListener("drop", handleDrop);
+        });
+        // Add listeners specifically to the hand container for reordering
+        testHandContainer.addEventListener("dragover", handleHandDragOver);
+        testHandContainer.addEventListener("dragleave", handleHandDragLeave);
+        testHandContainer.addEventListener("drop", handleHandDrop);
+
+        /* Theme Toggle */
+        themeToggle.addEventListener("change", toggleTheme);
+
+        /* Context Menu Listener */
+        cardContextMenu.addEventListener("click", handleContextMenuAction);
+
+        /* Popup Close Buttons */
+        closeCardViewPopupButton.addEventListener("click", hideCardViewPopup);
+        closeResultPopupButton.addEventListener("click", hideResultPopup);
+        closeImportDeckPopupButton.addEventListener(
+          "click",
+          hideImportDeckPopup
+        );
+        saveImportedDeckButton.addEventListener(
+          "click",
+          handleSaveImportedDeck
+        );
+
+        // Prevent clicks inside the import popup content from closing it
+        importDeckPopupContent.addEventListener("click", (event) => {
+          event.stopPropagation();
+        });
+
+        /* Global Listeners (Click outside, Double Click, Escape key, Scroll/Resize) */
+        document.addEventListener("click", (event) => {
+          /* Close search results if clicking outside */
+          if (
+            !event.target.closest(".search-section") &&
+            !event.target.closest("#searchResults")
+          ) {
+            searchResults.innerHTML = "";
+            searchResults.style.display = "none";
+          }
+          /* Close context menu if clicking outside */
+          if (contextMenuVisible && !cardContextMenu.contains(event.target)) {
+            const targetCard = event.target.closest(
+              ".battlefield-card, .side-zone-card, .hand-card, .scry-card-item, .library-search-card"
+            );
+            // Don't close if clicking another card (new menu will open)
+            if (!targetCard) {
+              hideContextMenu();
+            }
+          }
+          /* Close library search if clicking outside */
+          if (
+            deckSearchArea.style.display === "block" &&
+            !event.target.closest("#deckSearchArea") &&
+            !event.target.closest("#searchDeckButton") &&
+            !event.target.closest("#closeSearchAreaButton") &&
+            !cardContextMenu.contains(event.target)
+          ) {
+            hideDeckSearchArea();
+          }
+
+          /* Close popups if clicking directly on their overlay */
+          if (event.target === cardViewPopupOverlay) hideCardViewPopup();
+          if (event.target === resultPopupOverlay) hideResultPopup();
+          if (event.target === importDeckPopupOverlay) hideImportDeckPopup();
+        });
+
+        document.addEventListener("contextmenu", (event) => {
+          /* Hide previous menu before showing new one */
+          if (contextMenuVisible) {
+            hideContextMenu();
+          }
+          /* Show menu if right-clicking on a card element */
+          const targetCard = event.target.closest(
+            ".battlefield-card, .side-zone-card, .hand-card, .scry-card-item, .library-search-card"
+          );
+          if (targetCard) {
+            event.preventDefault();
+            showContextMenu(event, targetCard);
+          }
+        });
+
+        document.addEventListener("dblclick", (event) => {
+          /* Show large view on double-clicking a card image */
+          const targetCardImage = event.target.closest(
+            ".battlefield-card img, .side-zone-card img, .hand-card img, .scry-card-item img, .library-search-card img, .card-image" /* Added deck list image */
+          );
+          if (targetCardImage) {
+            const normalSrc = targetCardImage.dataset.normalSrc;
+            if (normalSrc) {
+              showCardViewPopup(normalSrc);
+            }
+          }
+        });
+
+        document.addEventListener("keydown", (event) => {
+          if (event.key === "Escape") {
+            /* Prioritize closing things on Escape key */
+            if (isFullscreen) toggleFullscreen();
+            else if (importDeckPopupOverlay.style.display === "flex")
+              hideImportDeckPopup();
+            else if (resultPopupOverlay.style.display === "flex")
+              hideResultPopup();
+            else if (scryingState.active) cancelScry();
+            else if (cardViewPopupOverlay.style.display === "flex")
+              hideCardViewPopup();
+            else if (deckSearchArea.style.display === "block")
+              hideDeckSearchArea();
+            else if (contextMenuVisible) hideContextMenu();
+          }
+        });
+
+        /* Hide popups/menus on scroll/resize to prevent detachment */
+        window.addEventListener(
+          "scroll",
+          () => {
+            if (!isFullscreen) {
+              hideContextMenu();
+              hideCardViewPopup();
+              hideResultPopup();
+              hideImportDeckPopup();
+            }
+          },
+          true /* Use capture phase */
+        );
+        window.addEventListener(
+          "resize",
+          () => {
+            hideContextMenu();
+            hideCardViewPopup();
+            hideResultPopup();
+            hideImportDeckPopup();
+          },
+          true /* Use capture phase */
+        );
+      }
+
+      /* --- Initialization --- */
+
+      /**
+       * Runs when the DOM is fully loaded.
+       * Loads theme, renders initial deck state, populates saved decks list, and sets up listeners.
+       */
+      document.addEventListener("DOMContentLoaded", () => {
+        loadTheme();
+        renderDeck(); /* Render empty deck initially */
+        renderSavedDecksList();
+        updateCurrentDeckNameStatus(null);
+        updateLifeDisplay(); // Initialize life display text
+        hideResultPopup(); /* Ensure popups are hidden on load */
+        hideImportDeckPopup();
+        initializeEventListeners();
+      });
+    </script>
+  </body>
+</html>
